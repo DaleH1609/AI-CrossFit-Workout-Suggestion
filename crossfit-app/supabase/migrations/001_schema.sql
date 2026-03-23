@@ -88,3 +88,5 @@ create index on class_instances(gym_id, date);
 create index on bookings(instance_id, status);
 create index on bookings(confirmation_token) where confirmation_token is not null;
 create index on workout_weeks(gym_id, week_start);
+create index on users(gym_id);
+create unique index on users(gym_id, email);
