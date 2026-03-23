@@ -1,4 +1,5 @@
 // Auto-generated types — run `supabase gen types typescript --local > lib/supabase/types.ts` after setting up local Supabase
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type Database = {
   public: {
     Tables: {
