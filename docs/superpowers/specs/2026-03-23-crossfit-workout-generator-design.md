@@ -47,21 +47,59 @@ Row-level security in Supabase scopes all queries by `gym_id`. All tables includ
 All workouts — both example inputs and AI-generated outputs — are stored and rendered using the following JSON schema:
 
 ```json
-{
-  "day": "Monday",
-  "parts": [
-    {
-      "label": "Part A",
-      "type": "strength",
-      "content": "Romanian Deadlift"
-    },
-    {
-      "label": "Part B",
-      "type": "interval",
-      "content": "500m Row / 10 Clean and Jerk — 2 rounds\nRest at minute 7\nAt minute 9: 1000m Bike / 10 Clean and Jerks — 2 rounds\nFinish at 16 mins"
-    }
-  ]
-}
+[
+  {
+    "day": "Monday",
+    "parts": [
+      {
+        "label": "Part A",
+        "type": "strength",
+        "content": "Romanian Deadlift"
+      },
+      {
+        "label": "Part B",
+        "type": "interval",
+        "content": "500m Row\n10 Clean and Jerk\n2 Rounds\n\nRest at minute 7\n\nAt minute 9:\n1000m Bike\n10 Clean and Jerks\n2 Rounds\n\nFinish at 16 mins"
+      }
+    ]
+  },
+  {
+    "day": "Tuesday",
+    "parts": [
+      {
+        "label": "Each for time",
+        "type": "fortime",
+        "content": "30 Wall Balls\n20/16 Cal Row\n10 Burpee Over Rower\nTime cap 4 mins\n\nOn min 6:\n30 KB Swings\n20 Cal Bike\n10 Burpee Bar Touch\nTime cap 4 mins\n\nRepeat each workout twice"
+      }
+    ]
+  },
+  {
+    "day": "Wednesday",
+    "descriptor": "Strength",
+    "parts": [
+      {
+        "label": null,
+        "type": "strength",
+        "content": "Power Clean — 5 sets x 1.1 reps\nBack Squat — 4 sets x 2 reps\nPull-ups — 5 sets x 3 reps"
+      }
+    ]
+  },
+  {
+    "day": "Thursday",
+    "descriptor": "Partner Workout",
+    "parts": [
+      {
+        "label": null,
+        "type": "partner",
+        "content": "Time cap 28 mins\nSimilar format to Monday, primary movement: Strict Press"
+      }
+    ]
+  },
+  {
+    "day": "Friday",
+    "parts": []
+  }
+]
 ```
 
 - `type` values: `strength` | `interval` | `amrap` | `fortime` | `partner` | `emom` | `rest`
@@ -75,6 +113,67 @@ All workouts — both example inputs and AI-generated outputs — are stored and
 
 ### Onboarding
 Owner pastes example workouts (free text) into a text area. The system stores them as raw text in the `style_examples` table. A minimum of 3 examples is required before generation is enabled.
+
+The following workouts serve as the canonical style template — they define the format, language, and structure Claude must match when generating new weeks:
+
+```
+Monday
+Part A
+Romanian Deadlift
+
+Part B
+500m Row
+10 Clean and Jerk
+2 Rounds
+
+Rest at minute 7
+
+At minute 9:
+1000m Bike
+10 Clean and Jerks
+2 Rounds
+
+Finish at 16 mins
+
+---
+
+Tuesday
+Each for time:
+30 Wall Balls
+20/16 Cal Row
+10 Burpee Over Rower
+Time cap 4 mins
+
+On min 6:
+30 KB Swings
+20 Cal Bike
+10 Burpee Bar Touch
+Time cap 4 mins
+
+Repeat each workout twice
+
+---
+
+Wednesday — Strength
+Power Clean — 5 sets x 1.1 reps
+Back Squat — 4 sets x 2 reps
+Pull-ups — 5 sets x 3 reps
+
+---
+
+Thursday — Partner Workout
+Time cap 28 mins
+Similar format to Monday, primary movement: Strict Press
+```
+
+**Style conventions to preserve in all generated workouts:**
+- Named days with optional descriptor (e.g. "Wednesday — Strength", "Thursday — Partner Workout")
+- Lettered parts (Part A, Part B) for multi-section days
+- Interval workouts use explicit minute markers (e.g. "Rest at minute 7", "At minute 9:", "Finish at 16 mins")
+- Time caps stated inline (e.g. "Time cap 4 mins")
+- Strength days list movements with sets × reps notation
+- Partner workouts reference a day style and swap the primary barbell movement
+- Rep schemes use `/` for scaled options (e.g. "20/16 Cal")
 
 ### Generation Flow
 1. Owner clicks **"Generate This Week"** on the dashboard
