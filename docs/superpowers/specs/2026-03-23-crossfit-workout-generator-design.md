@@ -97,7 +97,18 @@ All workouts — both example inputs and AI-generated outputs — are stored and
   },
   {
     "day": "Friday",
-    "parts": []
+    "parts": [
+      {
+        "label": "Part A",
+        "type": "strength",
+        "content": "Strict Press"
+      },
+      {
+        "label": "Part B",
+        "type": "interval",
+        "content": "500m Row\n10 Hang Power Cleans\n2 Rounds\n\nRest at minute 7\n\nAt minute 9:\n1000m Bike\n10 Hang Power Cleans\n2 Rounds\n\nFinish at 16 mins"
+      }
+    ]
   }
 ]
 ```
@@ -164,6 +175,26 @@ Pull-ups — 5 sets x 3 reps
 Thursday — Partner Workout
 Time cap 28 mins
 Similar format to Monday, primary movement: Strict Press
+
+---
+
+Friday
+Part A
+Strict Press
+
+Part B
+500m Row
+10 Hang Power Cleans
+2 Rounds
+
+Rest at minute 7
+
+At minute 9:
+1000m Bike
+10 Hang Power Cleans
+2 Rounds
+
+Finish at 16 mins
 ```
 
 **Style conventions to preserve in all generated workouts:**
