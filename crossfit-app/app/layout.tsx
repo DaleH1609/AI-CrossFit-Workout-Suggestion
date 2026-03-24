@@ -6,7 +6,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
-export const metadata: Metadata = { title: 'CrossFit Generator' }
+export const metadata: Metadata = { title: 'KOVA' }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

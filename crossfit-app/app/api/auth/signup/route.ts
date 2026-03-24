@@ -6,7 +6,8 @@ export async function POST(req: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
-  const { email, password, gymName, timezone } = await req.json()
+  const { email, password, gymName, timezone, gymType } = await req.json()
+  const resolvedGymType = gymType === 'hyrox' ? 'hyrox' : 'crossfit'
 
   // 1. Create auth user
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
 
   // 2. Create gym (no owner_id yet to avoid circular FK)
   const { data: gym, error: gymError } = await supabase
-    .from('gyms').insert({ name: gymName, timezone }).select().single()
+    .from('gyms').insert({ name: gymName, timezone, gym_type: resolvedGymType }).select().single()
   if (gymError) return NextResponse.json({ error: gymError.message }, { status: 400 })
 
   // 3. Create user row

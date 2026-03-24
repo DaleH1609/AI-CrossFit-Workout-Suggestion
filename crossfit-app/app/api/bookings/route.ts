@@ -4,6 +4,17 @@ import { NextResponse } from 'next/server'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { sendBookingConfirmed, sendBookingCancelled } from '@/lib/email/send'
 
+interface ClassInstance {
+  id: string
+  starts_at: string
+  capacity: number
+}
+
+interface BookingWithInstance {
+  id: string
+  class_instances: { starts_at: string; id: string }
+}
+
 export async function POST(req: Request) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,7 +27,16 @@ export async function POST(req: Request) {
   const { data: instanceRaw } = await supabase.from('class_instances')
     .select('*').eq('id', instanceId).single()
   if (!instanceRaw) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
-  const instance = instanceRaw as any
+  const instance = instanceRaw as unknown as ClassInstance
+
+  // 2-day booking window check
+  const twoDaysFromNow = Date.now() + 2 * 24 * 60 * 60 * 1000
+  if (new Date(instance.starts_at).getTime() > twoDaysFromNow) {
+    return NextResponse.json(
+      { error: 'Bookings open 2 days before class', opensAt: new Date(new Date(instance.starts_at).getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+      { status: 400 }
+    )
+  }
 
   // Count confirmed bookings
   const { count } = await supabase.from('bookings')
@@ -70,7 +90,7 @@ export async function DELETE(req: Request) {
 
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
-  const instance = (booking as any).class_instances
+  const instance = (booking as unknown as BookingWithInstance).class_instances
   const oneHourBefore = new Date(instance.starts_at).getTime() - 60 * 60 * 1000
   if (Date.now() > oneHourBefore) {
     return NextResponse.json({ error: 'Cannot cancel within 1 hour of class' }, { status: 400 })
@@ -86,7 +106,7 @@ export async function DELETE(req: Request) {
   const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
   await sendBookingCancelled(userData!.email, userData!.name, classDate, classTime)
 
-  await promoteNextWaitlistMember(supabase as any, instance.id, instance.starts_at, process.env.NEXT_PUBLIC_APP_URL!)
+  await promoteNextWaitlistMember(supabase, instance.id, instance.starts_at, process.env.NEXT_PUBLIC_APP_URL!)
 
   return NextResponse.json({ success: true })
 }

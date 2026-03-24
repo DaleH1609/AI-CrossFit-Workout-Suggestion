@@ -5,10 +5,17 @@ export interface WorkoutPart {
   content: string
 }
 
+export interface WorkoutScaling {
+  rx: string
+  scaled: string
+  beginner: string
+}
+
 export interface WorkoutDay {
   day: string
   descriptor?: string
   parts: WorkoutPart[]
+  scaling?: WorkoutScaling  // optional, added by post-processing
 }
 
 export type WorkoutWeek = WorkoutDay[]

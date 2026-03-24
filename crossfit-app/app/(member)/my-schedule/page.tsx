@@ -2,6 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
+type BadgeVariant = 'draft' | 'published' | 'confirmed' | 'waitlisted' | 'pending_confirmation'
+
+interface BookingRow {
+  id: string
+  status: string
+  class_instances: { date: string; local_time: string; starts_at: string } | null
+}
+
 export default async function MySchedulePage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -15,9 +23,9 @@ export default async function MySchedulePage() {
 
   // Filter to upcoming only (class date >= today) and sort by starts_at
   const today = new Date().toISOString().split('T')[0]
-  const bookings = ((bookingsRaw ?? []) as any[])
-    .filter(b => b.class_instances?.date >= today)
-    .sort((a, b) => new Date(a.class_instances.starts_at).getTime() - new Date(b.class_instances.starts_at).getTime())
+  const bookings = ((bookingsRaw ?? []) as unknown as BookingRow[])
+    .filter(b => (b.class_instances?.date ?? '') >= today)
+    .sort((a, b) => new Date(a.class_instances!.starts_at).getTime() - new Date(b.class_instances!.starts_at).getTime())
 
   return (
     <div>
@@ -26,8 +34,8 @@ export default async function MySchedulePage() {
         <p className="text-secondary">No upcoming bookings.</p>
       ) : (
         <div className="space-y-3">
-          {bookings.map((b: any) => {
-            const inst = b.class_instances
+          {bookings.map((b) => {
+            const inst = b.class_instances!
             const date = new Date(inst.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
             const time = new Date(`1970-01-01T${inst.local_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
             return (
@@ -36,7 +44,7 @@ export default async function MySchedulePage() {
                   <p className="text-white font-medium">{date}</p>
                   <p className="text-secondary text-sm">{time}</p>
                 </div>
-                <Badge variant={b.status} label={b.status === 'pending_confirmation' ? 'Confirm Spot' : b.status} />
+                <Badge variant={b.status as BadgeVariant} label={b.status === 'pending_confirmation' ? 'Confirm Spot' : b.status} />
               </Card>
             )
           })}

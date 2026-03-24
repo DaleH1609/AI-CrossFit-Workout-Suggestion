@@ -47,11 +47,35 @@ async function callClaude(prompt: string): Promise<WorkoutWeek | null> {
   }
 }
 
+export async function generateScaling(week: WorkoutWeek): Promise<WorkoutWeek> {
+  const client = getClient()
+  const prompt = `You are a CrossFit and fitness scaling expert. Given the following 5-day workout week as JSON, return the exact same JSON array with a "scaling" object added to each day. The "scaling" object must have three fields: "rx" (Rx/as-prescribed version), "scaled" (scaled version for intermediate athletes), and "beginner" (beginner-friendly version). Each field should be a plain text string describing the scaling adjustments.
+
+Input workout week:
+${JSON.stringify(week, null, 2)}
+
+Return ONLY a valid JSON array with the same structure but each day having an added "scaling" field. No markdown, no explanation, just the JSON.`
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2048,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : ''
+  const parsed = JSON.parse(text)
+  if (!Array.isArray(parsed) || parsed.length !== week.length) {
+    throw new Error('Invalid scaling response structure')
+  }
+  return parsed as WorkoutWeek
+}
+
 export async function generateWorkouts(
   styleExamples: string[],
-  history: WorkoutWeek[]
+  history: WorkoutWeek[],
+  gymType: 'crossfit' | 'hyrox' = 'crossfit'
 ): Promise<WorkoutWeek> {
-  const prompt = buildGenerationPrompt(styleExamples, history)
+  const prompt = buildGenerationPrompt(styleExamples, history, gymType)
 
   const result = await callClaude(prompt)
   if (result) return result

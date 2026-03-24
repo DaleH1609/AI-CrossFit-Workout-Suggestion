@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { KovaLogo } from '@/components/ui/kova-logo'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -21,7 +22,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-full max-w-sm p-8 bg-surface rounded-card border border-accent-border">
+      <div className="w-full max-w-sm">
+        <div className="flex justify-center mb-8">
+          <KovaLogo size="md" />
+        </div>
+      <div className="p-8 bg-surface rounded-card border border-accent-border">
         <h1 className="font-display text-2xl text-white mb-6">Sign In</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -40,6 +45,7 @@ export default function LoginPage() {
         <p className="mt-4 text-secondary text-sm text-center">
           New gym? <a href="/signup" className="text-accent hover:underline">Create account</a>
         </p>
+      </div>
       </div>
     </div>
   )

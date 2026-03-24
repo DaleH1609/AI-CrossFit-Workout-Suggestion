@@ -4,6 +4,11 @@ import { ClassSlot } from '@/components/booking/class-slot'
 import { Card } from '@/components/ui/card'
 import type { WorkoutDay } from '@/lib/types'
 
+interface UserRow { gym_id: string; id: string }
+interface WeekData { workouts: WorkoutDay[] }
+interface ClassInstance { id: string; date: string; local_time: string; starts_at: string; capacity: number }
+interface BookingRow { id: string; instance_id: string; status: string }
+
 function getMondayOfCurrentWeek() {
   const d = new Date()
   const day = d.getDay()
@@ -19,7 +24,7 @@ export default async function ThisWeekPage() {
   if (!user) return null
 
   const { data: userDataRaw } = await supabase.from('users').select('gym_id, id').eq('id', user.id).single()
-  const userData = userDataRaw as any
+  const userData = userDataRaw as unknown as UserRow | null
   if (!userData) return <div className="text-secondary p-8">Account setup incomplete. Please contact your gym owner.</div>
 
   const weekStart = getMondayOfCurrentWeek()
@@ -28,7 +33,7 @@ export default async function ThisWeekPage() {
     .eq('gym_id', userData.gym_id).eq('status', 'published').is('archived_at', null)
     .eq('week_start', weekStart).maybeSingle()
 
-  const workouts: WorkoutDay[] = (weekData as any)?.workouts ?? []
+  const workouts: WorkoutDay[] = (weekData as unknown as WeekData | null)?.workouts ?? []
 
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekEnd.getDate() + 4)
@@ -36,19 +41,19 @@ export default async function ThisWeekPage() {
     .eq('gym_id', userData.gym_id)
     .gte('date', weekStart).lte('date', weekEnd.toISOString().split('T')[0])
     .order('date').order('local_time')
-  const instances = (instancesRaw ?? []) as any[]
+  const instances = (instancesRaw ?? []) as unknown as ClassInstance[]
 
   const instanceIds = instances.map(i => i.id)
   const { data: userBookingsRaw } = instanceIds.length > 0
     ? await supabase.from('bookings').select('*').eq('user_id', user.id).in('instance_id', instanceIds)
     : { data: [] }
-  const userBookings = (userBookingsRaw ?? []) as any[]
+  const userBookings = (userBookingsRaw ?? []) as unknown as BookingRow[]
 
   const { data: allBookingsRaw } = instanceIds.length > 0
     ? await supabase.from('bookings').select('instance_id, status')
         .in('instance_id', instanceIds).in('status', ['confirmed', 'pending_confirmation'])
     : { data: [] }
-  const allBookings = (allBookingsRaw ?? []) as any[]
+  const allBookings = (allBookingsRaw ?? []) as unknown as BookingRow[]
 
   const bookingCounts: Record<string, number> = {}
   for (const b of allBookings) {
@@ -75,7 +80,7 @@ export default async function ThisWeekPage() {
                 {dayInstances.length > 0 && (
                   <Card>
                     <p className="text-secondary text-xs uppercase tracking-wider mb-2">Classes</p>
-                    {dayInstances.map((inst: any) => (
+                    {dayInstances.map((inst) => (
                       <ClassSlot
                         key={inst.id}
                         instance={inst}

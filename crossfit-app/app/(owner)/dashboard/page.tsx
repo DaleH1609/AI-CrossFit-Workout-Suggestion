@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { WorkoutWeekGrid } from '@/components/workout/workout-week-grid'
+import { WorkoutEditModal } from '@/components/workout/workout-edit-modal'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
-import type { WorkoutWeek } from '@/lib/types'
+import type { WorkoutDay, WorkoutWeek } from '@/lib/types'
 
 function getMondayOfCurrentWeek() {
   const d = new Date()
@@ -19,6 +20,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [showApproveModal, setShowApproveModal] = useState(false)
+  const [editingDay, setEditingDay] = useState<WorkoutDay | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const weekStart = getMondayOfCurrentWeek()
   const supabase = createClient()
 
@@ -29,17 +32,23 @@ export default function DashboardPage() {
     const { data } = await supabase.from('workout_weeks')
       .select('id, workouts, status').eq('week_start', weekStart)
       .in('status', ['draft', 'published']).order('created_at', { ascending: false }).limit(1).maybeSingle()
-    setWeek(data as any)
+    setWeek(data as { id: string; workouts: WorkoutWeek; status: string } | null)
     setLoading(false)
   }
 
   async function handleGenerate() {
     setGenerating(true)
+    setError(null)
     const res = await fetch('/api/workouts/generate', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weekStart })
     })
-    if (res.ok) await loadWeek()
+    if (res.ok) {
+      await loadWeek()
+    } else {
+      const data = await res.json()
+      setError((data as { error?: string }).error || 'Generation failed')
+    }
     setGenerating(false)
   }
 
@@ -60,6 +69,14 @@ export default function DashboardPage() {
     await loadWeek()
   }
 
+  function handleDaySaved(updated: WorkoutDay) {
+    if (!week) return
+    const updatedWorkouts = week.workouts.map(d =>
+      d.day === updated.day ? updated : d
+    )
+    setWeek({ ...week, workouts: updatedWorkouts })
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -68,12 +85,12 @@ export default function DashboardPage() {
           <p className="text-secondary text-sm mt-1">Week of {weekStart}</p>
         </div>
         <div className="flex items-center gap-3">
-          {week?.status && <Badge variant={week.status as any} label={week.status.charAt(0).toUpperCase() + week.status.slice(1)} />}
+          {week?.status && <Badge variant={week.status as 'draft' | 'published'} label={week.status.charAt(0).toUpperCase() + week.status.slice(1)} />}
           {week?.status === 'draft' && (
             <>
               <Button variant="danger" onClick={handleDiscard}>Discard</Button>
               <Button onClick={handleGenerate} disabled={generating}>Regenerate</Button>
-              <Button onClick={() => setShowApproveModal(true)}>Approve & Publish</Button>
+              <Button onClick={() => setShowApproveModal(true)}>Approve &amp; Publish</Button>
             </>
           )}
           {(!week || week.status === 'published') && (
@@ -84,7 +101,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <WorkoutWeekGrid week={week?.workouts ?? null} loading={loading || generating} />
+      {error && <p className="text-red-400 mb-4">{error}</p>}
+      <WorkoutWeekGrid
+        week={week?.workouts ?? null}
+        loading={loading || generating}
+        isDraft={week?.status === 'draft'}
+        onEdit={setEditingDay}
+      />
 
       <Modal
         open={showApproveModal}
@@ -94,6 +117,15 @@ export default function DashboardPage() {
         onConfirm={handleApprove}
         onCancel={() => setShowApproveModal(false)}
       />
+
+      {editingDay && week && (
+        <WorkoutEditModal
+          day={editingDay}
+          weekId={week.id}
+          onSave={handleDaySaved}
+          onClose={() => setEditingDay(null)}
+        />
+      )}
     </div>
   )
 }

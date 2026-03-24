@@ -1,8 +1,15 @@
 import { WorkoutCard } from './workout-card'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { WorkoutWeek } from '@/lib/types'
+import type { WorkoutDay, WorkoutWeek } from '@/lib/types'
 
-export function WorkoutWeekGrid({ week, loading }: { week: WorkoutWeek | null; loading: boolean }) {
+interface WorkoutWeekGridProps {
+  week: WorkoutWeek | null
+  loading: boolean
+  isDraft?: boolean
+  onEdit?: (day: WorkoutDay) => void
+}
+
+export function WorkoutWeekGrid({ week, loading, isDraft, onEdit }: WorkoutWeekGridProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-5 gap-4">
@@ -13,7 +20,19 @@ export function WorkoutWeekGrid({ week, loading }: { week: WorkoutWeek | null; l
   if (!week) return null
   return (
     <div className="grid grid-cols-5 gap-4">
-      {week.map((day, i) => <WorkoutCard key={i} day={day} />)}
+      {week.map((day, i) => (
+        <div key={i} className="relative group">
+          <WorkoutCard day={day} />
+          {isDraft && onEdit && (
+            <button
+              onClick={() => onEdit(day)}
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-accent bg-surface border border-accent-border rounded px-2 py-1 hover:bg-accent/10"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

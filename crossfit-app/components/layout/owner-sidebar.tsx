@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { KovaLogo } from '@/components/ui/kova-logo'
 
 const nav = [
   { href: '/dashboard', label: 'Weekly Program' },
@@ -25,7 +26,7 @@ export function OwnerSidebar() {
   return (
     <aside className="w-56 min-h-screen bg-surface border-r border-accent-border flex flex-col">
       <div className="p-6 border-b border-accent-border">
-        <h1 className="font-display text-lg text-white">CrossFit HQ</h1>
+        <KovaLogo size="sm" />
       </div>
       <nav className="flex-1 p-4 space-y-1">
         {nav.map(item => (

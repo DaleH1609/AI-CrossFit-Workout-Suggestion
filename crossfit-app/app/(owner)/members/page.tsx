@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Card } from '@/components/ui/card'
 
+interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null }
+interface GymUserRow { gym_id: string }
+
 export default function MembersPage() {
-  const [members, setMembers] = useState<any[]>([])
+  const [members, setMembers] = useState<MemberRow[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null)
   const supabase = createClient()
@@ -17,9 +20,10 @@ export default function MembersPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { data: userData } = await supabase.from('users').select('gym_id').eq('id', user.id).single()
+    const gymUser = userData as unknown as GymUserRow | null
     const { data } = await supabase.from('users').select('id, email, name, created_at, revoked_at')
-      .eq('gym_id', (userData as any)!.gym_id).eq('role', 'member').order('created_at')
-    setMembers(data ?? [])
+      .eq('gym_id', gymUser!.gym_id).eq('role', 'member').order('created_at')
+    setMembers((data ?? []) as unknown as MemberRow[])
   }
 
   async function handleInvite(e: React.FormEvent) {

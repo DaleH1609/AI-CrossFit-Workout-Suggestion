@@ -12,17 +12,35 @@ export function getConfirmationWindow(startsAt: string): number {
   return Math.min(TWO_HOURS_MS, timeUntilClass)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface WaitlistBooking {
+  id: string
+  user_id: string
+  users: { email: string; name: string }
+}
+
+type QueryBuilder = {
+  select: (q: string) => QueryBuilder
+  eq: (k: string, v: string) => QueryBuilder
+  order: (k: string, o?: { ascending: boolean }) => QueryBuilder
+  limit: (n: number) => QueryBuilder
+  single: () => Promise<{ data: WaitlistBooking | null }>
+  update: (data: Record<string, unknown>) => QueryBuilder
+}
+
+type DbClient = { from: (table: string) => QueryBuilder }
+
 export async function promoteNextWaitlistMember(
-  supabase: { from: (table: string) => any },
+  supabase: unknown,
   instanceId: string,
   startsAt: string,
   appUrl: string
 ) {
   if (shouldSkipPromotion(startsAt)) return
 
+  const db = supabase as DbClient
+
   // Get next waitlisted member
-  const { data: next } = await supabase
+  const { data: next } = await db
     .from('bookings')
     .select('id, user_id, users(email, name)')
     .eq('instance_id', instanceId)
@@ -37,14 +55,14 @@ export async function promoteNextWaitlistMember(
   const expiresAt = new Date(Date.now() + windowMs).toISOString()
   const token = crypto.randomUUID()
 
-  const { error: updateError } = await (supabase.from('bookings') as any).update({
+  const { error: updateError } = await (db.from('bookings').update({
     status: 'pending_confirmation',
     confirmation_token: token,
     confirmation_expires_at: expiresAt,
-  }).eq('id', (next as any).id)
+  }).eq('id', next.id) as unknown as Promise<{ error: unknown }>)
   if (updateError) return
 
-  const user = (next as any).users
+  const user = next.users
   const confirmUrl = `${appUrl}/api/bookings/confirm/${token}`
   const expiresIn = windowMs >= TWO_HOURS_MS ? '2 hours' : 'before the class starts'
 

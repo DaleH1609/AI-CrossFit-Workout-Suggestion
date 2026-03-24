@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { KovaLogo } from '@/components/ui/kova-logo'
 
 const nav = [
   { href: '/this-week', label: 'This Week' },
@@ -23,7 +24,7 @@ export function MemberNav() {
 
   return (
     <nav className="border-b border-accent-border bg-surface px-8 py-4 flex items-center justify-between">
-      <h1 className="font-display text-lg text-white">CrossFit HQ</h1>
+      <KovaLogo size="sm" />
       <div className="flex items-center gap-6">
         {nav.map(item => (
           <Link key={item.href} href={item.href}
