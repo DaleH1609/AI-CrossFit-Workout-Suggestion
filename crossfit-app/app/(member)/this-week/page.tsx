@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { WorkoutCard } from '@/components/workout/workout-card'
 import { ClassSlot } from '@/components/booking/class-slot'

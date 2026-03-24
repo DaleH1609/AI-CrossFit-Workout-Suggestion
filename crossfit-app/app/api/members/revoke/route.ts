@@ -2,8 +2,6 @@ import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 interface BookingWithInstance { id: string; class_instances: { starts_at: string } }
 
 export async function POST(req: Request) {
@@ -36,6 +34,7 @@ export async function POST(req: Request) {
   }
 
   if (member) {
+    const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL ?? 'noreply@yourgym.com',
       to: member.email,

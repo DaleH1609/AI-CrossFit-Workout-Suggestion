@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { MemberNav } from '@/components/layout/member-nav'
 
 export default function MemberLayout({ children }: { children: React.ReactNode }) {

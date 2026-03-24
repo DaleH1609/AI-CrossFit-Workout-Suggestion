@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { OwnerSidebar } from '@/components/layout/owner-sidebar'
 import { ToastProvider } from '@/components/ui/toast'
 
