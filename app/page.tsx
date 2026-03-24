@@ -286,6 +286,44 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* CTA */}
+      <section style={{
+        textAlign: 'center', padding: '100px 64px',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Glow */}
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          width: 600, height: 300, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse, rgba(212,175,55,0.06) 0%, transparent 70%)',
+        }} />
+        <h2 className="landing-cta-headline" style={{
+          fontSize: 52, fontWeight: 800, letterSpacing: -2, marginBottom: 16, position: 'relative',
+        }}>
+          Ready to elevate<br />
+          <span style={{ color: '#D4AF37' }}>your gym?</span>
+        </h2>
+        <p style={{ color: '#9CA3AF', fontSize: 16, marginBottom: 40, position: 'relative' }}>
+          Join gym owners already using KOVA to program smarter.
+        </p>
+        <Link href="/signup" style={{
+          background: '#D4AF37', color: '#000', padding: '14px 36px',
+          fontSize: 14, fontWeight: 700, letterSpacing: 1,
+          textTransform: 'uppercase', textDecoration: 'none',
+          display: 'inline-block', position: 'relative',
+        }}>Get Started Free</Link>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{
+        padding: '28px 64px', borderTop: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      }}>
+        <KovaLogo size="sm" />
+        <span style={{ fontSize: 12, color: '#444' }}>© 2026 KOVA. All rights reserved.</span>
+      </footer>
     </div>
   )
 }
