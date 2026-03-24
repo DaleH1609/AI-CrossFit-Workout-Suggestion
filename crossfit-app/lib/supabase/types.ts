@@ -1,15 +1,24 @@
 // Auto-generated types — run `supabase gen types typescript --local > lib/supabase/types.ts` after setting up local Supabase
 /* eslint-disable @typescript-eslint/no-explicit-any */
+type AnyTable = {
+  Row: Record<string, any>
+  Insert: Record<string, any>
+  Update: Record<string, any>
+  Relationships: any[]
+}
+
 export type Database = {
   public: {
     Tables: {
-      gyms: { Row: any; Insert: any; Update: any }
-      users: { Row: any; Insert: any; Update: any }
-      style_examples: { Row: any; Insert: any; Update: any }
-      workout_weeks: { Row: any; Insert: any; Update: any }
-      class_slot_templates: { Row: any; Insert: any; Update: any }
-      class_instances: { Row: any; Insert: any; Update: any }
-      bookings: { Row: any; Insert: any; Update: any }
+      gyms: AnyTable
+      users: AnyTable
+      style_examples: AnyTable
+      workout_weeks: AnyTable
+      class_slot_templates: AnyTable
+      class_instances: AnyTable
+      bookings: AnyTable
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
   }
 }
