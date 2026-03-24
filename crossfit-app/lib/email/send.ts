@@ -6,7 +6,7 @@ import {
 } from './templates'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = 'noreply@yourgym.com' // update with verified domain
+const FROM = process.env.RESEND_FROM_EMAIL ?? 'noreply@yourgym.com'
 
 export async function sendBookingConfirmed(to: string, name: string, date: string, time: string) {
   await resend.emails.send({ from: FROM, to, subject: 'Booking Confirmed', html: bookingConfirmedHtml(name, date, time) })
