@@ -250,6 +250,42 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* FEATURES */}
+      <section id="features" className="landing-section" style={{
+        maxWidth: 1200, margin: '0 auto', padding: '100px 64px', scrollMarginTop: 64,
+      }}>
+        <p style={{ fontSize: 11, letterSpacing: 4, color: '#D4AF37', textTransform: 'uppercase', marginBottom: 16 }}>
+          What KOVA does
+        </p>
+        <h2 style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1, marginBottom: 60 }}>
+          Everything your gym needs.<br />
+          <span style={{ color: '#D4AF37' }}>Nothing it doesn&apos;t.</span>
+        </h2>
+        <div className="landing-grid landing-features-grid" style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 2, background: 'rgba(255,255,255,0.04)',
+        }}>
+          {[
+            { icon: '⚡', title: 'AI Workout Generation', desc: "Generate a full week of WODs in seconds. KOVA learns your gym's style and keeps programming consistent — week after week." },
+            { icon: '📅', title: 'Class Scheduling', desc: 'Set up recurring class slots, manage capacity, and let members book directly from their phone up to 2 days in advance.' },
+            { icon: '👥', title: 'Member Management', desc: "Invite members, track attendance, and manage your gym community — all in one place. Waitlists handled automatically." },
+            { icon: '🎯', title: 'Auto-Scaling', desc: 'Every WOD automatically scaled to Rx, Scaled, and Beginner. No more writing three versions of the same workout.' },
+            { icon: '🏋️', title: 'CrossFit & Hyrox', desc: "Built-in programming logic for both CrossFit and Hyrox gyms. Switch gym type in settings — the AI adapts instantly." },
+            { icon: '✏️', title: 'Full Edit Control', desc: 'AI generates, you approve. Edit any workout before publishing — structured editor or free text, your choice.' },
+          ].map(f => (
+            <div key={f.title} style={{ background: '#050505', padding: '40px 32px' }}>
+              <div style={{
+                width: 40, height: 40, background: 'rgba(212,175,55,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 18, marginBottom: 20,
+              }}>{f.icon}</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>{f.title}</h3>
+              <p style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.7 }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
