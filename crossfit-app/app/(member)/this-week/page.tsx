@@ -20,10 +20,12 @@ export default async function ThisWeekPage() {
 
   const { data: userDataRaw } = await supabase.from('users').select('gym_id, id').eq('id', user.id).single()
   const userData = userDataRaw as any
+  if (!userData) return <div className="text-secondary p-8">Account setup incomplete. Please contact your gym owner.</div>
+
   const weekStart = getMondayOfCurrentWeek()
 
   const { data: weekData } = await supabase.from('workout_weeks').select('workouts')
-    .eq('gym_id', userData!.gym_id).eq('status', 'published').is('archived_at', null)
+    .eq('gym_id', userData.gym_id).eq('status', 'published').is('archived_at', null)
     .eq('week_start', weekStart).maybeSingle()
 
   const workouts: WorkoutDay[] = (weekData as any)?.workouts ?? []
@@ -31,7 +33,7 @@ export default async function ThisWeekPage() {
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekEnd.getDate() + 4)
   const { data: instancesRaw } = await supabase.from('class_instances').select('*')
-    .eq('gym_id', userData!.gym_id)
+    .eq('gym_id', userData.gym_id)
     .gte('date', weekStart).lte('date', weekEnd.toISOString().split('T')[0])
     .order('date').order('local_time')
   const instances = (instancesRaw ?? []) as any[]
