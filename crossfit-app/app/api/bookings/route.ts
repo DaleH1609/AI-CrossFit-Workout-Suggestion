@@ -1,8 +1,9 @@
 // app/api/bookings/route.ts
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { requireMemberAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { sendBookingConfirmed, sendBookingCancelled } from '@/lib/email/send'
+import { BOOKING_ADVANCE_DAYS } from '@/lib/utils'
 
 interface ClassInstance {
   id: string
@@ -16,24 +17,23 @@ interface BookingWithInstance {
 }
 
 export async function POST(req: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireMemberAuth()
+  if (isNextResponse(auth)) return auth
 
+  const { supabase, user, userData } = auth
   const { instanceId } = await req.json()
-  const { data: userData } = await supabase.from('users').select('gym_id, name, email').eq('id', user.id).single()
 
   // Get instance details
-  const { data: instanceRaw } = await supabase.from('class_instances')
-    .select('*').eq('id', instanceId).single()
-  if (!instanceRaw) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
-  const instance = instanceRaw as unknown as ClassInstance
+  const { data: instance } = await supabase.from('class_instances')
+    .select('id, starts_at, capacity').eq('id', instanceId).single<ClassInstance>()
+  if (!instance) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
 
-  // 2-day booking window check
-  const twoDaysFromNow = Date.now() + 2 * 24 * 60 * 60 * 1000
-  if (new Date(instance.starts_at).getTime() > twoDaysFromNow) {
+  // Booking advance window check
+  const advanceMs = BOOKING_ADVANCE_DAYS * 24 * 60 * 60 * 1000
+  const windowOpen = Date.now() + advanceMs
+  if (new Date(instance.starts_at).getTime() > windowOpen) {
     return NextResponse.json(
-      { error: 'Bookings open 2 days before class', opensAt: new Date(new Date(instance.starts_at).getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+      { error: `Bookings open ${BOOKING_ADVANCE_DAYS} days before class`, opensAt: new Date(new Date(instance.starts_at).getTime() - advanceMs).toISOString() },
       { status: 400 }
     )
   }
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
   const waitlist_position = isFull ? (waitlistCount ?? 0) + 1 : null
 
   const { data: booking, error } = await supabase.from('bookings').insert({
-    gym_id: userData!.gym_id,
+    gym_id: userData.gym_id,
     instance_id: instanceId,
     user_id: user.id,
     status,
@@ -71,26 +71,26 @@ export async function POST(req: Request) {
   if (status === 'confirmed') {
     const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
     const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    await sendBookingConfirmed(userData!.email, userData!.name, classDate, classTime)
+    await sendBookingConfirmed(userData.email, userData.name, classDate, classTime)
   }
 
   return NextResponse.json({ booking })
 }
 
 export async function DELETE(req: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireMemberAuth()
+  if (isNextResponse(auth)) return auth
 
+  const { supabase, user, userData } = auth
   const { bookingId } = await req.json()
 
   const { data: booking } = await supabase.from('bookings')
-    .select('*, class_instances(starts_at, id)')
-    .eq('id', bookingId).eq('user_id', user.id).single()
+    .select('id, class_instances(starts_at, id)')
+    .eq('id', bookingId).eq('user_id', user.id).single<BookingWithInstance>()
 
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
-  const instance = (booking as unknown as BookingWithInstance).class_instances
+  const instance = booking.class_instances
   const oneHourBefore = new Date(instance.starts_at).getTime() - 60 * 60 * 1000
   if (Date.now() > oneHourBefore) {
     return NextResponse.json({ error: 'Cannot cancel within 1 hour of class' }, { status: 400 })
@@ -101,10 +101,9 @@ export async function DELETE(req: Request) {
     .eq('id', bookingId)
   if (cancelError) return NextResponse.json({ error: cancelError.message }, { status: 500 })
 
-  const { data: userData } = await supabase.from('users').select('email, name').eq('id', user.id).single()
   const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
   const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-  await sendBookingCancelled(userData!.email, userData!.name, classDate, classTime)
+  await sendBookingCancelled(userData.email, userData.name, classDate, classTime)
 
   await promoteNextWaitlistMember(supabase, instance.id, instance.starts_at, process.env.NEXT_PUBLIC_APP_URL!)
 

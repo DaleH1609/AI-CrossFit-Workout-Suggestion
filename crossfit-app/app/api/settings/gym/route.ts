@@ -1,17 +1,14 @@
 // app/api/settings/gym/route.ts
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 
 export async function PATCH(req: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireOwnerAuth()
+  if (isNextResponse(auth)) return auth
 
-  const { data: userData } = await supabase
-    .from('users').select('gym_id, role').eq('id', user.id).single()
-  if (userData?.role !== 'owner') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
+  const { supabase, userData } = auth
   const { gymType } = await req.json()
+
   if (gymType !== 'crossfit' && gymType !== 'hyrox') {
     return NextResponse.json({ error: 'Invalid gymType' }, { status: 400 })
   }

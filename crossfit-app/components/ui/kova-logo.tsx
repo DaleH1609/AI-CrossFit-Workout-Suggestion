@@ -25,9 +25,9 @@ export function KovaLogo({ size = 'md' }: { size?: KovaLogoSize }) {
         style={{
           fontSize,
           letterSpacing,
-          fontWeight: 700,
-          color: '#D4AF37',
-          fontFamily: 'var(--font-playfair)',
+          fontWeight: 800,
+          color: '#ffffff',
+          fontFamily: 'var(--font-inter)',
           textTransform: 'uppercase' as const,
           lineHeight: 1,
         }}

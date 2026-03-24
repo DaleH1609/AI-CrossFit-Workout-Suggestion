@@ -1,14 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 
 export async function POST(req: Request) {
-  const supabase = createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { data: userData } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
-  if (userData?.role !== 'owner') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const auth = await requireOwnerAuth()
+  if (isNextResponse(auth)) return auth
 
+  const { userData } = auth
   const { email } = await req.json()
 
   const adminSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)

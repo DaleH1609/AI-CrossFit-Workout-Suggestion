@@ -12,14 +12,14 @@ interface WorkoutWeekGridProps {
 export function WorkoutWeekGrid({ week, loading, isDraft, onEdit }: WorkoutWeekGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {Array(5).fill(null).map((_, i) => <Skeleton key={i} className="h-64" />)}
       </div>
     )
   }
   if (!week) return null
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {week.map((day, i) => (
         <div key={i} className="relative group">
           <WorkoutCard day={day} />

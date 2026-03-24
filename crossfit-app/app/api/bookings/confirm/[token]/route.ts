@@ -13,17 +13,15 @@ interface BookingRow {
 export async function GET(_req: Request, { params }: { params: { token: string } }) {
   const supabase = createClient()
 
-  const { data: bookingRaw } = await supabase.from('bookings')
-    .select('*, class_instances(starts_at)')
+  const { data: booking } = await supabase.from('bookings')
+    .select('id, instance_id, confirmation_expires_at, class_instances(starts_at)')
     .eq('confirmation_token', params.token)
     .eq('status', 'pending_confirmation')
-    .single()
+    .single<BookingRow>()
 
-  if (!bookingRaw) {
+  if (!booking) {
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/this-week?error=invalid-token`)
   }
-
-  const booking = bookingRaw as unknown as BookingRow
 
   if (new Date(booking.confirmation_expires_at!).getTime() < Date.now()) {
     // Expired — pass to next waitlist member

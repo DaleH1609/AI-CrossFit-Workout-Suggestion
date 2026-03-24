@@ -4,142 +4,97 @@ import { KovaLogo } from '@/components/ui/kova-logo'
 
 function LandingNav() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur border-b border-accent-border">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <KovaLogo size="lg" />
-        <div className="flex items-center gap-6">
-          <a
-            href="#features"
-            className="text-secondary hover:text-white text-sm transition-colors"
-          >
-            Features
-          </a>
-          <Link
-            href="/login"
-            className="px-4 py-2 bg-accent text-background text-sm font-semibold rounded-btn hover:bg-accent/90 transition-colors"
-            style={{ color: '#0A0A0A' }}
-          >
-            Sign In
-          </Link>
-        </div>
+    <nav className="landing-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 64px', borderBottom: '1px solid rgba(212,175,55,0.15)', position: 'sticky', top: 0, zIndex: 50, background: '#0A0A0A' }}>
+      <KovaLogo size="lg" />
+      <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+        <a href="#features" style={{ color: '#9CA3AF', textDecoration: 'none', fontSize: 14, letterSpacing: 1 }}>Features</a>
+        <Link href="/login" style={{ background: '#D4AF37', color: '#0A0A0A', padding: '8px 20px', fontSize: 13, fontWeight: 700, letterSpacing: 1, textDecoration: 'none' }}>Sign In</Link>
       </div>
-    </header>
+    </nav>
   )
 }
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-white">
+    <div style={{ background: '#0A0A0A', color: '#fff', minHeight: '100vh', fontFamily: 'var(--font-inter)' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .landing-nav { padding: 16px 24px !important; }
+          .landing-hero { padding: 60px 24px 60px !important; }
+          .landing-hero h1 { font-size: 44px !important; }
+          .landing-features { padding: 60px 24px !important; }
+          .landing-features-grid { grid-template-columns: 1fr !important; }
+          .landing-cta { padding: 60px 24px !important; }
+          .landing-footer { padding: 24px !important; flex-direction: column !important; gap: 12px !important; }
+        }
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .landing-features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
       <LandingNav />
 
       {/* Hero */}
-      <section className="pt-40 pb-28 px-6 flex flex-col items-center text-center max-w-4xl mx-auto">
-        <p
-          className="text-accent text-xs font-semibold uppercase tracking-widest mb-6"
-        >
+      <div className="landing-hero" style={{ padding: '120px 64px 100px', maxWidth: 1100, margin: '0 auto' }}>
+        <p style={{ fontSize: 11, letterSpacing: 4, color: '#D4AF37', textTransform: 'uppercase', marginBottom: 24 }}>
           AI-Powered Gym Programming
         </p>
-        <h1 className="font-display text-6xl md:text-7xl font-bold leading-tight mb-6">
-          Train Smarter.{' '}
-          <span className="text-accent">Perform Better.</span>
+        <h1 style={{ fontSize: 72, fontWeight: 800, lineHeight: 1.05, marginBottom: 24, fontFamily: 'var(--font-inter)' }}>
+          Train Smarter.<br />
+          <span style={{ color: '#D4AF37' }}>Perform Better.</span>
         </h1>
-        <p className="text-secondary text-lg max-w-2xl mb-10 leading-relaxed">
-          KOVA generates weekly CrossFit programs tailored to your gym&apos;s coaching style — so you spend less time programming and more time coaching.
+        <p style={{ fontSize: 18, color: '#9CA3AF', maxWidth: 480, lineHeight: 1.7, marginBottom: 40 }}>
+          KOVA generates weekly programs tailored to your gym&apos;s coaching style — so you spend less time programming and more time coaching.
         </p>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Link
-            href="/signup"
-            className="px-8 py-3 bg-accent font-semibold text-sm tracking-widest uppercase rounded-btn hover:bg-accent/90 transition-colors"
-            style={{ color: '#0A0A0A' }}
-          >
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <Link href="/signup" style={{ background: '#D4AF37', color: '#0A0A0A', padding: '14px 32px', fontSize: 14, fontWeight: 700, letterSpacing: 1, textDecoration: 'none', textTransform: 'uppercase' }}>
             Create Your Gym
           </Link>
-          <Link
-            href="/login"
-            className="px-8 py-3 border border-accent-border text-secondary text-sm hover:text-white hover:border-accent transition-colors rounded-btn"
-          >
-            Sign in &rarr;
+          <Link href="/login" style={{ color: '#9CA3AF', fontSize: 14, textDecoration: 'none', borderBottom: '1px solid rgba(156,163,175,0.4)', paddingBottom: 2 }}>
+            Sign in →
           </Link>
         </div>
-      </section>
+      </div>
+
+      <hr style={{ border: 'none', borderTop: '1px solid rgba(212,175,55,0.1)', margin: '0 64px' }} />
 
       {/* Features */}
-      <section id="features" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-accent text-xs font-semibold uppercase tracking-widest text-center mb-4">
-            What KOVA does
-          </p>
-          <h2 className="font-display text-4xl font-bold text-center mb-16">
-            Everything your gym needs.{' '}
-            <span className="text-secondary">Nothing it doesn&apos;t.</span>
-          </h2>
-          {/* 3-column grid with 1px gold dividers via rgba wrapper + 1px gap */}
-          <div
-            className="rounded-card overflow-hidden"
-            style={{ backgroundColor: 'rgba(212,175,55,0.2)', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px' }}
-          >
-            {/* Card 1 */}
-            <div className="bg-surface p-8">
-              <div className="text-3xl mb-4">⚡</div>
-              <h3 className="font-display text-xl font-semibold text-white mb-3">
-                AI Workout Generation
-              </h3>
-              <p className="text-secondary text-sm leading-relaxed">
-                Generate a full week of WODs in seconds. KOVA learns your gym&apos;s style and keeps programming consistent.
-              </p>
+      <div id="features" className="landing-features" style={{ padding: '100px 64px', maxWidth: 1100, margin: '0 auto' }}>
+        <p style={{ fontSize: 11, letterSpacing: 4, color: '#D4AF37', textTransform: 'uppercase', marginBottom: 16 }}>What KOVA does</p>
+        <h2 style={{ fontSize: 40, fontWeight: 700, marginBottom: 60, fontFamily: 'var(--font-inter)' }}>
+          Everything your gym needs.<br />Nothing it doesn&apos;t.
+        </h2>
+        <div className="landing-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(212,175,55,0.15)' }}>
+          {[
+            { icon: '⚡', title: 'AI Workout Generation', desc: "Generate a full week of WODs in seconds. KOVA learns your gym's style and keeps programming consistent." },
+            { icon: '📅', title: 'Class Scheduling', desc: 'Set up recurring class slots, manage capacity, and let members book directly from their phone.' },
+            { icon: '👥', title: 'Member Management', desc: 'Invite members, track attendance, and manage your gym community — all in one place.' },
+          ].map(f => (
+            <div key={f.title} style={{ background: '#0A0A0A', padding: '40px 32px' }}>
+              <div style={{ width: 40, height: 40, background: 'rgba(212,175,55,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, fontSize: 18 }}>{f.icon}</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>{f.title}</h3>
+              <p style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.7 }}>{f.desc}</p>
             </div>
-            {/* Card 2 */}
-            <div className="bg-surface p-8">
-              <div className="text-3xl mb-4">📅</div>
-              <h3 className="font-display text-xl font-semibold text-white mb-3">
-                Class Scheduling
-              </h3>
-              <p className="text-secondary text-sm leading-relaxed">
-                Set up recurring class slots, manage capacity, and let members book directly from their phone.
-              </p>
-            </div>
-            {/* Card 3 */}
-            <div className="bg-surface p-8">
-              <div className="text-3xl mb-4">👥</div>
-              <h3 className="font-display text-xl font-semibold text-white mb-3">
-                Member Management
-              </h3>
-              <p className="text-secondary text-sm leading-relaxed">
-                Invite members, track attendance, and manage your gym community — all in one place.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </div>
 
       {/* CTA */}
-      <section className="py-24 px-6 text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="font-display text-4xl font-bold mb-4">
-            Ready to elevate{' '}
-            <span className="text-accent">your gym?</span>
-          </h2>
-          <p className="text-secondary mb-10">
-            Join gym owners already using KOVA to program smarter.
-          </p>
-          <Link
-            href="/signup"
-            className="inline-block px-10 py-4 bg-accent font-semibold text-sm tracking-widest uppercase rounded-btn hover:bg-accent/90 transition-colors"
-            style={{ color: '#0A0A0A' }}
-          >
-            Get Started Free
-          </Link>
-        </div>
-      </section>
+      <div className="landing-cta" style={{ padding: '100px 64px', textAlign: 'center', borderTop: '1px solid rgba(212,175,55,0.1)' }}>
+        <h2 style={{ fontSize: 48, fontWeight: 800, marginBottom: 16, fontFamily: 'var(--font-inter)' }}>
+          Ready to elevate<br /><span style={{ color: '#D4AF37' }}>your gym?</span>
+        </h2>
+        <p style={{ color: '#9CA3AF', fontSize: 16, marginBottom: 40 }}>
+          Join gym owners already using KOVA to program smarter.
+        </p>
+        <Link href="/signup" style={{ background: '#D4AF37', color: '#0A0A0A', padding: '14px 32px', fontSize: 14, fontWeight: 700, letterSpacing: 1, textDecoration: 'none', textTransform: 'uppercase' }}>
+          Get Started Free
+        </Link>
+      </div>
 
       {/* Footer */}
-      <footer className="border-t border-accent-border px-6 py-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <KovaLogo size="sm" />
-          <p className="text-secondary text-sm">
-            &copy; 2026 KOVA. All rights reserved.
-          </p>
-        </div>
+      <footer className="landing-footer" style={{ padding: '32px 64px', borderTop: '1px solid rgba(212,175,55,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <KovaLogo size="sm" />
+        <span style={{ fontSize: 12, color: '#9CA3AF' }}>© 2026 KOVA. All rights reserved.</span>
       </footer>
     </div>
   )

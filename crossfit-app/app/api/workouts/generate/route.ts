@@ -1,18 +1,34 @@
 // app/api/workouts/generate/route.ts
-import { createClient } from '@/lib/supabase/server'
 import { generateWorkouts, generateScaling } from '@/lib/claude/generate-workouts'
 import { NextResponse } from 'next/server'
+import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+
+// Task 4: simple in-memory rate limit — max 3 requests per gym per minute
+const rateLimitMap = new Map<string, number[]>()
+const RATE_LIMIT_MAX = 3
+const RATE_LIMIT_WINDOW_MS = 60 * 1000
+
+function isRateLimited(gymId: string): boolean {
+  const now = Date.now()
+  const windowStart = now - RATE_LIMIT_WINDOW_MS
+  const timestamps = (rateLimitMap.get(gymId) ?? []).filter(t => t > windowStart)
+  if (timestamps.length >= RATE_LIMIT_MAX) return true
+  timestamps.push(now)
+  rateLimitMap.set(gymId, timestamps)
+  return false
+}
 
 export async function POST(req: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireOwnerAuth()
+  if (isNextResponse(auth)) return auth
 
-  // Get gym
-  const { data: userData } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
-  if (userData?.role !== 'owner') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
+  const { supabase, userData } = auth
   const gymId = userData.gym_id
+
+  if (isRateLimited(gymId)) {
+    return NextResponse.json({ error: 'Too many requests. Please wait before generating again.' }, { status: 429 })
+  }
+
   const { weekStart } = await req.json()
   if (!weekStart || typeof weekStart !== 'string') {
     return NextResponse.json({ error: 'weekStart is required' }, { status: 400 })

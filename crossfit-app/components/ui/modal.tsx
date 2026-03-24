@@ -22,11 +22,11 @@ export function Modal({ open, title, description, confirmLabel = 'Confirm', conf
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/70" onClick={onCancel} />
       <div className="relative bg-surface border border-accent-border rounded-card p-6 max-w-md w-full mx-4">
-        <h2 className="font-display text-xl text-white mb-2">{title}</h2>
-        <p className="text-secondary text-sm mb-6">{description}</p>
+        <h2 id="modal-title" className="font-display text-xl text-white mb-2">{title}</h2>
+        <p id="modal-desc" className="text-secondary text-sm mb-6">{description}</p>
         <div className="flex gap-3 justify-end">
           <Button variant="ghost" onClick={onCancel}>Cancel</Button>
           <Button variant={confirmVariant} onClick={onConfirm}>{confirmLabel}</Button>

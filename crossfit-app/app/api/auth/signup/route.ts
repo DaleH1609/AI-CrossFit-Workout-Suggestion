@@ -7,6 +7,22 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
   const { email, password, gymName, timezone, gymType } = await req.json()
+
+  // Input validation
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+    return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+  }
+  const trimmedGymName = typeof gymName === 'string' ? gymName.trim() : ''
+  if (trimmedGymName.length < 2 || trimmedGymName.length > 50) {
+    return NextResponse.json({ error: 'Gym name must be between 2 and 50 characters' }, { status: 400 })
+  }
+  if (!password || password.length < 8) {
+    return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
+  }
+  if (gymType !== 'crossfit' && gymType !== 'hyrox') {
+    return NextResponse.json({ error: 'Gym type must be crossfit or hyrox' }, { status: 400 })
+  }
+
   const resolvedGymType = gymType === 'hyrox' ? 'hyrox' : 'crossfit'
 
   // 1. Create auth user
