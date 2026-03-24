@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   if (futureBookings) {
     for (const b of futureBookings) {
       if (new Date((b as any).class_instances.starts_at) > new Date()) {
-        await supabase.from('bookings').update({ status: 'cancelled', cancelled_at: now }).eq('id', b.id)
+        await supabase.from('bookings').update({ status: 'cancelled', cancelled_at: now }).eq('id', (b as any).id)
       }
     }
   }
