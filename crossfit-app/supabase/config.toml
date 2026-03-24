@@ -1,0 +1,5 @@
+[functions.generate-class-instances]
+schedule = "0 2 * * *"
+
+[functions.process-waitlist-expiry]
+schedule = "*/15 * * * *"
