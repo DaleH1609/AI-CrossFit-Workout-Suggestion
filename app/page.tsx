@@ -195,6 +195,61 @@ export default function HomePage() {
           )
         )}
       </div>
+
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" className="landing-section" style={{
+        maxWidth: 1200, margin: '0 auto', padding: '100px 64px', scrollMarginTop: 64,
+      }}>
+        <p style={{ fontSize: 11, letterSpacing: 4, color: '#D4AF37', textTransform: 'uppercase', marginBottom: 16 }}>
+          The process
+        </p>
+        <h2 style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1, marginBottom: 60 }}>
+          From idea to published<br />
+          <span style={{ color: '#D4AF37' }}>in three steps.</span>
+        </h2>
+        <div className="landing-grid" style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 2, background: 'rgba(255,255,255,0.04)', overflow: 'visible',
+        }}>
+          {[
+            {
+              num: '01', icon: '⚡', title: 'Generate',
+              desc: "Tell KOVA your gym type and coaching style. The AI generates a full week of structured WODs — strength, metcons, and skill work — in under 30 seconds.",
+              connector: true,
+            },
+            {
+              num: '02', icon: '✏️', title: 'Review & Edit',
+              desc: "Every workout is editable before it goes live. Swap movements, adjust loads, add coaching notes. Your program, refined by AI.",
+              connector: true,
+            },
+            {
+              num: '03', icon: '✓', title: 'Publish',
+              desc: "Approve the week and your members instantly see it. Auto-scaled versions for Rx, Scaled, and Beginner athletes — generated automatically.",
+              connector: false,
+            },
+          ].map(step => (
+            <div key={step.num} style={{ background: '#050505', padding: '40px 32px', position: 'relative' }}>
+              <div style={{ fontSize: 56, fontWeight: 900, color: 'rgba(212,175,55,0.08)', letterSpacing: -2, lineHeight: 1, marginBottom: 20 }}>
+                {step.num}
+              </div>
+              <div style={{
+                width: 40, height: 40, background: 'rgba(212,175,55,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 18, marginBottom: 16,
+              }}>{step.icon}</div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 10 }}>{step.title}</h3>
+              <p style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.7 }}>{step.desc}</p>
+              {step.connector && (
+                <div style={{
+                  position: 'absolute', right: -2, top: '50%', transform: 'translateY(-50%)',
+                  width: 3, height: 40, zIndex: 1,
+                  background: 'linear-gradient(to bottom, transparent, rgba(212,175,55,0.3), transparent)',
+                }} />
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
