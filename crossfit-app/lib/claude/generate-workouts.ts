@@ -3,9 +3,13 @@ import Anthropic from '@anthropic-ai/sdk'
 import { buildGenerationPrompt } from './prompts'
 import type { WorkoutWeek } from '@/lib/types'
 
-function getClient() {
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+let _client: Anthropic | null = null
+function getClient(): Anthropic {
+  if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  return _client
 }
+
+const VALID_TYPES = new Set(['strength', 'interval', 'amrap', 'fortime', 'partner', 'emom', 'rest'])
 
 export function validateWorkoutWeek(data: unknown): data is WorkoutWeek {
   if (!Array.isArray(data)) return false
@@ -15,7 +19,14 @@ export function validateWorkoutWeek(data: unknown): data is WorkoutWeek {
       typeof d === 'object' &&
       d !== null &&
       typeof d.day === 'string' &&
-      Array.isArray(d.parts)
+      Array.isArray(d.parts) &&
+      d.parts.every(
+        (p: unknown) =>
+          typeof p === 'object' &&
+          p !== null &&
+          typeof (p as Record<string, unknown>).content === 'string' &&
+          VALID_TYPES.has((p as Record<string, unknown>).type as string)
+      )
   )
 }
 

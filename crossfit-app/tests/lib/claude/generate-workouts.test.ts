@@ -1,5 +1,5 @@
 // tests/lib/claude/generate-workouts.test.ts
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { generateWorkouts, validateWorkoutWeek } from '@/lib/claude/generate-workouts'
 
 describe('validateWorkoutWeek', () => {

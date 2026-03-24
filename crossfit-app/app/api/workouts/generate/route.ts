@@ -14,6 +14,9 @@ export async function POST(req: Request) {
 
   const gymId = userData.gym_id
   const { weekStart } = await req.json()
+  if (!weekStart || typeof weekStart !== 'string') {
+    return NextResponse.json({ error: 'weekStart is required' }, { status: 400 })
+  }
 
   // Get style examples (active only)
   const { data: examples } = await supabase
@@ -38,7 +41,13 @@ export async function POST(req: Request) {
     .update({ status: 'discarded' })
     .eq('gym_id', gymId).eq('week_start', weekStart).eq('status', 'draft')
 
-  const workouts = await generateWorkouts(styleTexts, historyWeeks)
+  let workouts
+  try {
+    workouts = await generateWorkouts(styleTexts, historyWeeks)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Generation failed'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 
   const { data: week, error } = await supabase.from('workout_weeks')
     .insert({ gym_id: gymId, week_start: weekStart, workouts, status: 'draft' })
