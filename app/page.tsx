@@ -169,6 +169,32 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* STATS BAR */}
+      <div className="landing-stats-bar" style={{
+        padding: '24px 64px',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        background: 'rgba(212,175,55,0.02)',
+        display: 'flex', justifyContent: 'center', gap: 80, alignItems: 'center',
+      }}>
+        {[
+          { value: '< 30s', label: 'TO GENERATE A FULL WEEK' },
+          null,
+          { value: 'CrossFit + Hyrox', label: 'SUPPORTED GYM TYPES' },
+          null,
+          { value: 'Rx / Scaled / Beginner', label: 'AUTO-SCALED FOR EVERY ATHLETE' },
+        ].map((item, i) =>
+          item === null ? (
+            <div key={i} className="divider" style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.06)', flexShrink: 0 }} />
+          ) : (
+            <div key={item.label} style={{ textAlign: 'center' }}>
+              <div className="landing-stats-num" style={{ fontSize: 28, fontWeight: 800, color: '#D4AF37', letterSpacing: -1 }}>{item.value}</div>
+              <div style={{ fontSize: 11, color: '#555', letterSpacing: 1, textTransform: 'uppercase', marginTop: 2 }}>{item.label}</div>
+            </div>
+          )
+        )}
+      </div>
     </div>
   )
 }
