@@ -61,7 +61,114 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* sections go here */}
+      {/* HERO */}
+      <section className="landing-hero" style={{
+        maxWidth: 1200, margin: '0 auto', padding: '100px 64px 80px',
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center',
+        position: 'relative',
+      }}>
+        {/* Background glow */}
+        <div style={{
+          position: 'absolute', top: 0, right: 0, width: 600, height: 600,
+          background: 'radial-gradient(circle at 70% 40%, rgba(212,175,55,0.07) 0%, transparent 60%)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Left: text */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <p style={{ fontSize: 11, letterSpacing: 4, color: '#D4AF37', textTransform: 'uppercase', marginBottom: 20 }}>
+            AI-Powered Gym Programming
+          </p>
+          <h1 style={{ fontSize: 58, fontWeight: 800, lineHeight: 1.02, letterSpacing: -2, marginBottom: 20 }}>
+            Train Smarter.<br />
+            <span style={{ color: '#D4AF37' }}>Perform Better.</span>
+          </h1>
+          <p style={{ fontSize: 16, color: '#9CA3AF', lineHeight: 1.7, maxWidth: 380, marginBottom: 36 }}>
+            KOVA generates weekly programs tailored to your gym&apos;s coaching style — so you spend less time programming and more time coaching.
+          </p>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 48 }}>
+            <Link href="/signup" style={{
+              background: '#D4AF37', color: '#000', padding: '13px 28px',
+              fontSize: 13, fontWeight: 700, letterSpacing: 1, textDecoration: 'none', textTransform: 'uppercase',
+            }}>Create Your Gym</Link>
+            <Link href="/login" style={{
+              color: '#9CA3AF', fontSize: 13, textDecoration: 'none',
+              borderBottom: '1px solid rgba(156,163,175,0.3)', paddingBottom: 2,
+            }}>Sign in →</Link>
+          </div>
+          {/* Inline stats */}
+          <div style={{ display: 'flex', gap: 32, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            {[
+              { value: '500+', label: 'Gyms' },
+              { value: '10K+', label: 'Members' },
+              { value: '50K+', label: 'WODs Generated' },
+            ].map(s => (
+              <div key={s.label}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#D4AF37' }}>{s.value}</div>
+                <div style={{ fontSize: 11, color: '#555', letterSpacing: 1, marginTop: 2 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: App preview */}
+        <div className="landing-app-preview" style={{
+          background: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: 10,
+          overflow: 'hidden', position: 'relative', zIndex: 1,
+          boxShadow: '0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(212,175,55,0.05)',
+        }}>
+          {/* Top gold line */}
+          <div style={{
+            position: 'absolute', top: 0, left: '20%', right: '20%', height: 1, zIndex: 1,
+            background: 'linear-gradient(to right, transparent, rgba(212,175,55,0.4), transparent)',
+            pointerEvents: 'none',
+          }} />
+          {/* App bar */}
+          <div style={{
+            background: '#0a0a0a', padding: '10px 16px', borderBottom: '1px solid #151515',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span style={{ fontSize: 11, color: '#fff', fontWeight: 600 }}>Weekly Program</span>
+            <span style={{
+              background: 'rgba(212,175,55,0.15)', color: '#D4AF37', fontSize: 9,
+              padding: '2px 8px', letterSpacing: 1, fontWeight: 700,
+              border: '1px solid rgba(212,175,55,0.2)',
+            }}>PUBLISHED</span>
+          </div>
+          {/* Workout grid */}
+          <div style={{ padding: 12, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+            {[
+              { day: 'MON', tag: 'STRENGTH' },
+              { day: 'TUE', tag: 'METCON' },
+              { day: 'WED', tag: 'SKILL' },
+              { day: 'THU', tag: 'STRENGTH' },
+              { day: 'FRI', tag: 'METCON' },
+            ].map(({ day, tag }) => (
+              <div key={day} style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 4, padding: 8 }}>
+                <div style={{ fontSize: 8, color: '#D4AF37', letterSpacing: 1, fontWeight: 700, marginBottom: 6 }}>{day}</div>
+                <div style={{ height: 2, background: '#1e1e1e', borderRadius: 1, marginBottom: 3 }} />
+                <div style={{ height: 2, background: '#1e1e1e', borderRadius: 1, marginBottom: 3, width: '80%' }} />
+                <div style={{ height: 2, background: '#1e1e1e', borderRadius: 1, width: '60%' }} />
+                <div style={{
+                  display: 'inline-block', background: 'rgba(212,175,55,0.1)', color: '#D4AF37',
+                  fontSize: 6, padding: '1px 4px', borderRadius: 2, marginTop: 4,
+                }}>{tag}</div>
+              </div>
+            ))}
+          </div>
+          {/* App footer */}
+          <div style={{
+            padding: '8px 12px', borderTop: '1px solid #111',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span style={{ fontSize: 9, color: '#444' }}>Week of Mar 24, 2026</span>
+            <span style={{
+              background: '#D4AF37', color: '#000', fontSize: 8,
+              padding: '4px 10px', fontWeight: 700, letterSpacing: 1,
+            }}>APPROVE &amp; PUBLISH</span>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
