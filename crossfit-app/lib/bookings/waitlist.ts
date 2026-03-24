@@ -37,11 +37,12 @@ export async function promoteNextWaitlistMember(
   const expiresAt = new Date(Date.now() + windowMs).toISOString()
   const token = crypto.randomUUID()
 
-  await (supabase.from('bookings') as any).update({
+  const { error: updateError } = await (supabase.from('bookings') as any).update({
     status: 'pending_confirmation',
     confirmation_token: token,
     confirmation_expires_at: expiresAt,
   }).eq('id', (next as any).id)
+  if (updateError) return
 
   const user = (next as any).users
   const confirmUrl = `${appUrl}/api/bookings/confirm/${token}`

@@ -1,6 +1,7 @@
 // app/api/bookings/confirm/[token]/route.ts
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 
 export async function GET(_req: Request, { params }: { params: { token: string } }) {
   const supabase = createClient()
@@ -22,10 +23,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
     // Expired — pass to next waitlist member
     await supabase.from('bookings').update({ status: 'waitlisted', confirmation_token: null, confirmation_expires_at: null }).eq('id', booking.id)
     const instance = booking.class_instances
-    const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-    const serviceSupabase = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-    const { promoteNextWaitlistMember } = await import('@/lib/bookings/waitlist')
-    await promoteNextWaitlistMember(serviceSupabase, booking.instance_id, instance.starts_at, process.env.NEXT_PUBLIC_APP_URL!)
+    await promoteNextWaitlistMember(supabase as any, booking.instance_id, instance.starts_at, process.env.NEXT_PUBLIC_APP_URL!)
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/this-week?error=confirmation-expired`)
   }
 

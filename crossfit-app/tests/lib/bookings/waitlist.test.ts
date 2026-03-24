@@ -28,11 +28,10 @@ describe('getConfirmationWindow', () => {
     expect(window).toBe(2 * 60 * 60 * 1000)
   })
 
-  it('returns time until class when class is between 2-4 hours away', () => {
+  it('returns 2-hour cap when class is more than 2 hours away', () => {
     const inThreeHours = new Date(Date.now() + 3 * 60 * 60 * 1000)
     const window = getConfirmationWindow(inThreeHours.toISOString())
-    // Should be approximately 3h - 2ms tolerance
-    expect(window).toBeLessThan(3 * 60 * 60 * 1000 + 100)
-    expect(window).toBeGreaterThan(0)
+    // min(2h, 3h) = 2h exactly
+    expect(window).toBe(2 * 60 * 60 * 1000)
   })
 })

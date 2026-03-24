@@ -76,7 +76,10 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'Cannot cancel within 1 hour of class' }, { status: 400 })
   }
 
-  await supabase.from('bookings').update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', bookingId)
+  const { error: cancelError } = await supabase.from('bookings')
+    .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+    .eq('id', bookingId)
+  if (cancelError) return NextResponse.json({ error: cancelError.message }, { status: 500 })
 
   const { data: userData } = await supabase.from('users').select('email, name').eq('id', user.id).single()
   const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
