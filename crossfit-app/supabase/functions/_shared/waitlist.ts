@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000

@@ -16,9 +16,10 @@ export function KovaLogo({ size = 'md' }: { size?: KovaLogoSize }) {
         style={{
           width: hex,
           height: hex,
-          backgroundColor: '#D4AF37',
+          background: 'linear-gradient(135deg, #D4AF37, #F5D060)',
           clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
           flexShrink: 0,
+          boxShadow: '0 0 12px rgba(212,175,55,0.5)',
         }}
       />
       <span
