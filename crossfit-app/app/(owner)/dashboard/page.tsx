@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const weekStart = getMondayOfCurrentWeek()
   const supabase = createClient()
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadWeek() }, [])
 
   async function loadWeek() {

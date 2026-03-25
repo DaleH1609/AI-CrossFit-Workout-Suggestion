@@ -104,6 +104,7 @@ export default function SchedulePage() {
   const [templates, setTemplates] = useState<Template[]>([])
   const [form, setForm] = useState({ dayOfWeek: 1, localTime: '06:00', capacity: 20 })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadTemplates() }, [])
 
   async function loadTemplates() {

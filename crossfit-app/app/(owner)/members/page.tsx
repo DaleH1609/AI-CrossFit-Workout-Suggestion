@@ -14,6 +14,7 @@ export default function MembersPage() {
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null)
   const supabase = createClient()
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadMembers() }, [])
 
   async function loadMembers() {

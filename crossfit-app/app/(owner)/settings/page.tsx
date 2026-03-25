@@ -18,12 +18,13 @@ export default function SettingsPage() {
   const supabase = createClient()
 
   useEffect(() => {
+    const client = createClient()
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await client.auth.getUser()
       if (!user) return
-      const { data: userData } = await supabase.from('users').select('gym_id').eq('id', user.id).single()
+      const { data: userData } = await client.from('users').select('gym_id').eq('id', user.id).single()
       const gymUser = userData as unknown as { gym_id: string } | null
-      const { data } = await supabase.from('gyms').select('name, timezone, gym_type').eq('id', gymUser!.gym_id).single()
+      const { data } = await client.from('gyms').select('name, timezone, gym_type').eq('id', gymUser!.gym_id).single()
       setGym(data as unknown as { name: string; timezone: string; gym_type: 'crossfit' | 'hyrox' } | null)
     }
     load()

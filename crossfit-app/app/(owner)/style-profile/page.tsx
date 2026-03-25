@@ -9,6 +9,7 @@ export default function StyleProfilePage() {
   const [newText, setNewText] = useState('')
   const [showNewProgramModal, setShowNewProgramModal] = useState(false)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadExamples() }, [])
 
   async function loadExamples() {

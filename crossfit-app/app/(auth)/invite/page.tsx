@@ -14,6 +14,7 @@ export default function InvitePage() {
     const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
     if (error) { setError(error.message); return }
+    router.refresh()
     router.push('/')
   }
 

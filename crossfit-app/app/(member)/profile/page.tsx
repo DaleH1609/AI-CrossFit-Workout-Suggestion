@@ -7,11 +7,14 @@ import { Card } from '@/components/ui/card'
 export default function ProfilePage() {
   const [password, setPassword] = useState('')
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
   const supabase = createClient()
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
-    await supabase.auth.updateUser({ password })
+    setError('')
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) { setError(error.message); return }
     setPassword('')
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -27,6 +30,7 @@ export default function ProfilePage() {
             placeholder="New password" minLength={8} required
             className="w-full px-3 py-2 bg-background border border-accent-border rounded-btn text-white placeholder-secondary focus:outline-none focus:border-accent"
           />
+          {error && <p className="text-danger text-sm">{error}</p>}
           <Button type="submit">{saved ? 'Updated!' : 'Update Password'}</Button>
         </form>
       </Card>
