@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { ScheduleTemplate, ScheduleDefaults } from '@/lib/types'
 import { CapacityPopover } from './capacity-popover'
 
@@ -53,6 +53,17 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
   const [newTimeInput, setNewTimeInput] = useState('')
   const [addError, setAddError] = useState('')
 
+  // Drag-to-fill refs — all refs so values are current in async handlers
+  const isDragging = useRef(false)
+  const dragMode = useRef<'fill' | 'erase' | null>(null)
+  const dragProcessed = useRef<Set<string>>(new Set())
+  const dragCellCount = useRef(0)
+  const eraseStartCell = useRef<{ day: number; time: string; templateId: string } | null>(null)
+  const eraseStartFired = useRef(false)
+  const templatesRef = useRef<ScheduleTemplate[]>([])
+
+  useEffect(() => { templatesRef.current = templates }, [templates])
+
   // Build the set of time rows: default times + any custom times that have at least one template
   const templateTimes = new Set(templates.map(t => t.local_time))
   const allTimes = Array.from(new Set([
@@ -66,6 +77,39 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       templates.find(t => t.day_of_week === dayOfWeek && t.local_time === localTime),
     [templates]
   )
+
+  async function callPost(day: number, time: string) {
+    const tempId = crypto.randomUUID()
+    const optimistic: ScheduleTemplate = {
+      id: tempId, day_of_week: day, local_time: time, capacity: null, active: true,
+    }
+    setTemplates(prev => [...prev, optimistic])
+    const res = await fetch('/api/schedule/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dayOfWeek: day, localTime: time, capacity: null }),
+    })
+    if (!res.ok) {
+      setTemplates(prev => prev.filter(t => t.id !== tempId))
+      return
+    }
+    const { template } = await res.json()
+    setTemplates(prev => prev.map(t => t.id === tempId ? template : t))
+  }
+
+  async function callDelete(templateId: string, day: number, time: string) {
+    setTemplates(prev => prev.filter(t => t.id !== templateId))
+    const res = await fetch('/api/schedule/templates', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: templateId }),
+    })
+    if (!res.ok) {
+      setTemplates(prev => [...prev, {
+        id: templateId, day_of_week: day, local_time: time, capacity: null, active: true,
+      }])
+    }
+  }
 
   async function handleCellClick(dayOfWeek: number, localTime: string) {
     const existing = getTemplate(dayOfWeek, localTime)
