@@ -47,7 +47,9 @@ interface Props {
 }
 
 export function ScheduleGrid({ initialTemplates, defaults }: Props) {
-  const [templates, setTemplates] = useState<ScheduleTemplate[]>(initialTemplates)
+  const [templates, setTemplates] = useState<ScheduleTemplate[]>(
+    initialTemplates.map(t => ({ ...t, local_time: t.local_time.slice(0, 5) }))
+  )
   const [popover, setPopover] = useState<PopoverState | null>(null)
   const [customTimes, setCustomTimes] = useState<string[]>([])
   const [newTimeInput, setNewTimeInput] = useState('')
@@ -94,7 +96,7 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       return
     }
     const { template } = await res.json()
-    if (template) setTemplates(prev => prev.map(t => t.id === tempId ? template : t))
+    if (template) setTemplates(prev => prev.map(t => t.id === tempId ? { ...template, local_time: template.local_time.slice(0, 5) } : t))
   }
 
   async function callDelete(templateId: string, day: number, time: string) {
