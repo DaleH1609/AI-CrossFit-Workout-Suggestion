@@ -14,18 +14,26 @@ const GYM_TYPES = [
 export default function SignupPage() {
   const [form, setForm] = useState({ email: '', password: '', gymName: '', timezone: 'America/New_York', gymType: 'crossfit' as 'crossfit' | 'hyrox' })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
-    })
-    const data = await res.json()
-    if (!res.ok) { setError(data.error); return }
-    router.push('/login')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Something went wrong'); return }
+      router.push('/login')
+    } catch {
+      setError('Network error — please try again')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -65,7 +73,7 @@ export default function SignupPage() {
             </div>
           </div>
           {error && <p className="text-danger text-sm">{error}</p>}
-          <Button type="submit" className="w-full">Create Account</Button>
+          <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Creating…' : 'Create Account'}</Button>
         </form>
       </div>
       </div>
