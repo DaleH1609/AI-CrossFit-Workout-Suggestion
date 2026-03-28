@@ -2,7 +2,7 @@
 import { Resend } from 'resend'
 import {
   bookingConfirmedHtml, waitlistPromotionHtml,
-  workoutsPublishedHtml, memberInvitedHtml, bookingCancelledHtml
+  workoutsPublishedHtml, memberInvitedHtml, bookingCancelledHtml, accessRestoredHtml
 } from './templates'
 
 function getResend() {
@@ -35,4 +35,8 @@ export async function sendMemberInvite(to: string, gymName: string, inviteUrl: s
 
 export async function sendBookingCancelled(to: string, name: string, date: string, time: string) {
   await getResend().emails.send({ from: getFrom(), to, subject: 'Booking Cancelled', html: bookingCancelledHtml(name, date, time) })
+}
+
+export async function sendAccessRestored(to: string, name: string, gymName: string, loginUrl: string) {
+  await getResend().emails.send({ from: getFrom(), to, subject: 'Your gym access has been restored', html: accessRestoredHtml(name, gymName, loginUrl) })
 }

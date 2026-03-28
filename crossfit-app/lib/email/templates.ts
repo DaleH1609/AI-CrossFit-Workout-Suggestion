@@ -43,6 +43,15 @@ export function memberInvitedHtml(gymName: string, inviteUrl: string) {
   </div>`
 }
 
+export function accessRestoredHtml(name: string, gymName: string, loginUrl: string) {
+  const safeLoginUrl = loginUrl.startsWith('https://') ? escapeHtml(loginUrl) : '#'
+  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
+    <h2 style="color:#D4AF37;font-family:Georgia,serif">Access Restored</h2>
+    <p>Hi ${escapeHtml(name)}, your access to <strong>${escapeHtml(gymName)}</strong> has been restored.</p>
+    <a href="${safeLoginUrl}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#D4AF37;color:#000;text-decoration:none;border-radius:4px;font-weight:600">Log In</a>
+  </div>`
+}
+
 export function bookingCancelledHtml(name: string, date: string, time: string) {
   return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
     <h2 style="color:#D4AF37;font-family:Georgia,serif">Booking Cancelled</h2>
