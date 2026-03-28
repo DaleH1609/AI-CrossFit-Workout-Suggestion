@@ -169,6 +169,96 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
     setNewTimeInput('')
   }
 
+  function handleDragMouseDown(e: React.MouseEvent, day: number, time: string) {
+    e.preventDefault() // prevent native drag-and-drop which suppresses mouseenter events
+
+    // Close any open popover
+    setPopover(null)
+
+    // Reset all drag state
+    isDragging.current = true
+    dragMode.current = null
+    dragProcessed.current.clear()
+    dragCellCount.current = 0
+    eraseStartCell.current = null
+    eraseStartFired.current = false
+
+    const template = getTemplate(day, time)
+
+    if (template) {
+      // Erase mode — deferred: don't delete yet, wait to confirm drag
+      dragMode.current = 'erase'
+      eraseStartCell.current = { day, time, templateId: template.id }
+    } else {
+      // Fill mode — immediate
+      dragMode.current = 'fill'
+      callPost(day, time)
+    }
+
+    dragProcessed.current.add(`${day}:${time}`)
+    dragCellCount.current = 1
+  }
+
+  function handleDragMouseEnter(day: number, time: string) {
+    if (!isDragging.current) return
+    const key = `${day}:${time}`
+    if (dragProcessed.current.has(key)) return
+
+    dragProcessed.current.add(key)
+    dragCellCount.current++
+
+    if (dragMode.current === 'fill') {
+      callPost(day, time)
+    }
+
+    if (dragMode.current === 'erase') {
+      // Fire deferred start cell deletion on first new cell entered
+      if (!eraseStartFired.current && eraseStartCell.current) {
+        eraseStartFired.current = true
+        const s = eraseStartCell.current
+        callDelete(s.templateId, s.day, s.time)
+      }
+      // Delete this cell only if active; skip empty cells silently.
+      // dragProcessed blocks re-entry so no double-deletion risk.
+      const template = getTemplate(day, time)
+      if (template) callDelete(template.id, day, time)
+    }
+  }
+
+  useEffect(() => {
+    function handleMouseUp() {
+      if (!isDragging.current) {
+        return // No drag was active; nothing to clear or decide
+      }
+
+      const wasSingleCell = dragCellCount.current === 1
+      const startedOnActive = dragMode.current === 'erase'
+      const startCellNotDeleted = !eraseStartFired.current
+
+      // Open popover only for single click on active cell (start cell never deleted).
+      // Single click on empty cell: no popover (cell was just created).
+      // Do NOT call getTemplate here — it closes over stale state. Use templatesRef.
+      if (wasSingleCell && startedOnActive && startCellNotDeleted && eraseStartCell.current) {
+        const { day, time } = eraseStartCell.current
+        const template = templatesRef.current.find(
+          t => t.day_of_week === day && t.local_time === time
+        )
+        if (template) setPopover({ templateId: template.id, dayOfWeek: day, localTime: time })
+      }
+
+      // Reset all refs after decision
+      isDragging.current = false
+      dragMode.current = null
+      dragProcessed.current.clear()
+      dragCellCount.current = 0
+      eraseStartCell.current = null
+      eraseStartFired.current = false
+    }
+
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => window.removeEventListener('mouseup', handleMouseUp)
+  }, []) // empty deps — reads state only via refs
+
   return (
     <div className="overflow-x-auto">
       {/* Grid header */}
