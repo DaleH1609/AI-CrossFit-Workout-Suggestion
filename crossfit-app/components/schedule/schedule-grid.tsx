@@ -111,22 +111,6 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
     }
   }
 
-  async function handleCellClick(dayOfWeek: number, localTime: string) {
-    const existing = getTemplate(dayOfWeek, localTime)
-    if (existing) {
-      setPopover({ templateId: existing.id, dayOfWeek, localTime })
-      return
-    }
-    const res = await fetch('/api/schedule/templates', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dayOfWeek, localTime, capacity: null }),
-    })
-    if (!res.ok) return
-    const { template } = await res.json()
-    if (template) setTemplates(prev => [...prev, template])
-  }
-
   function handlePopoverSave(templateId: string, capacity: number | null) {
     setTemplates(prev =>
       prev.map(t => t.id === templateId ? { ...t, capacity } : t)
@@ -262,7 +246,7 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
   }, [setPopover]) // setPopover is stable; all other state is read via refs
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto select-none">
       {/* Grid header */}
       <div className="grid min-w-[640px]" style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}>
         <div /> {/* time label column */}
@@ -290,9 +274,13 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
                 popover?.dayOfWeek === day && popover?.localTime === time
 
               return (
-                <div key={day} className="relative p-0.5">
+                <div
+                  key={day}
+                  className="relative p-0.5"
+                  onMouseDown={e => handleDragMouseDown(e, day, time)}
+                  onMouseEnter={() => handleDragMouseEnter(day, time)}
+                >
                   <button
-                    onClick={() => handleCellClick(day, time)}
                     className={`w-full h-10 rounded text-xs font-medium transition-colors ${
                       isActive
                         ? 'bg-yellow-500 hover:bg-yellow-400 text-black'
