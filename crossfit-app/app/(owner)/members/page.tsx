@@ -12,6 +12,7 @@ export default function MembersPage() {
   const [members, setMembers] = useState<MemberRow[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const supabase = createClient()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,6 +41,12 @@ export default function MembersPage() {
     await loadMembers()
   }
 
+  async function handleDelete() {
+    await fetch('/api/members/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memberId: deleteTarget }) })
+    setDeleteTarget(null)
+    await loadMembers()
+  }
+
   return (
     <div>
       <h1 className="font-display text-3xl text-white mb-6">Members</h1>
@@ -61,14 +68,17 @@ export default function MembersPage() {
               <p className="text-white text-sm">{m.email}</p>
               {m.revoked_at && <p className="text-danger text-xs">Revoked</p>}
             </div>
-            {m.revoked_at ? (
-              <Button onClick={async () => {
-                await fetch('/api/members/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memberId: m.id }) })
-                await loadMembers()
-              }}>Restore</Button>
-            ) : (
-              <Button variant="danger" onClick={() => setRevokeTarget(m.id)}>Revoke</Button>
-            )}
+            <div className="flex items-center gap-2">
+              {m.revoked_at ? (
+                <Button onClick={async () => {
+                  await fetch('/api/members/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memberId: m.id }) })
+                  await loadMembers()
+                }}>Restore</Button>
+              ) : (
+                <Button variant="danger" onClick={() => setRevokeTarget(m.id)}>Revoke</Button>
+              )}
+              <Button variant="danger" onClick={() => setDeleteTarget(m.id)}>Delete</Button>
+            </div>
           </Card>
         ))}
       </div>
@@ -81,6 +91,15 @@ export default function MembersPage() {
         confirmVariant="danger"
         onConfirm={handleRevoke}
         onCancel={() => setRevokeTarget(null)}
+      />
+      <Modal
+        open={!!deleteTarget}
+        title="Delete Member?"
+        description="This will permanently delete the member and cancel all their future bookings. This cannot be undone."
+        confirmLabel="Delete Member"
+        confirmVariant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
       />
     </div>
   )
