@@ -54,6 +54,7 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
   const [customTimes, setCustomTimes] = useState<string[]>([])
   const [newTimeInput, setNewTimeInput] = useState('')
   const [addError, setAddError] = useState('')
+  const [confirmingClear, setConfirmingClear] = useState(false)
 
   // Drag-to-fill refs — all refs so values are current in async handlers
   const isDragging = useRef(false)
@@ -155,6 +156,25 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
     setNewTimeInput('')
   }
 
+  async function handleClearAll() {
+    const snapshot = templates
+    setTemplates([])
+    setConfirmingClear(false)
+    const results = await Promise.allSettled(
+      snapshot.map(t =>
+        fetch('/api/schedule/templates', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: t.id }),
+        })
+      )
+    )
+    const anyFailed = results.some(
+      r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)
+    )
+    if (anyFailed) setTemplates(snapshot)
+  }
+
   function handleDragMouseDown(e: React.MouseEvent, day: number, time: string) {
     e.preventDefault() // prevent native drag-and-drop which suppresses mouseenter events
 
@@ -250,17 +270,34 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
   return (
     <div className="overflow-x-auto select-none">
       {/* Grid header */}
-      <div className="grid min-w-[640px]" style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}>
-        <div /> {/* time label column */}
-        {DAY_NAMES.map(name => (
-          <div key={name} className="text-center text-xs font-semibold text-yellow-400 py-2 border-b border-zinc-700">
-            {name}
+      <div className="flex items-center justify-between mb-1 min-w-[640px]">
+        <div className="grid flex-1" style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}>
+          <div /> {/* time label column */}
+          {DAY_NAMES.map(name => (
+            <div key={name} className="text-center text-xs font-semibold text-yellow-400 py-2 border-b border-zinc-700">
+              {name}
+            </div>
+          ))}
+        </div>
+        {confirmingClear ? (
+          <div className="flex items-center gap-2 text-xs shrink-0 ml-2">
+            <span className="text-zinc-400">Remove all slots?</span>
+            <button type="button" onClick={handleClearAll} className="text-red-400 hover:text-red-300 font-semibold">Yes</button>
+            <button type="button" onClick={() => setConfirmingClear(false)} className="text-zinc-500 hover:text-zinc-300">Cancel</button>
           </div>
-        ))}
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setPopover(null); setConfirmingClear(true) }}
+            className="text-xs text-red-400 hover:text-red-300 border border-zinc-700 hover:border-red-800 rounded px-2 py-0.5 shrink-0 ml-2"
+          >
+            Clear all
+          </button>
+        )}
       </div>
 
       {/* Grid body */}
-      <div className="min-w-[640px]">
+      <div className={`min-w-[640px]${confirmingClear ? ' opacity-40 pointer-events-none' : ''}`}>
         {allTimes.map(time => (
           <div
             key={time}
