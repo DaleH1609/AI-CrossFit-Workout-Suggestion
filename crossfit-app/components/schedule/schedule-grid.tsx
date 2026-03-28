@@ -70,18 +70,17 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
   async function handleCellClick(dayOfWeek: number, localTime: string) {
     const existing = getTemplate(dayOfWeek, localTime)
     if (existing) {
-      // Open popover
       setPopover({ templateId: existing.id, dayOfWeek, localTime })
       return
     }
-    // Toggle on: create template
     const res = await fetch('/api/schedule/templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ dayOfWeek, localTime, capacity: null }),
     })
+    if (!res.ok) return
     const { template } = await res.json()
-    setTemplates(prev => [...prev, template])
+    if (template) setTemplates(prev => [...prev, template])
   }
 
   function handlePopoverSave(templateId: string, capacity: number | null) {
