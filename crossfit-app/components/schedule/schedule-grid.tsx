@@ -298,6 +298,8 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
                       templateId={template.id}
                       currentCapacity={template.capacity}
                       effectiveCapacity={effectiveCapacity}
+                      dayOfWeek={day}
+                      defaults={defaults}
                       onSave={cap => handlePopoverSave(template.id, cap)}
                       onRemove={() => handlePopoverRemove(template.id)}
                       onClose={() => setPopover(null)}
