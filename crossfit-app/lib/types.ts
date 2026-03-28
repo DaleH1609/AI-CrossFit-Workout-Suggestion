@@ -19,3 +19,16 @@ export interface WorkoutDay {
 }
 
 export type WorkoutWeek = WorkoutDay[]
+
+export interface ScheduleTemplate {
+  id: string
+  day_of_week: number
+  local_time: string
+  capacity: number | null  // null = inherit from defaults
+  active: boolean
+}
+
+export interface ScheduleDefaults {
+  globalDefault: number
+  dayDefaults: Record<string, number>  // key = day_of_week as string (1–7)
+}
