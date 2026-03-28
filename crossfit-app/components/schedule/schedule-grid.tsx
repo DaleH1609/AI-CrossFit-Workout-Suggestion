@@ -94,7 +94,7 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       return
     }
     const { template } = await res.json()
-    setTemplates(prev => prev.map(t => t.id === tempId ? template : t))
+    if (template) setTemplates(prev => prev.map(t => t.id === tempId ? template : t))
   }
 
   async function callDelete(templateId: string, day: number, time: string) {
