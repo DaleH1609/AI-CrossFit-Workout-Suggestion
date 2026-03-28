@@ -145,13 +145,15 @@ export function CapacityPopover({
             Save
           </button>
           <div className="flex justify-between border-t border-zinc-700 pt-2">
-            <button
-              onClick={handleClearOverride}
-              disabled={saving}
-              className="text-xs text-zinc-500 hover:text-zinc-300 disabled:opacity-50"
-            >
-              Clear override
-            </button>
+            {currentCapacity !== null && (
+              <button
+                onClick={handleClearOverride}
+                disabled={saving}
+                className="text-xs text-zinc-500 hover:text-zinc-300 disabled:opacity-50"
+              >
+                Clear override
+              </button>
+            )}
             <button
               onClick={handleRemove}
               disabled={saving}
