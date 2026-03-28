@@ -75,6 +75,9 @@ export default function SignupPage() {
           {error && <p className="text-danger text-sm">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Creating…' : 'Create Account'}</Button>
         </form>
+        <p className="mt-4 text-secondary text-sm text-center">
+          Already have an account? <a href="/login" className="text-accent hover:underline">Sign in</a>
+        </p>
       </div>
       </div>
     </div>
