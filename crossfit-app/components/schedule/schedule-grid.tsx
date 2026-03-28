@@ -220,7 +220,9 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       }
       // Delete this cell only if active; skip empty cells silently.
       // dragProcessed blocks re-entry so no double-deletion risk.
-      const template = getTemplate(day, time)
+      const template = templatesRef.current.find(
+        t => t.day_of_week === day && t.local_time === time
+      )
       if (template) callDelete(template.id, day, time)
     }
   }
@@ -257,7 +259,7 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
 
     window.addEventListener('mouseup', handleMouseUp)
     return () => window.removeEventListener('mouseup', handleMouseUp)
-  }, []) // empty deps — reads state only via refs
+  }, [setPopover]) // setPopover is stable; all other state is read via refs
 
   return (
     <div className="overflow-x-auto">
