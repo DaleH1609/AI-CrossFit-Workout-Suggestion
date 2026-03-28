@@ -8,71 +8,194 @@ Add two enhancements to the schedule grid page:
 
 ## Context
 
-The schedule grid (`components/schedule/schedule-grid.tsx`) uses optimistic updates and refs-based drag-to-fill interaction. The capacity popover (`components/schedule/capacity-popover.tsx`) currently shows a number input pre-filled with the effective capacity regardless of whether a custom value is set. No API changes are needed for either feature — existing endpoints cover all required operations.
+The schedule grid (`components/schedule/schedule-grid.tsx`) uses optimistic updates and refs-based drag-to-fill interaction. The capacity popover (`components/schedule/capacity-popover.tsx`) currently shows a number input pre-filled with the effective capacity regardless of whether a custom value is set. No new API endpoints are needed — existing endpoints cover all required operations.
+
+---
 
 ## Feature 1: Clear All
 
 ### Placement
 
-A "Clear all" button sits in the top-right corner of the schedule grid header row, level with the day-column headings.
+The schedule grid header is currently a CSS grid row. Wrap it in a `<div className="flex items-center justify-between mb-1 min-w-[640px]">` with the existing grid header as a flex-grow child and the "Clear all" button at the far right of that wrapper.
 
-### Interaction flow
+### Button
 
-1. **Idle** — small red-tinted button: `Clear all`
-2. **Confirm** — clicking the button replaces it inline with: `Remove all slots? [Yes] [Cancel]`. Active (gold) cells dim to ~40% opacity as a visual hint that they are about to be removed.
-3. **Yes** — optimistic removal: `setTemplates([])`, then fire `DELETE /api/schedule/templates` for every template in parallel. On any failure, restore the full list and show no error UI (silent rollback — user can retry).
-4. **Cancel** — return to idle, opacity restored.
+```tsx
+<button
+  type="button"
+  onClick={() => { setPopover(null); setConfirmingClear(true) }}
+  className="text-xs text-red-400 hover:text-red-300 border border-zinc-700 hover:border-red-800 rounded px-2 py-0.5 shrink-0"
+>
+  Clear all
+</button>
+```
 
-### Scope
+### Confirm state
 
-Only removes active templates from state/API. Does not touch custom time rows (rows added via "Add Row"), capacity defaults, or day-override defaults.
+When `confirmingClear` is `true`, the button is replaced inline by:
 
-### Component
+```tsx
+<div className="flex items-center gap-2 text-xs shrink-0">
+  <span className="text-zinc-400">Remove all slots?</span>
+  <button type="button" onClick={handleClearAll} className="text-red-400 hover:text-red-300 font-semibold">Yes</button>
+  <button type="button" onClick={() => setConfirmingClear(false)} className="text-zinc-500 hover:text-zinc-300">Cancel</button>
+</div>
+```
 
-All changes are inside `components/schedule/schedule-grid.tsx`. No new files.
+Opening the confirm state also calls `setPopover(null)` to close any open slot popover.
+
+### Cell dimming during confirm
+
+While `confirmingClear` is `true`, the grid body wrapper `<div className="min-w-[640px]">` gains `opacity-40 pointer-events-none` so all cells dim and cannot be interacted with.
+
+### `handleClearAll` function
+
+```ts
+async function handleClearAll() {
+  const snapshot = templates  // save for rollback
+  setTemplates([])
+  setConfirmingClear(false)
+  const results = await Promise.allSettled(
+    snapshot.map(t =>
+      fetch('/api/schedule/templates', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: t.id }),
+      })
+    )
+  )
+  const anyFailed = results.some(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok))
+  if (anyFailed) setTemplates(snapshot)  // silent rollback; server-side partial state is acceptable
+}
+```
 
 ### State
 
-One new boolean `useState`: `confirmingClear`. `true` while the confirm prompt is shown.
+One new `useState`:
+```ts
+const [confirmingClear, setConfirmingClear] = useState(false)
+```
 
 ---
 
 ## Feature 2: Capacity Override Popover
 
-### Two states
+### Props changes
 
-**State A — using global (or day) default** (`currentCapacity === null`)
+Add `dayOfWeek: number` and `defaults: ScheduleDefaults` to the `CapacityPopover` Props interface:
 
-- Header: "Capacity"
-- Body: displays effective capacity as `X (global)` or `X (day default)` in muted text
-- Action: yellow "Override" button on the same row as the label
-- Footer: "Remove class" in red
-
-**State B — custom capacity set** (`currentCapacity !== null`, OR after clicking Override)
-
-- Header: "Capacity"
-- Body: number input pre-filled with the current custom value, auto-focused
-- Actions: full-width yellow "Save" button
-- Footer: "Clear override" (left, muted) | "Remove class" (right, red)
-
-### Transitions
-
-- Clicking **Override** in State A: transition to State B, input auto-focuses, pre-filled with effective capacity.
-- Clicking **Save** in State B: PATCH with the entered value → calls `onSave(capacity)` → closes popover.
-- Clicking **Clear override** in State B: PATCH with `capacity: null` → calls `onSave(null)` → closes popover (slot reverts to global/day default display).
-- Clicking **Remove class** (either state): DELETE → calls `onRemove()` → closes popover (unchanged from current behaviour).
-
-### "Day default" label
-
-When the slot's day has an explicit default in `defaults.dayDefaults`, the label reads `X (day default)` instead of `X (global)`.
-
-### Component
-
-All changes are inside `components/schedule/capacity-popover.tsx`. The Props interface gains one field:
 ```ts
-dayOfWeek: number   // passed from ScheduleGrid so the popover can resolve the label
+interface Props {
+  templateId: string
+  currentCapacity: number | null
+  effectiveCapacity: number
+  dayOfWeek: number         // new
+  defaults: ScheduleDefaults  // new — used to resolve the label
+  onSave: (capacity: number | null) => void
+  onRemove: () => void
+  onClose: () => void
+}
 ```
-`ScheduleGrid` must pass `dayOfWeek` to the `CapacityPopover` call site, and also pass `defaults` down (it already receives `defaults` as a prop).
+
+`ScheduleGrid` already receives `defaults` as a prop and already passes `template.id`, `template.capacity`, and `effectiveCapacity` to `CapacityPopover`. Add `dayOfWeek={day}` and `defaults={defaults}` to the existing `<CapacityPopover ... />` call site.
+
+### Internal state
+
+One new `useState` to track the override sub-state:
+```ts
+const [overriding, setOverriding] = useState(currentCapacity !== null)
+```
+
+Initialise to `true` when `currentCapacity` is already set (slot already has a custom value), `false` otherwise. This ensures re-opening the popover on a slot with an existing override goes straight to the input.
+
+### Capacity label
+
+```ts
+const hasDayDefault = defaults.dayDefaults[String(dayOfWeek)] !== undefined
+const defaultLabel = hasDayDefault ? 'day default' : 'global'
+```
+
+### State A — using default (`!overriding`)
+
+```tsx
+<p className="text-xs text-gray-400 mb-2">Capacity</p>
+<div className="flex items-center justify-between mb-3">
+  <span className="text-sm text-zinc-300">
+    {effectiveCapacity}{' '}
+    <span className="text-xs text-zinc-500">({defaultLabel})</span>
+  </span>
+  <button
+    type="button"
+    onClick={() => setOverriding(true)}
+    className="text-xs text-yellow-400 border border-yellow-900 rounded px-2 py-0.5 hover:border-yellow-700"
+  >
+    Override
+  </button>
+</div>
+<div className="border-t border-zinc-700 pt-2">
+  <button onClick={handleRemove} disabled={saving} className="w-full text-red-400 hover:text-red-300 text-xs py-1 disabled:opacity-50">
+    Remove class
+  </button>
+</div>
+```
+
+### State B — custom value (`overriding`)
+
+```tsx
+<p className="text-xs text-gray-400 mb-1">Capacity</p>
+<input
+  type="number" min={1} max={200}
+  value={val}
+  onChange={e => { setVal(e.target.value); setError('') }}
+  className="w-full bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-sm text-white text-center focus:outline-none focus:border-yellow-500 mb-1"
+  autoFocus
+/>
+{error && <p className="text-xs text-red-400 mb-1">{error}</p>}
+<button onClick={handleSave} disabled={saving} className="w-full bg-yellow-500 hover:bg-yellow-400 text-black text-xs font-semibold rounded py-1 mb-2 disabled:opacity-50">
+  Save
+</button>
+<div className="flex justify-between border-t border-zinc-700 pt-2">
+  <button onClick={handleClearOverride} disabled={saving} className="text-xs text-zinc-500 hover:text-zinc-300 disabled:opacity-50">
+    Clear override
+  </button>
+  <button onClick={handleRemove} disabled={saving} className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50">
+    Remove class
+  </button>
+</div>
+```
+
+The `val` state initial value preserves the existing behaviour:
+```ts
+const [val, setVal] = useState(
+  currentCapacity !== null ? String(currentCapacity) : String(effectiveCapacity)
+)
+```
+When reopening a slot that already has a custom override, the input pre-fills with the existing custom value. When clicking Override on a slot using the default, it pre-fills with `effectiveCapacity`.
+
+### `handleClearOverride` function
+
+A separate handler distinct from `handleSave` (which rejects non-numeric values and cannot accept `null`):
+
+```ts
+async function handleClearOverride() {
+  setSaving(true)
+  const res = await fetch('/api/schedule/templates', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: templateId, capacity: null }),
+  })
+  setSaving(false)
+  if (!res.ok) { setError('Failed to clear'); return }
+  onSave(null)
+  onClose()
+}
+```
+
+Shares the existing `saving` flag and `error` state. Error message: `'Failed to clear'`.
+
+### Escape key behaviour
+
+Pressing Escape closes the popover entirely (existing `onClose()` call), regardless of which state (A or B) is active. It does **not** return State B to State A.
 
 ---
 
@@ -80,8 +203,8 @@ dayOfWeek: number   // passed from ScheduleGrid so the popover can resolve the l
 
 | File | Change |
 |------|--------|
-| `components/schedule/capacity-popover.tsx` | Modify — add `dayOfWeek` prop, two-state UI, Clear override action |
-| `components/schedule/schedule-grid.tsx` | Modify — add Clear All button/confirm, pass `dayOfWeek` + `defaults` to `CapacityPopover` |
+| `components/schedule/capacity-popover.tsx` | Modify — add `dayOfWeek`, `defaults` props; two-state UI; `handleClearOverride`; `overriding` state |
+| `components/schedule/schedule-grid.tsx` | Modify — add `confirmingClear` state; `handleClearAll`; Clear All button/confirm in header; cell-dim during confirm; pass `dayOfWeek` + `defaults` to `CapacityPopover` |
 
 All paths relative to `/Users/dalehealyegan/Desktop/CrossFit/crossfit-app`.
 
