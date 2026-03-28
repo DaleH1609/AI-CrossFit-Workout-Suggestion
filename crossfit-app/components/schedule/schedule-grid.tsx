@@ -281,6 +281,8 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
                   onMouseEnter={() => handleDragMouseEnter(day, time)}
                 >
                   <button
+                    type="button"
+                    // TODO: add onKeyDown (Space/Enter) for keyboard-accessible cell toggle
                     className={`w-full h-10 rounded text-xs font-medium transition-colors ${
                       isActive
                         ? 'bg-yellow-500 hover:bg-yellow-400 text-black'
@@ -307,7 +309,7 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       </div>
 
       {/* Add custom time */}
-      <div className="flex items-center gap-2 mt-4 min-w-[640px]">
+      <div className="flex items-center gap-2 mt-4 min-w-[640px] select-text">
         <div className="w-[72px]" />
         <input
           type="text"
