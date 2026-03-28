@@ -28,6 +28,12 @@ export interface ScheduleTemplate {
   active: boolean
 }
 
+export interface GymScheduleDefault {
+  gym_id: string
+  day_of_week: number | null  // null = global, 1-7 = per-day
+  default_capacity: number
+}
+
 export interface ScheduleDefaults {
   globalDefault: number
   dayDefaults: Record<string, number>  // key = day_of_week as string (1–7)
