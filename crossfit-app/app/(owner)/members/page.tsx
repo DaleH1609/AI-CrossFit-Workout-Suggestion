@@ -61,7 +61,12 @@ export default function MembersPage() {
               <p className="text-white text-sm">{m.email}</p>
               {m.revoked_at && <p className="text-danger text-xs">Revoked</p>}
             </div>
-            {!m.revoked_at && (
+            {m.revoked_at ? (
+              <Button onClick={async () => {
+                await fetch('/api/members/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memberId: m.id }) })
+                await loadMembers()
+              }}>Restore</Button>
+            ) : (
               <Button variant="danger" onClick={() => setRevokeTarget(m.id)}>Revoke</Button>
             )}
           </Card>
