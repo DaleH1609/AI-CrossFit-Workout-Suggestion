@@ -60,12 +60,13 @@ export function CapacityPopover({
 
   async function handleRemove() {
     setSaving(true)
-    await fetch('/api/schedule/templates', {
+    const res = await fetch('/api/schedule/templates', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: templateId }),
     })
     setSaving(false)
+    if (!res.ok) { setError('Failed to remove'); return }
     onRemove()
     onClose()
   }
