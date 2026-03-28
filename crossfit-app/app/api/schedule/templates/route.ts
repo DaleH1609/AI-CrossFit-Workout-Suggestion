@@ -53,7 +53,11 @@ export async function PATCH(req: Request) {
   const { supabase, userData } = auth
   const { id, capacity } = await req.json()
 
-  if (capacity !== null && (typeof capacity !== 'number' || capacity < 1 || capacity > 200)) {
+  if (!id || typeof id !== 'string') {
+    return NextResponse.json({ error: 'id is required' }, { status: 400 })
+  }
+
+  if (capacity !== null && capacity !== undefined && (typeof capacity !== 'number' || capacity < 1 || capacity > 200)) {
     return NextResponse.json({ error: 'Capacity must be between 1 and 200' }, { status: 400 })
   }
 
