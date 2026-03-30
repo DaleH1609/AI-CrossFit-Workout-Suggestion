@@ -119,6 +119,7 @@ export default function StyleProfilePage() {
                 <label key={i} className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
+                    aria-label={`Select sample ${i + 1}`}
                     checked={selectedSamples.has(i)}
                     onChange={() => {
                       const next = new Set(selectedSamples)
