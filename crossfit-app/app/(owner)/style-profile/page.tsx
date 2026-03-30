@@ -123,7 +123,7 @@ export default function StyleProfilePage() {
                     checked={selectedSamples.has(i)}
                     onChange={() => {
                       const next = new Set(selectedSamples)
-                      next.has(i) ? next.delete(i) : next.add(i)
+                      if (next.has(i)) { next.delete(i) } else { next.add(i) }
                       setSelectedSamples(next)
                     }}
                     className="mt-1 accent-accent"
