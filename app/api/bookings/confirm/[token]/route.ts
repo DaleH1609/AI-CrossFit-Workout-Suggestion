@@ -25,18 +25,24 @@ export async function GET(_req: Request, { params }: { params: { token: string }
 
   if (new Date(booking.confirmation_expires_at!).getTime() < Date.now()) {
     // Expired — pass to next waitlist member
-    await supabase.from('bookings').update({ status: 'cancelled', waitlist_position: null, confirmation_token: null, confirmation_expires_at: null }).eq('id', booking.id)
+    const { error: expiredUpdateError } = await supabase.from('bookings').update({ status: 'cancelled', waitlist_position: null, confirmation_token: null, confirmation_expires_at: null }).eq('id', booking.id)
+    if (expiredUpdateError) {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/this-week?error=server-error`)
+    }
     const instance = booking.class_instances
     await promoteNextWaitlistMember(supabase, booking.instance_id, instance.starts_at, process.env.NEXT_PUBLIC_APP_URL!)
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/this-week?error=confirmation-expired`)
   }
 
-  await supabase.from('bookings').update({
+  const { error: confirmUpdateError } = await supabase.from('bookings').update({
     status: 'confirmed',
     confirmation_token: null,
     confirmation_expires_at: null,
     waitlist_position: null,
   }).eq('id', booking.id)
+  if (confirmUpdateError) {
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/this-week?error=server-error`)
+  }
 
   return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/my-schedule?confirmed=true`)
 }
