@@ -29,18 +29,29 @@ export async function GET() {
   const { supabase, userData } = auth
 
   // 1. Fetch gym timezone
-  const { data: gymData } = await supabase
+  const { data: gymData, error: gymError } = await supabase
     .from('gyms')
     .select('timezone')
     .eq('id', userData.gym_id)
     .single()
 
+  if (gymError) {
+    return NextResponse.json({ error: 'Failed to fetch gym' }, { status: 500 })
+  }
+
   const tz = gymData?.timezone ?? 'UTC'
 
   // 2. Compute month boundaries in the gym's local timezone
   const now = new Date()
-  const year = now.getUTCFullYear()
-  const month = now.getUTCMonth() + 1 // 1-based
+
+  // Get current year/month in gym's local timezone
+  const nowInGymTz = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+  }).format(now)
+  // nowInGymTz looks like "2024-03"
+  const [year, month] = nowInGymTz.split('-').map(Number)
 
   const monthStart = monthStartUTC(year, month, tz)
 
@@ -49,7 +60,7 @@ export async function GET() {
   const monthEnd = monthStartUTC(nextYear, nextMonth, tz)
 
   // 3. Query bookings joined with class_instances for current month
-  const { data: rows } = await supabase
+  const { data: rows, error: bookingsError } = await supabase
     .from('bookings')
     .select('user_id, class_instances!inner(starts_at)')
     .eq('gym_id', userData.gym_id)
@@ -57,16 +68,24 @@ export async function GET() {
     .gte('class_instances.starts_at', monthStart)
     .lt('class_instances.starts_at', monthEnd)
 
+  if (bookingsError) {
+    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 })
+  }
+
   // 4. Fetch active members (role = 'member', revoked_at IS NULL)
-  const { data: activeMembers } = await supabase
-    .from('gym_members')
-    .select('user_id')
+  const { data: activeMembers, error: membersError } = await supabase
+    .from('users')
+    .select('id')
     .eq('gym_id', userData.gym_id)
     .eq('role', 'member')
     .is('revoked_at', null)
 
+  if (membersError) {
+    return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 })
+  }
+
   const activeMemberSet = new Set<string>(
-    (activeMembers ?? []).map((m: { user_id: string }) => m.user_id)
+    (activeMembers ?? []).map((m: { id: string }) => m.id)
   )
 
   // 5. Build attendance map — only include active members
