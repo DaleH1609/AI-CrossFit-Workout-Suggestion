@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 
 export default function StyleProfilePage() {
   const [examples, setExamples] = useState<{ id: string; raw_text: string }[]>([])
+  const [gymType, setGymType] = useState<'crossfit' | 'hyrox'>('crossfit')
   const [newText, setNewText] = useState('')
   const [showNewProgramModal, setShowNewProgramModal] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -13,6 +14,8 @@ export default function StyleProfilePage() {
   const [pendingSamples, setPendingSamples] = useState<string[]>([])
   const [selectedSamples, setSelectedSamples] = useState<Set<number>>(new Set())
   const [addingSelected, setAddingSelected] = useState(false)
+  const [addError, setAddError] = useState('')
+  const [adding, setAdding] = useState(false)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadExamples() }, [])
@@ -21,13 +24,22 @@ export default function StyleProfilePage() {
     const res = await fetch('/api/style')
     const data = await res.json()
     setExamples(data.examples ?? [])
+    if (data.gymType) setGymType(data.gymType)
   }
 
   async function handleAdd() {
     if (!newText.trim()) return
-    await fetch('/api/style', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rawText: newText }) })
-    setNewText('')
-    await loadExamples()
+    setAdding(true)
+    setAddError('')
+    const res = await fetch('/api/style', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rawText: newText }) })
+    if (res.ok) {
+      setNewText('')
+      await loadExamples()
+    } else {
+      const data = await res.json()
+      setAddError((data as { error?: string }).error || 'Failed to add example')
+    }
+    setAdding(false)
   }
 
   async function handleDelete(id: string) {
@@ -85,14 +97,26 @@ export default function StyleProfilePage() {
       </div>
 
       <Card className="mb-6">
-        <p className="text-secondary text-sm mb-3">Paste a workout example below. Add at least 3 to enable generation.</p>
-        <textarea value={newText} onChange={e => setNewText(e.target.value)}
-          placeholder={"Monday\nPart A\nRomanian Deadlift\n\nPart B\n500m Row..."}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs font-medium uppercase tracking-wide px-2 py-0.5 rounded border border-accent-border text-accent">
+            {gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'} gym
+          </span>
+          <p className="text-secondary text-sm">
+            Paste a real {gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'} workout below. Add at least 3 to enable generation.
+          </p>
+        </div>
+        <textarea value={newText} onChange={e => { setNewText(e.target.value); setAddError('') }}
+          placeholder={gymType === 'hyrox'
+            ? 'Monday\nRun 1km\nSki Erg 1000m\nSled Push 50m...'
+            : 'Monday\nPart A\nBack Squat 5×5\n\nPart B\n21-15-9 Thrusters, Pull-ups'}
           rows={8}
           className="w-full bg-background border border-accent-border rounded-btn p-3 text-white text-sm font-mono placeholder-secondary focus:outline-none focus:border-accent resize-none"
         />
+        {addError && <p className="text-danger text-xs mt-2">{addError}</p>}
         <div className="mt-3 flex justify-end">
-          <Button onClick={handleAdd} disabled={!newText.trim()}>Add Example</Button>
+          <Button onClick={handleAdd} disabled={!newText.trim() || adding}>
+            {adding ? 'Checking…' : 'Add Example'}
+          </Button>
         </div>
       </Card>
 
