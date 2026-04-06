@@ -38,3 +38,16 @@ export interface ScheduleDefaults {
   globalDefault: number
   dayDefaults: Record<string, number>  // key = day_of_week as string (1–7)
 }
+
+export interface RecentWeek {
+  week_start: string
+  workouts: WorkoutWeek
+}
+
+export interface MovementAnalysis {
+  gaps: Array<{ movement: string; daysSince: number }>
+  overused: Array<{ movement: string; count: number }>
+  balance: { push: number; pull: number; squat: number; hinge: number; carry: number }
+  intensityDistribution: { heavy_strength: number; conditioning: number; skill: number }
+  weeksAnalysed: number
+}
