@@ -3,7 +3,7 @@ import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
 
 function makeSupabase(rows: unknown[] | null) {
   const chain: Record<string, unknown> = {}
-  const terminal = { limit: () => Promise.resolve({ data: rows }) }
+  const terminal = { limit: (limitArg: number) => Promise.resolve({ data: rows ? rows.slice(0, limitArg) : rows }) }
   const order = { order: () => terminal }
   const is = { is: () => order }
   const eq2 = { eq: () => is, is: () => order }
@@ -27,5 +27,15 @@ describe('getRecentWeeks', () => {
   it('returns empty array when data is null', async () => {
     const result = await getRecentWeeks(makeSupabase(null), 'gym-1')
     expect(result).toEqual([])
+  })
+
+  it('respects the limit parameter', async () => {
+    const rows = [
+      { week_start: '2026-03-30', workouts: [] },
+      { week_start: '2026-03-23', workouts: [] },
+    ]
+    const result = await getRecentWeeks(makeSupabase(rows), 'gym-1', 1)
+    expect(result.length).toBe(1)
+    expect(result[0].week_start).toBe('2026-03-30')
   })
 })
