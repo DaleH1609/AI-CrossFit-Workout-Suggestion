@@ -54,6 +54,6 @@ describe('buildMovementAnalysisPrompt', () => {
       { week_start: '2026-03-30', workouts: sampleWeek },
     ]
     const prompt = buildMovementAnalysisPrompt(history)
-    expect(prompt).toContain('2')
+    expect(prompt).toContain('"weeksAnalysed": 2')
   })
 })

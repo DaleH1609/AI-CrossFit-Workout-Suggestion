@@ -62,6 +62,9 @@ export function buildGenerationPrompt(
 
   if (styleExamples.length >= 3) {
     const examplesText = styleExamples.join('\n\n---\n\n')
+    const dayTypeRule = gymType === 'hyrox'
+      ? '- Keep the same day types as the examples (adapt for Hyrox training structure)'
+      : '- Keep the same day types as the examples (Mon/Fri = interval, Wed = strength, Thu = partner, Tue = for time)'
     return `You are a CrossFit programming coach. Generate a new Mon–Fri workout week that matches the style of the examples below.
 
 ## Style Examples (match this format exactly)
@@ -76,7 +79,7 @@ ${OUTPUT_REQUIREMENTS}
 
 Rules:
 - Follow the exact same formatting conventions as the examples (minute markers, time caps, sets x reps notation)
-- Keep the same day types as the examples (Mon/Fri = interval, Wed = strength, Thu = partner, Tue = for time)`
+${dayTypeRule}`
   }
 
   const builtinPrompt = gymType === 'hyrox' ? HYROX_BUILTIN : CROSSFIT_BUILTIN
