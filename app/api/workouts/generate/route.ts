@@ -2,6 +2,7 @@
 import { generateWorkouts, generateScaling } from '@/lib/claude/generate-workouts'
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
 
 // Task 4: simple in-memory rate limit — max 3 requests per gym per minute
 const rateLimitMap = new Map<string, number[]>()
@@ -47,13 +48,8 @@ export async function POST(req: Request) {
   // If fewer than 3 examples, use built-in prompt for the gym type (no 400 error)
   const styleTexts = (examples || []).map(e => e.raw_text)
 
-  // Get last 4 published weeks (not archived)
-  const { data: history } = await supabase
-    .from('workout_weeks').select('workouts')
-    .eq('gym_id', gymId).eq('status', 'published').is('archived_at', null)
-    .order('week_start', { ascending: false }).limit(4)
-
-  const historyWeeks = (history || []).map(h => h.workouts).reverse()
+  const recentWeeks = await getRecentWeeks(supabase, gymId)
+  const historyWeeks = recentWeeks.map(w => w.workouts)
 
   // Delete any existing draft for this week
   await supabase.from('workout_weeks')

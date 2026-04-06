@@ -1,7 +1,7 @@
 // lib/claude/generate-workouts.ts
 import Anthropic from '@anthropic-ai/sdk'
-import { buildGenerationPrompt } from './prompts'
-import type { WorkoutWeek } from '@/lib/types'
+import { buildGenerationPrompt, buildMovementAnalysisPrompt } from './prompts'
+import type { WorkoutWeek, MovementAnalysis, RecentWeek } from '@/lib/types'
 
 let _client: Anthropic | null = null
 function getClient(): Anthropic {
@@ -85,4 +85,37 @@ export async function generateWorkouts(
   if (retry) return retry
 
   throw new Error('Failed to generate valid workouts after 2 attempts')
+}
+
+function validateMovementAnalysis(data: unknown): data is MovementAnalysis {
+  if (typeof data !== 'object' || data === null) return false
+  const d = data as Record<string, unknown>
+  return (
+    Array.isArray(d.gaps) &&
+    Array.isArray(d.overused) &&
+    typeof d.balance === 'object' && d.balance !== null &&
+    typeof d.intensityDistribution === 'object' && d.intensityDistribution !== null &&
+    typeof d.weeksAnalysed === 'number'
+  )
+}
+
+export async function analyseMovementHistory(
+  history: RecentWeek[]
+): Promise<MovementAnalysis | null> {
+  const client = getClient()
+  const prompt = buildMovementAnalysisPrompt(history)
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : ''
+  try {
+    const parsed = JSON.parse(text)
+    return validateMovementAnalysis(parsed) ? parsed : null
+  } catch {
+    return null
+  }
 }
