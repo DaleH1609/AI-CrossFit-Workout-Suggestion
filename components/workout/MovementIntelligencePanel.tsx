@@ -11,7 +11,8 @@ export function MovementIntelligencePanel() {
   const [state, setState] = useState<PanelState>({ status: 'loading' })
 
   useEffect(() => {
-    fetch('/api/workouts/movement-analysis')
+    const controller = new AbortController()
+    fetch('/api/workouts/movement-analysis', { signal: controller.signal })
       .then(r => r.json())
       .then((data: MovementAnalysis & { insufficient_data?: boolean; error?: boolean }) => {
         if (data.insufficient_data || data.error) {
@@ -20,7 +21,10 @@ export function MovementIntelligencePanel() {
           setState({ status: 'ready', data })
         }
       })
-      .catch(() => setState({ status: 'hidden' }))
+      .catch((err: Error) => {
+        if (err.name !== 'AbortError') setState({ status: 'hidden' })
+      })
+    return () => controller.abort()
   }, [])
 
   if (state.status === 'hidden') return null
@@ -52,7 +56,7 @@ export function MovementIntelligencePanel() {
               key={g.movement}
               className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400 text-xs"
             >
-              ⚠ {g.movement} · {g.daysSince}d ago
+              <span aria-hidden="true">⚠</span> {g.movement} · {g.daysSince}d ago
             </span>
           ))}
         </div>
@@ -65,16 +69,16 @@ export function MovementIntelligencePanel() {
               key={o.movement}
               className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-500/10 border border-orange-500/30 rounded text-orange-400 text-xs"
             >
-              ↑ {o.movement} × {o.count}
+              <span aria-hidden="true">↑</span> {o.movement} × {o.count}
             </span>
           ))}
         </div>
       )}
 
       <div className="flex gap-4 mt-2">
-        {Object.entries(data.balance).map(([key, count]) => (
+        {(['push', 'pull', 'squat', 'hinge', 'carry'] as const).map(key => (
           <span key={key} className="text-secondary text-xs capitalize">
-            {key} <span className="text-white font-medium">{count}</span>
+            {key} <span className="text-white font-medium">{data.balance[key]}</span>
           </span>
         ))}
       </div>
