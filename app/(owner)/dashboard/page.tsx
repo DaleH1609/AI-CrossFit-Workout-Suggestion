@@ -9,6 +9,15 @@ import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
 import type { WorkoutDay, WorkoutWeek } from '@/lib/types'
 
+function Spinner() {
+  return (
+    <svg className="animate-spin -ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  )
+}
+
 function getMondayOfCurrentWeek() {
   const d = new Date()
   const day = d.getDay()
@@ -91,19 +100,27 @@ export default function DashboardPage() {
           {week?.status === 'draft' && (
             <>
               <Button variant="danger" onClick={handleDiscard}>Discard</Button>
-              <Button onClick={handleGenerate} disabled={generating}>Regenerate</Button>
+              <Button onClick={handleGenerate} disabled={generating}>
+                {generating ? <><Spinner />Regenerating…</> : 'Regenerate'}
+              </Button>
               <Button onClick={() => setShowApproveModal(true)}>Approve &amp; Publish</Button>
             </>
           )}
           {(!week || week.status === 'published') && (
             <Button onClick={handleGenerate} disabled={generating}>
-              {generating ? 'Generating…' : 'Generate This Week'}
+              {generating ? <><Spinner />Generating…</> : 'Generate This Week'}
             </Button>
           )}
         </div>
       </div>
 
       <MovementIntelligencePanel />
+      {generating && (
+        <div className="flex items-center gap-2 mb-4 text-secondary text-sm">
+          <Spinner />
+          AI is building your workout program — this usually takes 15–30 seconds…
+        </div>
+      )}
       {error && <p className="text-red-400 mb-4">{error}</p>}
       <WorkoutWeekGrid
         week={week?.workouts ?? null}
