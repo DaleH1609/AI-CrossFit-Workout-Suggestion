@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { WorkoutWeekGrid } from '@/components/workout/workout-week-grid'
 import { WorkoutEditModal } from '@/components/workout/workout-edit-modal'
+import { MovementIntelligencePanel } from '@/components/workout/MovementIntelligencePanel'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
@@ -102,6 +103,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <MovementIntelligencePanel />
       {error && <p className="text-red-400 mb-4">{error}</p>}
       <WorkoutWeekGrid
         week={week?.workouts ?? null}
