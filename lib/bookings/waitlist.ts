@@ -1,0 +1,73 @@
+// lib/bookings/waitlist.ts
+import { sendWaitlistPromotion } from '@/lib/email/send'
+
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000
+
+export function shouldSkipPromotion(startsAt: string): boolean {
+  return new Date(startsAt).getTime() - Date.now() <= TWO_HOURS_MS
+}
+
+export function getConfirmationWindow(startsAt: string): number {
+  const timeUntilClass = new Date(startsAt).getTime() - Date.now()
+  return Math.min(TWO_HOURS_MS, timeUntilClass)
+}
+
+interface WaitlistBooking {
+  id: string
+  user_id: string
+  users: { email: string; name: string }
+}
+
+type QueryBuilder = {
+  select: (q: string) => QueryBuilder
+  eq: (k: string, v: string) => QueryBuilder
+  order: (k: string, o?: { ascending: boolean }) => QueryBuilder
+  limit: (n: number) => QueryBuilder
+  single: () => Promise<{ data: WaitlistBooking | null }>
+  update: (data: Record<string, unknown>) => QueryBuilder
+}
+
+type DbClient = { from: (table: string) => QueryBuilder }
+
+export async function promoteNextWaitlistMember(
+  supabase: unknown,
+  instanceId: string,
+  startsAt: string,
+  appUrl: string
+) {
+  if (shouldSkipPromotion(startsAt)) return
+
+  const db = supabase as DbClient
+
+  // Get next waitlisted member
+  const { data: next } = await db
+    .from('bookings')
+    .select('id, user_id, users(email, name)')
+    .eq('instance_id', instanceId)
+    .eq('status', 'waitlisted')
+    .order('waitlist_position', { ascending: true })
+    .limit(1)
+    .single()
+
+  if (!next) return
+
+  const windowMs = getConfirmationWindow(startsAt)
+  const expiresAt = new Date(Date.now() + windowMs).toISOString()
+  const token = crypto.randomUUID()
+
+  const { error: updateError } = await (db.from('bookings').update({
+    status: 'pending_confirmation',
+    confirmation_token: token,
+    confirmation_expires_at: expiresAt,
+  }).eq('id', next.id) as unknown as Promise<{ error: unknown }>)
+  if (updateError) return
+
+  const user = next.users
+  const confirmUrl = `${appUrl}/api/bookings/confirm/${token}`
+  const expiresIn = windowMs >= TWO_HOURS_MS ? '2 hours' : 'before the class starts'
+
+  const classDate = new Date(startsAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const classTime = new Date(startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+
+  await sendWaitlistPromotion(user.email, user.name, classDate, classTime, confirmUrl, expiresIn)
+}

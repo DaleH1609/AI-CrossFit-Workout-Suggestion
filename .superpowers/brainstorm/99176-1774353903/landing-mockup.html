@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOVA — Landing Page Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0A0A0A; color: #fff; font-family: 'Inter', system-ui, sans-serif; }
+  .gold { color: #D4AF37; }
+  .subtle { color: #9CA3AF; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 64px; border-bottom: 1px solid rgba(212,175,55,0.15); }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 32px; height: 32px; background: #D4AF37; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+  .logo-text { font-size: 20px; font-weight: 800; letter-spacing: 4px; color: #fff; }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a { color: #9CA3AF; text-decoration: none; font-size: 14px; letter-spacing: 1px; }
+  .nav-cta { background: #D4AF37; color: #0A0A0A; padding: 8px 20px; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-decoration: none; }
+
+  /* HERO */
+  .hero { padding: 120px 64px 100px; max-width: 1100px; margin: 0 auto; }
+  .hero-eyebrow { font-size: 11px; letter-spacing: 4px; color: #D4AF37; text-transform: uppercase; margin-bottom: 24px; }
+  .hero-title { font-size: 72px; font-weight: 800; line-height: 1.05; margin-bottom: 24px; }
+  .hero-title span { color: #D4AF37; }
+  .hero-sub { font-size: 18px; color: #9CA3AF; max-width: 480px; line-height: 1.7; margin-bottom: 40px; }
+  .hero-actions { display: flex; gap: 16px; align-items: center; }
+  .btn-primary { background: #D4AF37; color: #0A0A0A; padding: 14px 32px; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-decoration: none; }
+  .btn-ghost { color: #9CA3AF; font-size: 14px; text-decoration: none; border-bottom: 1px solid rgba(156,163,175,0.4); padding-bottom: 2px; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid rgba(212,175,55,0.1); margin: 0 64px; }
+
+  /* FEATURES */
+  .features { padding: 100px 64px; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-size: 11px; letter-spacing: 4px; color: #D4AF37; text-transform: uppercase; margin-bottom: 16px; }
+  .section-title { font-size: 40px; font-weight: 700; margin-bottom: 60px; }
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: rgba(212,175,55,0.1); }
+  .feature-card { background: #0A0A0A; padding: 40px 32px; }
+  .feature-icon { width: 40px; height: 40px; background: rgba(212,175,55,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 18px; }
+  .feature-title { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+  .feature-desc { font-size: 14px; color: #9CA3AF; line-height: 1.7; }
+
+  /* CTA */
+  .cta-section { padding: 100px 64px; text-align: center; border-top: 1px solid rgba(212,175,55,0.1); }
+  .cta-title { font-size: 48px; font-weight: 800; margin-bottom: 16px; }
+  .cta-sub { color: #9CA3AF; font-size: 16px; margin-bottom: 40px; }
+
+  /* FOOTER */
+  footer { padding: 32px 64px; border-top: 1px solid rgba(212,175,55,0.1); display: flex; justify-content: space-between; align-items: center; }
+  footer span { font-size: 12px; color: #9CA3AF; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <span class="logo-text">KOVA</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">Features</a>
+    <a href="#">For Gyms</a>
+    <a href="#" class="nav-cta">Sign In</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">AI-Powered Gym Programming</div>
+  <h1 class="hero-title">Train Smarter.<br><span>Perform Better.</span></h1>
+  <p class="hero-sub">KOVA generates weekly CrossFit programs tailored to your gym's coaching style — so you spend less time programming and more time coaching.</p>
+  <div class="hero-actions">
+    <a href="#" class="btn-primary">CREATE YOUR GYM</a>
+    <a href="#" class="btn-ghost">Sign in →</a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FEATURES -->
+<div class="features">
+  <div class="section-label">What KOVA does</div>
+  <h2 class="section-title">Everything your gym needs.<br>Nothing it doesn't.</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">AI Workout Generation</div>
+      <div class="feature-desc">Generate a full week of WODs in seconds. KOVA learns your gym's style and keeps programming consistent.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <div class="feature-title">Class Scheduling</div>
+      <div class="feature-desc">Set up recurring class slots, manage capacity, and let members book directly from their phone.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <div class="feature-title">Member Management</div>
+      <div class="feature-desc">Invite members, track attendance, and manage your gym community — all in one place.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2 class="cta-title">Ready to elevate<br><span class="gold">your gym?</span></h2>
+  <p class="cta-sub">Join gym owners already using KOVA to program smarter.</p>
+  <a href="#" class="btn-primary">GET STARTED FREE</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">
+    <div class="logo-mark" style="width:20px;height:20px"></div>
+    <span style="font-size:14px;font-weight:800;letter-spacing:3px">KOVA</span>
+  </div>
+  <span>© 2026 KOVA. All rights reserved.</span>
+</footer>
+
+</body>
+</html>

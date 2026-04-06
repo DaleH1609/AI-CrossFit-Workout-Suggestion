@@ -1,0 +1,16 @@
+{"type":"server-started","port":52507,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:52507","screen_dir":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931"}
+{"type":"screen-added","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/clear-all-override.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/clear-all-override.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/clear-all-override.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/clear-all-override.html"}
+{"source":"user-event","type":"click","text":"A\n      \n        Top of the grid\n        Sits next to the day-column headers, clearly associated with the whole grid\n        \n          \n            Clear all\n          \n          \n            Mon\n            Tue\n            Wed","choice":"clear-top","id":null,"timestamp":1774707226796}
+{"source":"user-event","type":"click","text":"A\n      \n        Explicit override state (recommended)\n        When slot uses the global default, show a label + \"Override\" button. Only open the input when they click Override.\n        \n          Capacity\n          \n            20 (global)\n            Override\n          \n          \n            Remove class\n          \n        \n        After clicking Override → input appears, Save + Clear override buttons","choice":"override-explicit","id":null,"timestamp":1774707228558}
+{"type":"screen-added","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/design-detail.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/design-detail.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/design-detail.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/design-detail.html"}
+{"type":"screen-added","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/waiting-2.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/waiting-2.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/waiting-2.html"}
+{"type":"screen-updated","file":"/Users/dalehealyegan/Desktop/CrossFit/crossfit-app/.superpowers/brainstorm/50257-1774706931/waiting-2.html"}
+{"type":"server-stopped","reason":"idle timeout"}
