@@ -17,7 +17,7 @@ export async function GET() {
 
   const analysis = await analyseMovementHistory(recentWeeks)
   if (!analysis) {
-    return NextResponse.json({ error: true })
+    return NextResponse.json({ error: true }, { status: 503 })
   }
 
   return NextResponse.json(analysis)
