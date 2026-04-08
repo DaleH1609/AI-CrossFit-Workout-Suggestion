@@ -1,11 +1,10 @@
 'use client'
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { ScheduleTemplate, ScheduleDefaults } from '@/lib/types'
+import type { ClassType, ScheduleDefaults, ScheduleTemplate } from '@/lib/types'
 import { CapacityPopover } from './capacity-popover'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-// Default time slots: 6:00 AM – 9:00 PM, 30-min increments
 function generateDefaultTimes(): string[] {
   const times: string[] = []
   for (let h = 6; h <= 21; h++) {
@@ -18,10 +17,18 @@ function generateDefaultTimes(): string[] {
 function formatTime(t: string): string {
   const [hStr, mStr] = t.split(':')
   const h = parseInt(hStr)
-  const m = mStr
   const ampm = h >= 12 ? 'PM' : 'AM'
   const h12 = h % 12 === 0 ? 12 : h % 12
-  return `${h12}:${m} ${ampm}`
+  return `${h12}:${mStr} ${ampm}`
+}
+
+/** Returns black or white text depending on the background colour's luminance */
+function textColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return lum > 0.55 ? '#000000' : '#ffffff'
 }
 
 function resolveCapacity(
@@ -44,9 +51,10 @@ interface PopoverState {
 interface Props {
   initialTemplates: ScheduleTemplate[]
   defaults: ScheduleDefaults
+  classTypes: ClassType[]
 }
 
-export function ScheduleGrid({ initialTemplates, defaults }: Props) {
+export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) {
   const [templates, setTemplates] = useState<ScheduleTemplate[]>(
     initialTemplates.map(t => ({ ...t, local_time: t.local_time.slice(0, 5) }))
   )
@@ -56,7 +64,6 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
   const [addError, setAddError] = useState('')
   const [confirmingClear, setConfirmingClear] = useState(false)
 
-  // Drag-to-fill refs — all refs so values are current in async handlers
   const isDragging = useRef(false)
   const dragMode = useRef<'fill' | 'erase' | null>(null)
   const dragProcessed = useRef<Set<string>>(new Set())
@@ -67,7 +74,6 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
 
   useEffect(() => { templatesRef.current = templates }, [templates])
 
-  // Build the set of time rows: default times + any custom times that have at least one template
   const templateTimes = new Set(templates.map(t => t.local_time))
   const allTimes = Array.from(new Set([
     ...generateDefaultTimes(),
@@ -81,23 +87,55 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
     [templates]
   )
 
+  function resolveTypeColor(template: ScheduleTemplate): string {
+    if (template.class_type_id) {
+      return classTypes.find(t => t.id === template.class_type_id)?.color ?? '#eab308'
+    }
+    // Fall back: non-WOD name = blue, WOD = yellow
+    return template.name && template.name !== 'WOD' ? '#3b82f6' : '#eab308'
+  }
+
+  function resolveTypeName(template: ScheduleTemplate): string {
+    if (template.class_type_id) {
+      return classTypes.find(t => t.id === template.class_type_id)?.name ?? template.name
+    }
+    return template.name
+  }
+
   async function callPost(day: number, time: string) {
     const tempId = crypto.randomUUID()
+    const defaultType = classTypes[0] ?? null
     const optimistic: ScheduleTemplate = {
-      id: tempId, day_of_week: day, local_time: time, capacity: null, active: true,
+      id: tempId,
+      day_of_week: day,
+      local_time: time,
+      capacity: null,
+      active: true,
+      name: defaultType?.name ?? 'WOD',
+      workout_notes: null,
+      class_type_id: defaultType?.id ?? null,
     }
     setTemplates(prev => [...prev, optimistic])
     const res = await fetch('/api/schedule/templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dayOfWeek: day, localTime: time, capacity: null }),
+      body: JSON.stringify({
+        dayOfWeek: day,
+        localTime: time,
+        capacity: null,
+        classTypeId: defaultType?.id ?? null,
+        name: defaultType?.name ?? 'WOD',
+      }),
     })
     if (!res.ok) {
       setTemplates(prev => prev.filter(t => t.id !== tempId))
       return
     }
     const { template } = await res.json()
-    if (template) setTemplates(prev => prev.map(t => t.id === tempId ? { ...template, local_time: template.local_time.slice(0, 5) } : t))
+    if (template) setTemplates(prev => prev.map(t => t.id === tempId ? {
+      ...template,
+      local_time: template.local_time.slice(0, 5),
+    } : t))
   }
 
   async function callDelete(templateId: string, day: number, time: string) {
@@ -108,20 +146,28 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       body: JSON.stringify({ id: templateId }),
     })
     if (!res.ok) {
+      const defaultType = classTypes[0] ?? null
       setTemplates(prev => [...prev, {
-        id: templateId, day_of_week: day, local_time: time, capacity: null, active: true,
+        id: templateId,
+        day_of_week: day,
+        local_time: time,
+        capacity: null,
+        active: true,
+        name: defaultType?.name ?? 'WOD',
+        workout_notes: null,
+        class_type_id: defaultType?.id ?? null,
       }])
     }
   }
 
-  function handlePopoverSave(templateId: string, capacity: number | null) {
+  function handlePopoverSave(templateId: string, capacity: number | null, classTypeId: string | null, workout_notes: string | null) {
+    const name = classTypes.find(t => t.id === classTypeId)?.name ?? 'WOD'
     setTemplates(prev =>
-      prev.map(t => t.id === templateId ? { ...t, capacity } : t)
+      prev.map(t => t.id === templateId ? { ...t, capacity, name, workout_notes, class_type_id: classTypeId } : t)
     )
   }
 
   function handlePopoverRemove(templateId: string) {
-    // Derive remaining inside setTemplates to avoid stale closure on `templates`
     setTemplates(prev => {
       const updated = prev.filter(t => t.id !== templateId)
       if (popover) {
@@ -143,7 +189,7 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       return
     }
     const [h, m] = normalized.split(':').map(Number)
-    if (h < 0 || h > 23 || m !== 0 && m !== 30) {
+    if (h < 0 || h > 23 || (m !== 0 && m !== 30)) {
       setAddError('Minutes must be :00 or :30')
       return
     }
@@ -176,12 +222,8 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
   }
 
   function handleDragMouseDown(e: React.MouseEvent, day: number, time: string) {
-    e.preventDefault() // prevent native drag-and-drop which suppresses mouseenter events
-
-    // Close any open popover
+    e.preventDefault()
     setPopover(null)
-
-    // Reset all drag state
     isDragging.current = true
     dragMode.current = null
     dragProcessed.current.clear()
@@ -190,17 +232,13 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
     eraseStartFired.current = false
 
     const template = getTemplate(day, time)
-
     if (template) {
-      // Erase mode — deferred: don't delete yet, wait to confirm drag
       dragMode.current = 'erase'
       eraseStartCell.current = { day, time, templateId: template.id }
     } else {
-      // Fill mode — immediate
       dragMode.current = 'fill'
       callPost(day, time)
     }
-
     dragProcessed.current.add(`${day}:${time}`)
     dragCellCount.current = 1
   }
@@ -209,23 +247,17 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
     if (!isDragging.current) return
     const key = `${day}:${time}`
     if (dragProcessed.current.has(key)) return
-
     dragProcessed.current.add(key)
     dragCellCount.current++
 
-    if (dragMode.current === 'fill') {
-      callPost(day, time)
-    }
+    if (dragMode.current === 'fill') callPost(day, time)
 
     if (dragMode.current === 'erase') {
-      // Fire deferred start cell deletion on first new cell entered
       if (!eraseStartFired.current && eraseStartCell.current) {
         eraseStartFired.current = true
         const s = eraseStartCell.current
         callDelete(s.templateId, s.day, s.time)
       }
-      // Delete this cell only if active; skip empty cells silently.
-      // dragProcessed blocks re-entry so no double-deletion risk.
       const template = templatesRef.current.find(
         t => t.day_of_week === day && t.local_time === time
       )
@@ -235,17 +267,11 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
 
   useEffect(() => {
     function handleMouseUp() {
-      if (!isDragging.current) {
-        return // No drag was active; nothing to clear or decide
-      }
-
+      if (!isDragging.current) return
       const wasSingleCell = dragCellCount.current === 1
       const startedOnActive = dragMode.current === 'erase'
       const startCellNotDeleted = !eraseStartFired.current
 
-      // Open popover only for single click on active cell (start cell never deleted).
-      // Single click on empty cell: no popover (cell was just created).
-      // Do NOT call getTemplate here — it closes over stale state. Use templatesRef.
       if (wasSingleCell && startedOnActive && startCellNotDeleted && eraseStartCell.current) {
         const { day, time } = eraseStartCell.current
         const template = templatesRef.current.find(
@@ -254,7 +280,6 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
         if (template) setPopover({ templateId: template.id, dayOfWeek: day, localTime: time })
       }
 
-      // Reset all refs after decision
       isDragging.current = false
       dragMode.current = null
       dragProcessed.current.clear()
@@ -262,34 +287,33 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       eraseStartCell.current = null
       eraseStartFired.current = false
     }
-
     window.addEventListener('mouseup', handleMouseUp)
     return () => window.removeEventListener('mouseup', handleMouseUp)
-  }, [setPopover]) // setPopover is stable; all other state is read via refs
+  }, [setPopover])
 
   return (
     <div className="overflow-x-auto select-none">
       {/* Grid header */}
       <div className="flex items-center justify-between mb-1 min-w-[640px]">
         <div className="grid flex-1" style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}>
-          <div /> {/* time label column */}
+          <div />
           {DAY_NAMES.map(name => (
-            <div key={name} className="text-center text-xs font-semibold text-yellow-400 py-2 border-b border-zinc-700">
+            <div key={name} className="text-center text-xs font-semibold text-accent py-2 border-b border-accent-border">
               {name}
             </div>
           ))}
         </div>
         {confirmingClear ? (
           <div className="flex items-center gap-2 text-xs shrink-0 ml-2">
-            <span className="text-zinc-400">Remove all slots?</span>
-            <button type="button" onClick={handleClearAll} className="text-red-400 hover:text-red-300 font-semibold">Yes</button>
-            <button type="button" onClick={() => setConfirmingClear(false)} className="text-zinc-500 hover:text-zinc-300">Cancel</button>
+            <span className="text-secondary">Remove all slots?</span>
+            <button type="button" onClick={handleClearAll} className="text-danger hover:text-white font-semibold">Yes</button>
+            <button type="button" onClick={() => setConfirmingClear(false)} className="text-secondary hover:text-white">Cancel</button>
           </div>
         ) : (
           <button
             type="button"
             onClick={() => { setPopover(null); setConfirmingClear(true) }}
-            className="text-xs text-red-400 hover:text-red-300 border border-zinc-700 hover:border-red-800 rounded px-2 py-0.5 shrink-0 ml-2"
+            className="text-xs text-danger hover:text-white border border-accent-border hover:border-danger rounded px-2 py-0.5 shrink-0 ml-2 transition-colors"
           >
             Clear all
           </button>
@@ -304,13 +328,15 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
             className="grid items-center"
             style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}
           >
-            <div className="text-right pr-3 text-xs text-gray-500 py-1">{formatTime(time)}</div>
+            <div className="text-right pr-3 text-xs text-secondary py-1">{formatTime(time)}</div>
             {[1, 2, 3, 4, 5, 6, 7].map(day => {
               const template = getTemplate(day, time)
               const isActive = !!template
               const effectiveCapacity = resolveCapacity(template, day, defaults)
-              const isPopoverOpen =
-                popover?.dayOfWeek === day && popover?.localTime === time
+              const isPopoverOpen = popover?.dayOfWeek === day && popover?.localTime === time
+              const cellColor = isActive ? resolveTypeColor(template!) : null
+              const cellTextColor = cellColor ? textColor(cellColor) : undefined
+              const displayName = isActive ? resolveTypeName(template!) : ''
 
               return (
                 <div
@@ -321,23 +347,31 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
                 >
                   <button
                     type="button"
-                    // TODO: add onKeyDown (Space/Enter) for keyboard-accessible cell toggle
-                    className={`w-full h-10 rounded text-xs font-medium transition-colors ${
+                    className={`w-full h-10 rounded text-xs font-medium transition-colors leading-tight px-1 ${
                       isActive
-                        ? 'bg-yellow-500 hover:bg-yellow-400 text-black'
-                        : 'border border-dashed border-zinc-700 hover:border-zinc-500 text-transparent hover:text-zinc-600'
+                        ? ''
+                        : 'border border-dashed border-accent-border hover:border-accent text-transparent hover:text-secondary'
                     }`}
+                    style={isActive ? {
+                      backgroundColor: cellColor!,
+                      color: cellTextColor,
+                    } : undefined}
                   >
-                    {isActive ? effectiveCapacity : '+'}
+                    {isActive
+                      ? <span className="truncate block">{displayName !== 'WOD' ? displayName : effectiveCapacity}</span>
+                      : '+'}
                   </button>
                   {isPopoverOpen && template && (
                     <CapacityPopover
                       templateId={template.id}
                       currentCapacity={template.capacity}
                       effectiveCapacity={effectiveCapacity}
+                      currentClassTypeId={template.class_type_id}
+                      classTypes={classTypes}
+                      currentNotes={template.workout_notes ?? null}
                       dayOfWeek={day}
                       defaults={defaults}
-                      onSave={cap => handlePopoverSave(template.id, cap)}
+                      onSave={(cap, typeId, notes) => handlePopoverSave(template.id, cap, typeId, notes)}
                       onRemove={() => handlePopoverRemove(template.id)}
                       onClose={() => setPopover(null)}
                     />
@@ -353,20 +387,18 @@ export function ScheduleGrid({ initialTemplates, defaults }: Props) {
       <div className="flex items-center gap-2 mt-4 min-w-[640px] select-text">
         <div className="w-[72px]" />
         <input
-          type="text"
-          placeholder="e.g. 5:30"
+          type="time"
           value={newTimeInput}
           onChange={e => { setNewTimeInput(e.target.value); setAddError('') }}
-          onKeyDown={e => { if (e.key === 'Enter') handleAddCustomTime() }}
-          className="bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-sm text-white w-24 focus:outline-none focus:border-yellow-500"
+          className="bg-background border border-accent-border rounded-btn px-2 py-1 text-sm text-white w-28 focus:outline-none focus:border-accent"
         />
         <button
           onClick={handleAddCustomTime}
-          className="text-xs text-yellow-400 hover:text-yellow-300 border border-zinc-600 hover:border-yellow-500 rounded px-3 py-1"
+          className="text-xs text-accent hover:text-white border border-accent-border hover:border-accent rounded-btn px-3 py-1 transition-colors"
         >
           Add Row
         </button>
-        {addError && <span className="text-xs text-red-400">{addError}</span>}
+        {addError && <span className="text-xs text-danger">{addError}</span>}
       </div>
     </div>
   )

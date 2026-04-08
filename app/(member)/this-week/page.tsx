@@ -2,12 +2,11 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { WorkoutCard } from '@/components/workout/workout-card'
 import { ClassSlot } from '@/components/booking/class-slot'
-import { Card } from '@/components/ui/card'
 import type { WorkoutDay } from '@/lib/types'
 
 interface UserRow { gym_id: string; id: string }
 interface WeekData { workouts: WorkoutDay[] }
-interface ClassInstance { id: string; date: string; local_time: string; starts_at: string; capacity: number }
+interface ClassInstance { id: string; date: string; local_time: string; starts_at: string; capacity: number; name?: string; workout_notes?: string | null }
 interface BookingRow { id: string; instance_id: string; status: string }
 
 function getMondayOfCurrentWeek() {
@@ -17,7 +16,7 @@ function getMondayOfCurrentWeek() {
   return new Date(d.setDate(diff)).toISOString().split('T')[0]
 }
 
-const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export default async function ThisWeekPage() {
   const supabase = createClient()
@@ -37,12 +36,14 @@ export default async function ThisWeekPage() {
   const workouts: WorkoutDay[] = (weekData as unknown as WeekData | null)?.workouts ?? []
 
   const weekEnd = new Date(weekStart)
-  weekEnd.setDate(weekEnd.getDate() + 4)
+  weekEnd.setDate(weekEnd.getDate() + 6)
   const { data: instancesRaw } = await supabase.from('class_instances').select('*')
     .eq('gym_id', userData.gym_id)
     .gte('date', weekStart).lte('date', weekEnd.toISOString().split('T')[0])
     .order('date').order('local_time')
-  const instances = (instancesRaw ?? []) as unknown as ClassInstance[]
+  const now = new Date()
+  const instances = ((instancesRaw ?? []) as unknown as ClassInstance[])
+    .filter(i => new Date(i.starts_at) > now)
 
   const instanceIds = instances.map(i => i.id)
   const { data: userBookingsRaw } = instanceIds.length > 0
@@ -67,7 +68,7 @@ export default async function ThisWeekPage() {
       {workouts.length === 0 ? (
         <p className="text-secondary">No workouts published yet for this week.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           {DAY_NAMES.map((dayName, i) => {
             const workout = workouts.find(w => w.day === dayName)
             const dayDate = new Date(weekStart)
@@ -75,12 +76,18 @@ export default async function ThisWeekPage() {
             const dateStr = dayDate.toISOString().split('T')[0]
             const dayInstances = instances.filter(inst => inst.date === dateStr)
 
+            const isToday = dateStr === new Date().toISOString().split('T')[0]
+
             return (
               <div key={dayName} className="flex flex-col gap-3">
+                <div className="flex items-baseline gap-2">
+                  <span className={`font-display text-sm font-semibold uppercase tracking-wider ${isToday ? 'text-accent' : 'text-white'}`}>{dayName}</span>
+                  <span className="text-secondary text-xs">{dayDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                  {isToday && <span className="text-xs text-accent font-medium">Today</span>}
+                </div>
                 {workout && <WorkoutCard day={workout} />}
                 {dayInstances.length > 0 && (
-                  <Card>
-                    <p className="text-secondary text-xs uppercase tracking-wider mb-2">Classes</p>
+                  <div className="flex flex-col gap-2">
                     {dayInstances.map((inst) => (
                       <ClassSlot
                         key={inst.id}
@@ -89,7 +96,7 @@ export default async function ThisWeekPage() {
                         userBooking={userBookings.find(b => b.instance_id === inst.id) ?? null}
                       />
                     ))}
-                  </Card>
+                  </div>
                 )}
               </div>
             )

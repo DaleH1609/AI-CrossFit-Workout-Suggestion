@@ -3,6 +3,7 @@ import { generateWorkouts, generateScaling } from '@/lib/claude/generate-workout
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 // Task 4: simple in-memory rate limit — max 3 requests per gym per minute
 const rateLimitMap = new Map<string, number[]>()
@@ -51,11 +52,6 @@ export async function POST(req: Request) {
   const recentWeeks = await getRecentWeeks(supabase, gymId)
   const historyWeeks = recentWeeks.map(w => w.workouts)
 
-  // Delete any existing draft for this week
-  await supabase.from('workout_weeks')
-    .update({ status: 'discarded' })
-    .eq('gym_id', gymId).eq('week_start', weekStart).eq('status', 'draft')
-
   let workouts
   try {
     workouts = await generateWorkouts(styleTexts, historyWeeks, gymType)
@@ -64,6 +60,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 
+  console.log('[generate] days after generation:', workouts.map((d: { day: string }) => d.day))
+
   // Auto-scaling — non-blocking: failure does not prevent saving
   try {
     workouts = await generateScaling(workouts)
@@ -71,10 +69,48 @@ export async function POST(req: Request) {
     // Scaling failed — save without scaling
   }
 
-  const { data: week, error } = await supabase.from('workout_weeks')
-    .insert({ gym_id: gymId, week_start: weekStart, workouts, status: 'draft' })
-    .select().single()
+  console.log('[generate] days after scaling:', workouts.map((d: { day: string }) => d.day))
 
+  // Final safety net — ensure Saturday and Sunday always have actual content
+  function dayHasContent(d: { parts?: { content?: string }[] }) {
+    return Array.isArray(d.parts) && d.parts.length > 0 && d.parts.some(p => typeof p.content === 'string' && p.content.trim().length > 10)
+  }
+  if (!workouts.some((d: { day: string; parts?: { content?: string }[] }) => d.day === 'Saturday' && dayHasContent(d))) {
+    workouts = workouts.filter((d: { day: string }) => d.day !== 'Saturday')
+    workouts.push({ day: 'Saturday', descriptor: 'Community WOD', parts: [{ label: null, type: 'fortime', content: "Community workout — check with your coach for today's programming." }] })
+  }
+  if (!workouts.some((d: { day: string; parts?: { content?: string }[] }) => d.day === 'Sunday' && dayHasContent(d))) {
+    workouts = workouts.filter((d: { day: string }) => d.day !== 'Sunday')
+    workouts.push({ day: 'Sunday', descriptor: 'Rest Day', parts: [{ label: null, type: 'rest', content: 'Active recovery. Light movement, mobility, or complete rest.' }] })
+  }
+
+  // Use admin client to bypass RLS — auth already verified above
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  console.log('[generate] saving for gymId:', gymId, 'weekStart:', weekStart, 'days:', workouts.map((d: { day: string }) => d.day))
+
+  // Call atomic SQL function (SECURITY DEFINER bypasses RLS completely)
+  const { data: week, error } = await admin.rpc('save_workout_draft', {
+    p_gym_id: gymId,
+    p_week_start: weekStart,
+    p_workouts: workouts,
+  })
+
+  console.log('[generate] rpc error:', error?.message ?? 'none', 'weekId:', (week as { id?: string } | null)?.id ?? 'none')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ week })
+
+  // Fetch the saved row so the client gets the real DB id
+  const { data: savedWeek } = await admin.from('workout_weeks')
+    .select('id, workouts, status')
+    .eq('gym_id', gymId)
+    .eq('week_start', weekStart)
+    .eq('status', 'draft')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return NextResponse.json({ week: savedWeek ?? { workouts, status: 'draft' } })
 }

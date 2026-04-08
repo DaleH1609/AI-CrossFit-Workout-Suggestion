@@ -34,13 +34,16 @@ export async function POST(req: Request) {
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { dayOfWeek, localTime, capacity } = await req.json()
+  const { dayOfWeek, localTime, capacity, classTypeId, name } = await req.json()
   const { data } = await supabase.from('class_slot_templates')
     .insert({
       gym_id: userData.gym_id,
       day_of_week: dayOfWeek,
       local_time: localTime,
       capacity: capacity ?? null,
+      name: name ?? 'WOD',
+      workout_notes: null,
+      class_type_id: classTypeId ?? null,
     })
     .select().single()
   return NextResponse.json({ template: data })
@@ -51,7 +54,7 @@ export async function PATCH(req: Request) {
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { id, capacity } = await req.json()
+  const { id, capacity, name, workout_notes, class_type_id } = await req.json()
 
   if (!id || typeof id !== 'string') {
     return NextResponse.json({ error: 'id is required' }, { status: 400 })
@@ -61,8 +64,15 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'Capacity must be between 1 and 200' }, { status: 400 })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updates: Record<string, any> = {}
+  if (capacity !== undefined) updates.capacity = capacity ?? null
+  if (name !== undefined) updates.name = String(name).trim() || 'WOD'
+  if (workout_notes !== undefined) updates.workout_notes = workout_notes || null
+  if (class_type_id !== undefined) updates.class_type_id = class_type_id ?? null
+
   const { data, error } = await supabase.from('class_slot_templates')
-    .update({ capacity: capacity ?? null })
+    .update(updates)
     .eq('id', id)
     .eq('gym_id', userData.gym_id)
     .select().single()

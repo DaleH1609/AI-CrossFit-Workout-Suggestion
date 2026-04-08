@@ -1,5 +1,14 @@
 {
+  "functions": {
+    "app/api/workouts/generate/route.ts": {
+      "maxDuration": 300
+    }
+  },
   "crons": [
+    {
+      "path": "/api/cron/generate-instances",
+      "schedule": "0 0 * * *"
+    },
     {
       "path": "/api/cron/waitlist-expire",
       "schedule": "0 0 * * *"

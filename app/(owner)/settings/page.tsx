@@ -12,9 +12,10 @@ const GYM_TYPES = [
 ]
 
 export default function SettingsPage() {
-  const [gym, setGym] = useState<{ name: string; timezone: string; gym_type: 'crossfit' | 'hyrox' } | null>(null)
+  const [gym, setGym] = useState<{ name: string; timezone: string; gym_type: 'crossfit' | 'hyrox'; cancellation_cutoff_hours: number } | null>(null)
   const [saved, setSaved] = useState(false)
   const [gymTypeSaved, setGymTypeSaved] = useState(false)
+  const [cutoffSaved, setCutoffSaved] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -24,8 +25,8 @@ export default function SettingsPage() {
       if (!user) return
       const { data: userData } = await client.from('users').select('gym_id').eq('id', user.id).single()
       const gymUser = userData as unknown as { gym_id: string } | null
-      const { data } = await client.from('gyms').select('name, timezone, gym_type').eq('id', gymUser!.gym_id).single()
-      setGym(data as unknown as { name: string; timezone: string; gym_type: 'crossfit' | 'hyrox' } | null)
+      const { data } = await client.from('gyms').select('name, timezone, gym_type, cancellation_cutoff_hours').eq('id', gymUser!.gym_id).single()
+      setGym(data as unknown as { name: string; timezone: string; gym_type: 'crossfit' | 'hyrox'; cancellation_cutoff_hours: number } | null)
     }
     load()
   }, [])
@@ -39,6 +40,17 @@ export default function SettingsPage() {
     await supabase.from('gyms').update({ name: gym.name, timezone: gym.timezone }).eq('id', gymUser!.gym_id)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  async function handleCutoffChange(hours: number) {
+    if (!gym) return
+    setGym(g => g ? { ...g, cancellation_cutoff_hours: hours } : g)
+    const res = await fetch('/api/settings/gym', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cancellationCutoffHours: hours }),
+    })
+    if (res.ok) { setCutoffSaved(true); setTimeout(() => setCutoffSaved(false), 2000) }
   }
 
   async function handleGymTypeChange(gymType: 'crossfit' | 'hyrox') {
@@ -97,6 +109,33 @@ export default function SettingsPage() {
                   </div>
                 </label>
               ))}
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-white font-semibold text-sm">Booking Rules</h2>
+              <p className="text-secondary text-xs mt-0.5">Control how members can manage their bookings.</p>
+              {cutoffSaved && <p className="text-accent text-xs mt-1">Saved!</p>}
+            </div>
+            <div>
+              <label className="text-secondary text-xs mb-1 block">Cancellation cutoff</label>
+              <select
+                value={gym.cancellation_cutoff_hours ?? 0}
+                onChange={e => handleCutoffChange(Number(e.target.value))}
+                className="w-full px-3 py-2 bg-background border border-accent-border rounded-btn text-white focus:outline-none focus:border-accent text-sm"
+              >
+                <option value={0}>No limit — members can cancel any time</option>
+                <option value={1}>1 hour before class</option>
+                <option value={2}>2 hours before class</option>
+                <option value={4}>4 hours before class</option>
+                <option value={12}>12 hours before class</option>
+                <option value={24}>24 hours before class</option>
+              </select>
+              <p className="text-secondary text-xs mt-1">
+                Members cannot cancel after this point. Set to &ldquo;No limit&rdquo; to allow cancellations up until class time.
+              </p>
             </div>
           </div>
         </Card>

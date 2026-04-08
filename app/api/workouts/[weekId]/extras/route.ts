@@ -1,10 +1,7 @@
-// app/api/workouts/[weekId]/day/route.ts
+// app/api/workouts/[weekId]/extras/route.ts
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
-import { generateDayScaling } from '@/lib/claude/generate-workouts'
-import type { WorkoutDay } from '@/lib/types'
-
-export const maxDuration = 60
+import type { WorkoutDay, WorkoutExtra } from '@/lib/types'
 
 export async function PATCH(
   req: Request,
@@ -14,13 +11,12 @@ export async function PATCH(
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { dayName, updatedDay, skipScaling }: { dayName: string; updatedDay: WorkoutDay; skipScaling?: boolean } = await req.json()
+  const { dayName, extras }: { dayName: string; extras: WorkoutExtra[] } = await req.json()
 
-  if (!dayName || !updatedDay) {
-    return NextResponse.json({ error: 'dayName and updatedDay are required' }, { status: 400 })
+  if (!dayName || !Array.isArray(extras)) {
+    return NextResponse.json({ error: 'dayName and extras are required' }, { status: 400 })
   }
 
-  // Fetch the week, verifying gym ownership and draft status
   const { data: week, error: fetchError } = await supabase
     .from('workout_weeks')
     .select('id, workouts, status')
@@ -32,25 +28,14 @@ export async function PATCH(
     return NextResponse.json({ error: 'Week not found' }, { status: 404 })
   }
 
-  // Replace the matching day in the workouts JSONB array
   const workouts: WorkoutDay[] = week.workouts as WorkoutDay[]
   const idx = workouts.findIndex(d => d.day === dayName)
   if (idx === -1) {
     return NextResponse.json({ error: `Day "${dayName}" not found in this week` }, { status: 404 })
   }
 
-  // Regenerate scaling unless the client provided manual scaling
-  let dayToSave = updatedDay
-  if (!skipScaling) {
-    try {
-      dayToSave = await generateDayScaling(updatedDay)
-    } catch {
-      // Scaling failed — save without it
-    }
-  }
-
   const updatedWorkouts = [...workouts]
-  updatedWorkouts[idx] = dayToSave
+  updatedWorkouts[idx] = { ...updatedWorkouts[idx], extras }
 
   const { data: saved, error: updateError } = await supabase
     .from('workout_weeks')

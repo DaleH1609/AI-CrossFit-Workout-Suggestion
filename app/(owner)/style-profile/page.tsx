@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Card } from '@/components/ui/card'
 
+const MIN_EXAMPLES = 3
+
 export default function StyleProfilePage() {
   const [examples, setExamples] = useState<{ id: string; raw_text: string }[]>([])
   const [gymType, setGymType] = useState<'crossfit' | 'hyrox'>('crossfit')
@@ -16,6 +18,7 @@ export default function StyleProfilePage() {
   const [addingSelected, setAddingSelected] = useState(false)
   const [addError, setAddError] = useState('')
   const [adding, setAdding] = useState(false)
+  const [selectedDay, setSelectedDay] = useState('Monday')
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadExamples() }, [])
@@ -31,7 +34,8 @@ export default function StyleProfilePage() {
     if (!newText.trim()) return
     setAdding(true)
     setAddError('')
-    const res = await fetch('/api/style', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rawText: newText }) })
+    const rawText = `${selectedDay}\n${newText.trim()}`
+    const res = await fetch('/api/style', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rawText }) })
     if (res.ok) {
       setNewText('')
       await loadExamples()
@@ -89,80 +93,179 @@ export default function StyleProfilePage() {
     await loadExamples()
   }
 
+  const readyToGenerate = examples.length >= MIN_EXAMPLES
+  const progressPercent = Math.min((examples.length / MIN_EXAMPLES) * 100, 100)
+  const gymLabel = gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-3xl text-white">Style Profile</h1>
-        <Button variant="danger" onClick={() => setShowNewProgramModal(true)}>Start New Program</Button>
+    <div className="max-w-3xl mx-auto">
+
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl text-white">Style Profile</h1>
+            <p className="text-secondary text-sm mt-1.5 max-w-xl">
+              Teach the AI your coaching style by adding real {gymLabel} workouts. The more examples you add, the better the generated programs reflect your approach.
+            </p>
+          </div>
+          <span className="shrink-0 text-xs font-medium uppercase tracking-wider px-2.5 py-1 rounded border border-accent-border text-accent">
+            {gymLabel} gym
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-secondary uppercase tracking-wider">Training examples</span>
+            <span className={`text-xs font-medium tabular-nums ${readyToGenerate ? 'text-accent' : 'text-secondary'}`}>
+              {readyToGenerate
+                ? `${examples.length} examples — ready`
+                : `${examples.length} / ${MIN_EXAMPLES} minimum`}
+            </span>
+          </div>
+          <div className="h-0.5 bg-surface rounded-full overflow-hidden border border-accent-border">
+            <div
+              className="h-full bg-accent transition-all duration-700 ease-out rounded-full"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
       </div>
 
+      {/* Add Example */}
       <Card className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs font-medium uppercase tracking-wide px-2 py-0.5 rounded border border-accent-border text-accent">
-            {gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'} gym
-          </span>
-          <p className="text-secondary text-sm">
-            Paste a real {gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'} workout below. Add at least 3 to enable generation.
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-white mb-0.5">
+            Add a workout example
+          </label>
+          <p className="text-xs text-secondary">
+            Paste a full {gymLabel} session — working sets, conditioning, any coaching notes.
           </p>
         </div>
-        <textarea value={newText} onChange={e => { setNewText(e.target.value); setAddError('') }}
+
+        <div className="mb-3">
+          <label className="block text-xs text-secondary uppercase tracking-wider mb-1">Day of week</label>
+          <select
+            value={selectedDay}
+            onChange={e => setSelectedDay(e.target.value)}
+            className="bg-background border border-accent-border rounded-btn px-3 py-2 text-white text-sm focus:outline-none focus:border-accent"
+          >
+            {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </div>
+
+        <textarea
+          value={newText}
+          onChange={e => { setNewText(e.target.value); setAddError('') }}
           placeholder={gymType === 'hyrox'
-            ? 'Monday\nRun 1km\nSki Erg 1000m\nSled Push 50m...'
-            : 'Monday\nPart A\nBack Squat 5×5\n\nPart B\n21-15-9 Thrusters, Pull-ups'}
-          rows={8}
-          className="w-full bg-background border border-accent-border rounded-btn p-3 text-white text-sm font-mono placeholder-secondary focus:outline-none focus:border-accent resize-none"
+            ? 'Warm-up: Run 400m, mobility work\n\nMain\nRun 1km\nSki Erg 1000m\nSled Push 50m...'
+            : 'Part A — Strength\nBack Squat 5×5 @ 80%\n\nPart B — Conditioning\n21-15-9\nThrusters 43/30kg\nPull-ups'}
+          rows={9}
+          className="w-full bg-background border border-accent-border rounded-btn p-3 text-white text-sm font-mono placeholder-secondary focus:outline-none focus:border-accent resize-none transition-colors duration-150"
         />
-        {addError && <p className="text-danger text-xs mt-2">{addError}</p>}
-        <div className="mt-3 flex justify-end">
+
+        {addError && (
+          <div className="mt-2 px-3 py-2 rounded border border-danger/30 bg-danger/5 text-xs text-danger flex items-start gap-2">
+            <span className="shrink-0 mt-0.5" aria-hidden="true">!</span>
+            <span>{addError}</span>
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-xs text-secondary tabular-nums">
+            {newText.trim() ? `${newText.trim().split('\n').filter(l => l.trim()).length} lines` : ''}
+          </span>
           <Button onClick={handleAdd} disabled={!newText.trim() || adding}>
-            {adding ? 'Checking…' : 'Add Example'}
+            {adding ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Checking…
+              </span>
+            ) : 'Add Example'}
           </Button>
         </div>
       </Card>
 
-      {examples.length < 3 && (
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={generating}
-            className="flex items-center gap-2 text-sm text-accent border border-accent-border rounded-btn px-4 py-2 hover:border-accent disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {generating && (
-              <svg className="animate-spin h-4 w-4 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
+      {/* AI Generation — only before minimum is reached */}
+      {!readyToGenerate && (
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-px flex-1 bg-accent-border" />
+            <span className="text-xs text-secondary uppercase tracking-widest">or</span>
+            <div className="h-px flex-1 bg-accent-border" />
+          </div>
+
+          <Card className="border-dashed">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-white">Generate examples with AI</p>
+                <p className="text-xs text-secondary mt-0.5">
+                  Let the AI create sample {gymLabel} workouts you can review and save as a starting point.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={generating}
+                className="shrink-0 flex items-center gap-2 text-sm text-accent border border-accent-border rounded-btn px-4 py-2 hover:border-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+              >
+                {generating && (
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                )}
+                {generating ? 'Generating…' : 'Generate'}
+              </button>
+            </div>
+
+            {generateError && (
+              <p className="text-danger text-xs mt-3">{generateError}</p>
             )}
-            {generating ? 'Generating...' : 'Generate examples for me'}
-          </button>
-          {generateError && <p className="text-danger text-xs mt-2">{generateError}</p>}
+          </Card>
+
           {pendingSamples.length > 0 && (
-            <div className="mt-4 space-y-3">
-              {pendingSamples.map((sample, i) => (
-                <label key={i} className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    aria-label={`Select sample ${i + 1}`}
-                    checked={selectedSamples.has(i)}
-                    onChange={() => {
-                      const next = new Set(selectedSamples)
-                      if (next.has(i)) { next.delete(i) } else { next.add(i) }
-                      setSelectedSamples(next)
-                    }}
-                    className="mt-1 accent-accent"
-                  />
-                  <Card className="flex-1">
-                    <pre className="text-white/80 text-sm whitespace-pre-wrap font-mono">{sample}</pre>
-                  </Card>
-                </label>
-              ))}
-              <div className="flex justify-end">
+            <div className="mt-4">
+              <p className="text-xs text-secondary mb-3">
+                Review the generated examples and select which ones to save:
+              </p>
+              <div className="space-y-3">
+                {pendingSamples.map((sample, i) => (
+                  <label key={i} className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select sample ${i + 1}`}
+                      checked={selectedSamples.has(i)}
+                      onChange={() => {
+                        const next = new Set(selectedSamples)
+                        if (next.has(i)) { next.delete(i) } else { next.add(i) }
+                        setSelectedSamples(next)
+                      }}
+                      className="mt-1 accent-accent w-4 h-4 shrink-0"
+                    />
+                    <Card className={`flex-1 transition-colors duration-150 ${selectedSamples.has(i) ? 'border-accent/40' : ''}`}>
+                      <pre className="text-white/80 text-sm whitespace-pre-wrap font-mono leading-relaxed">{sample}</pre>
+                    </Card>
+                  </label>
+                ))}
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-xs text-secondary tabular-nums">
+                  {selectedSamples.size} of {pendingSamples.length} selected
+                </span>
                 <Button
                   onClick={handleAddSelected}
                   disabled={selectedSamples.size === 0 || addingSelected}
                 >
-                  {addingSelected ? 'Adding...' : 'Add selected'}
+                  {addingSelected
+                    ? 'Adding…'
+                    : `Add ${selectedSamples.size} example${selectedSamples.size !== 1 ? 's' : ''}`}
                 </Button>
               </div>
             </div>
@@ -170,15 +273,67 @@ export default function StyleProfilePage() {
         </div>
       )}
 
-      <div className="space-y-3">
-        {examples.map((ex, i) => (
-          <Card key={ex.id} className="flex items-start gap-4">
-            <span className="text-accent font-display text-lg">{i + 1}</span>
-            <pre className="flex-1 text-white/80 text-sm whitespace-pre-wrap font-mono">{ex.raw_text}</pre>
-            <Button variant="danger" onClick={() => handleDelete(ex.id)}>Remove</Button>
+      {/* Saved Examples */}
+      <div className="mb-10">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-medium text-secondary uppercase tracking-wider">
+            Saved Examples
+          </h2>
+          {examples.length > 0 && (
+            <span className="text-xs text-secondary tabular-nums">
+              {examples.length} {examples.length === 1 ? 'example' : 'examples'}
+            </span>
+          )}
+        </div>
+
+        {examples.length === 0 ? (
+          <Card className="py-10 text-center">
+            <div className="w-8 h-8 mx-auto mb-3 rounded border border-accent-border flex items-center justify-center opacity-40">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" className="text-accent">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V19.5a2.25 2.25 0 002.25 2.25h.75" />
+              </svg>
+            </div>
+            <p className="text-secondary text-sm">No examples saved yet.</p>
+            <p className="text-secondary text-xs mt-1 opacity-60">
+              Add at least {MIN_EXAMPLES} workouts to unlock AI generation.
+            </p>
           </Card>
-        ))}
-        {examples.length === 0 && <p className="text-secondary text-sm">No examples yet. Add at least 3 to enable workout generation.</p>}
+        ) : (
+          <div className="space-y-3">
+            {examples.map((ex, i) => (
+              <Card key={ex.id} className="group">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 w-7 h-7 rounded flex items-center justify-center border border-accent-border">
+                    <span className="font-display text-accent text-sm leading-none">{i + 1}</span>
+                  </div>
+                  <pre className="flex-1 text-white/80 text-sm whitespace-pre-wrap font-mono leading-relaxed min-w-0">{ex.raw_text}</pre>
+                  <Button
+                    variant="danger"
+                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                    onClick={() => handleDelete(ex.id)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Danger Zone */}
+      <div className="border-t border-accent-border pt-6">
+        <div className="flex items-start justify-between gap-6">
+          <div>
+            <p className="text-sm font-medium text-white">Start a new program</p>
+            <p className="text-xs text-secondary mt-0.5 max-w-sm">
+              Archives all current style examples and workout history. Future bookings are unaffected.
+            </p>
+          </div>
+          <Button variant="danger" className="shrink-0" onClick={() => setShowNewProgramModal(true)}>
+            Start New Program
+          </Button>
+        </div>
       </div>
 
       <Modal

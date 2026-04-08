@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import type { WorkoutDay } from '@/lib/types'
 
-export function WorkoutCard({ day }: { day: WorkoutDay }) {
+export function WorkoutCard({ day, onEditScaling }: { day: WorkoutDay; onEditScaling?: () => void }) {
   const [scalingOpen, setScalingOpen] = useState(false)
 
   return (
@@ -23,14 +23,25 @@ export function WorkoutCard({ day }: { day: WorkoutDay }) {
       </div>
       {day.scaling && (
         <div className="mt-4 pt-4 border-t border-accent-border">
-          <button
-            type="button"
-            onClick={() => setScalingOpen(o => !o)}
-            className="flex items-center gap-1 text-secondary text-xs hover:text-white transition-colors"
-          >
-            <span>Show scaling</span>
-            <span className={`transition-transform ${scalingOpen ? 'rotate-180' : ''}`}>▾</span>
-          </button>
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setScalingOpen(o => !o)}
+              className="flex items-center gap-1 text-secondary text-xs hover:text-white transition-colors"
+            >
+              <span>Show scaling</span>
+              <span className={`transition-transform ${scalingOpen ? 'rotate-180' : ''}`}>▾</span>
+            </button>
+            {onEditScaling && (
+              <button
+                type="button"
+                onClick={onEditScaling}
+                className="text-xs text-accent hover:text-white transition-colors"
+              >
+                Edit
+              </button>
+            )}
+          </div>
           {scalingOpen && (
             <div className="mt-3 space-y-2">
               <div>

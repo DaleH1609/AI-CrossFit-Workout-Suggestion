@@ -58,13 +58,25 @@ export async function POST(req: Request) {
   const status = isFull ? 'waitlisted' : 'confirmed'
   const waitlist_position = isFull ? (waitlistCount ?? 0) + 1 : null
 
-  const { data: booking, error } = await supabase.from('bookings').insert({
-    gym_id: userData.gym_id,
-    instance_id: instanceId,
-    user_id: user.id,
-    status,
-    waitlist_position,
-  }).select().single()
+  // Check for an existing cancelled booking (unique constraint on instance_id+user_id)
+  const { data: existing } = await supabase.from('bookings')
+    .select('id').eq('instance_id', instanceId).eq('user_id', user.id).eq('status', 'cancelled').maybeSingle()
+
+  let booking, error
+  if (existing) {
+    // Re-activate the cancelled booking
+    ;({ data: booking, error } = await supabase.from('bookings')
+      .update({ status, waitlist_position, cancelled_at: null, confirmation_token: null, confirmation_expires_at: null })
+      .eq('id', existing.id).select().single())
+  } else {
+    ;({ data: booking, error } = await supabase.from('bookings').insert({
+      gym_id: userData.gym_id,
+      instance_id: instanceId,
+      user_id: user.id,
+      status,
+      waitlist_position,
+    }).select().single())
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -91,9 +103,18 @@ export async function DELETE(req: Request) {
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
   const instance = booking.class_instances
-  const oneHourBefore = new Date(instance.starts_at).getTime() - 60 * 60 * 1000
-  if (Date.now() > oneHourBefore) {
-    return NextResponse.json({ error: 'Cannot cancel within 1 hour of class' }, { status: 400 })
+
+  // Check gym's cancellation cutoff setting
+  const { data: gymRow } = await supabase.from('gyms').select('cancellation_cutoff_hours').eq('id', userData.gym_id).single()
+  const cutoffHours: number = (gymRow as unknown as { cancellation_cutoff_hours: number } | null)?.cancellation_cutoff_hours ?? 0
+  if (cutoffHours > 0) {
+    const cutoffMs = cutoffHours * 60 * 60 * 1000
+    if (Date.now() > new Date(instance.starts_at).getTime() - cutoffMs) {
+      return NextResponse.json(
+        { error: `Cancellations close ${cutoffHours} hour${cutoffHours !== 1 ? 's' : ''} before class` },
+        { status: 400 }
+      )
+    }
   }
 
   const { error: cancelError } = await supabase.from('bookings')

@@ -137,7 +137,9 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
       return
     }
 
-    onSave(updatedDay)
+    const data = await res.json() as { workouts: WorkoutDay[] }
+    const savedDay = data.workouts?.find(d => d.day === updatedDay.day) ?? updatedDay
+    onSave(savedDay)
     onClose()
   }
 
@@ -274,6 +276,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
               >
                 + Add Part
               </button>
+
             </>
           ) : (
             <div>

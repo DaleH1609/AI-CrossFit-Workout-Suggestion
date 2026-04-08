@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
   // Supabase sends its own invite email with the magic link.
   const { data: inviteData, error } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL?.trim()}/auth/callback?next=/invite`
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL?.trim()}/invite`
   })
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 

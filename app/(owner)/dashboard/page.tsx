@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { WorkoutWeekGrid } from '@/components/workout/workout-week-grid'
 import { WorkoutEditModal } from '@/components/workout/workout-edit-modal'
+import { ScalingEditModal } from '@/components/workout/scaling-edit-modal'
 import { MovementIntelligencePanel } from '@/components/workout/MovementIntelligencePanel'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +32,7 @@ export default function DashboardPage() {
   const [generating, setGenerating] = useState(false)
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [editingDay, setEditingDay] = useState<WorkoutDay | null>(null)
+  const [editingScalingDay, setEditingScalingDay] = useState<WorkoutDay | null>(null)
   const [error, setError] = useState<string | null>(null)
   const weekStart = getMondayOfCurrentWeek()
   const supabase = createClient()
@@ -55,7 +57,12 @@ export default function DashboardPage() {
       body: JSON.stringify({ weekStart })
     })
     if (res.ok) {
-      await loadWeek()
+      const apiData = await res.json() as { week?: { id: string; workouts: WorkoutWeek; status: string } }
+      if (apiData.week?.workouts?.length) {
+        setWeek({ id: apiData.week.id, workouts: apiData.week.workouts, status: apiData.week.status ?? 'draft' })
+      } else {
+        await loadWeek()
+      }
     } else {
       const data = await res.json()
       setError((data as { error?: string }).error || 'Generation failed')
@@ -127,6 +134,7 @@ export default function DashboardPage() {
         loading={loading || generating}
         isDraft={week?.status === 'draft'}
         onEdit={setEditingDay}
+        onEditScaling={setEditingScalingDay}
       />
 
       <Modal
@@ -146,6 +154,16 @@ export default function DashboardPage() {
           onClose={() => setEditingDay(null)}
         />
       )}
+
+      {editingScalingDay && week && (
+        <ScalingEditModal
+          day={editingScalingDay}
+          weekId={week.id}
+          onSave={handleDaySaved}
+          onClose={() => setEditingScalingDay(null)}
+        />
+      )}
+
     </div>
   )
 }

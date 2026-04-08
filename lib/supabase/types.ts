@@ -14,6 +14,7 @@ export type Database = {
       users: AnyTable
       style_examples: AnyTable
       workout_weeks: AnyTable
+      class_types: AnyTable
       class_slot_templates: AnyTable
       class_instances: AnyTable
       bookings: AnyTable

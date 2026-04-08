@@ -16,9 +16,21 @@ export interface WorkoutDay {
   descriptor?: string
   parts: WorkoutPart[]
   scaling?: WorkoutScaling  // optional, added by post-processing
+  extras?: WorkoutExtra[]   // optional, added manually by owner
 }
 
 export type WorkoutWeek = WorkoutDay[]
+
+export interface WorkoutExtra {
+  label: string
+  content: string
+}
+
+export interface ClassType {
+  id: string
+  name: string
+  color: string
+}
 
 export interface ScheduleTemplate {
   id: string
@@ -26,6 +38,9 @@ export interface ScheduleTemplate {
   local_time: string
   capacity: number | null  // null = inherit from defaults
   active: boolean
+  name: string
+  workout_notes: string | null
+  class_type_id: string | null
 }
 
 export interface GymScheduleDefault {

@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ScheduleTemplate, ScheduleDefaults } from '@/lib/types'
+import type { ClassType, ScheduleDefaults, ScheduleTemplate } from '@/lib/types'
 import { CapacityDefaults } from '@/components/schedule/capacity-defaults'
+import { ClassTypesManager } from '@/components/schedule/class-types-manager'
 import { ScheduleGrid } from '@/components/schedule/schedule-grid'
 
 interface Booking {
@@ -15,35 +16,38 @@ interface InstanceWithBookings {
   id: string
   starts_at: string
   local_time: string
+  name: string
   capacity: number
   bookings: Booking[]
 }
 
 export default function SchedulePage() {
   const [templates, setTemplates] = useState<ScheduleTemplate[]>([])
-  const [defaults, setDefaults] = useState<ScheduleDefaults>({
-    globalDefault: 20,
-    dayDefaults: {},
-  })
+  const [defaults, setDefaults] = useState<ScheduleDefaults>({ globalDefault: 20, dayDefaults: {} })
+  const [classTypes, setClassTypes] = useState<ClassType[]>([])
   const [loading, setLoading] = useState(true)
 
-  const [attendanceDate, setAttendanceDate] = useState(() => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  })
+  const [attendanceDate, setAttendanceDate] = useState(() =>
+    new Date().toISOString().split('T')[0]
+  )
   const [instances, setInstances] = useState<InstanceWithBookings[]>([])
   const [loadingInstances, setLoadingInstances] = useState(false)
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      const res = await fetch('/api/schedule/templates')
-      const data = await res.json()
-      setTemplates(data.templates ?? [])
+      const [templatesRes, typesRes] = await Promise.all([
+        fetch('/api/schedule/templates'),
+        fetch('/api/class-types'),
+      ])
+      const templatesData = await templatesRes.json()
+      const typesData = await typesRes.json()
+      setTemplates(templatesData.templates ?? [])
       setDefaults({
-        globalDefault: data.globalDefault ?? 20,
-        dayDefaults: data.dayDefaults ?? {},
+        globalDefault: templatesData.globalDefault ?? 20,
+        dayDefaults: templatesData.dayDefaults ?? {},
       })
+      setClassTypes(typesData.classTypes ?? [])
       setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,7 +73,6 @@ export default function SchedulePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ attended: next }),
     })
-    // Optimistically update local state
     setInstances(prev =>
       prev.map(inst => ({
         ...inst,
@@ -83,39 +86,42 @@ export default function SchedulePage() {
   if (loading) {
     return (
       <div className="p-6">
-        <p className="text-gray-400 text-sm">Loading schedule...</p>
+        <p className="text-secondary text-sm">Loading schedule…</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-5xl">
+    <div className="max-w-5xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-1">Class Schedule</h1>
-        <p className="text-sm text-yellow-400">↻ This schedule repeats every week automatically</p>
+        <h1 className="font-display text-3xl text-white">Class Schedule</h1>
+        <p className="text-secondary text-sm mt-1">This schedule repeats every week automatically.</p>
       </div>
+
+      <ClassTypesManager classTypes={classTypes} onChange={setClassTypes} />
 
       <CapacityDefaults defaults={defaults} onUpdate={setDefaults} />
 
       <ScheduleGrid
         initialTemplates={templates}
         defaults={defaults}
+        classTypes={classTypes}
       />
 
-      {/* Attendance Section */}
+      {/* Attendance */}
       <div className="mt-10">
-        <h2 className="font-bold text-xl text-white mb-4">Attendance</h2>
+        <h2 className="font-display text-xl text-white mb-4">Attendance</h2>
         <div className="flex items-center gap-3 mb-4">
           <input
             type="date"
             value={attendanceDate}
             onChange={e => setAttendanceDate(e.target.value)}
-            className="bg-zinc-800 border border-zinc-600 rounded-btn px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+            className="bg-background border border-accent-border rounded-btn px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
           />
         </div>
 
         {loadingInstances ? (
-          <p className="text-secondary text-sm">Loading...</p>
+          <p className="text-secondary text-sm">Loading…</p>
         ) : instances.length === 0 ? (
           <p className="text-secondary text-sm">No classes scheduled for this date.</p>
         ) : (
@@ -123,16 +129,23 @@ export default function SchedulePage() {
             {instances.map(instance => {
               const isOpen = selectedInstanceId === instance.id
               const time = instance.local_time?.slice(0, 5) ?? instance.starts_at.slice(11, 16)
+              const confirmedCount = instance.bookings.filter(b => b.attended !== false).length
               return (
                 <div key={instance.id}>
                   <button
                     onClick={() => setSelectedInstanceId(isOpen ? null : instance.id)}
                     className="w-full flex items-center justify-between bg-surface border border-accent-border rounded-card px-4 py-3 text-left hover:border-accent transition-colors"
                   >
-                    <span className="text-white font-medium">{time}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-white font-medium tabular-nums">{time}</span>
+                      {instance.name && instance.name !== 'WOD' && (
+                        <span className="text-xs text-accent border border-accent-border rounded px-1.5 py-0.5">
+                          {instance.name}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-secondary text-sm">
-                      {instance.bookings.length} / {instance.capacity} confirmed
-                      {isOpen ? ' ▲' : ' ▼'}
+                      {confirmedCount} / {instance.capacity} {isOpen ? '▲' : '▼'}
                     </span>
                   </button>
                   {isOpen && (
@@ -150,7 +163,7 @@ export default function SchedulePage() {
                                   ? 'bg-green-500/20 border-green-600 text-green-400'
                                   : booking.attended === false
                                   ? 'bg-red-500/20 border-red-700 text-red-400'
-                                  : 'bg-zinc-800 border-zinc-600 text-zinc-400'
+                                  : 'bg-surface border-accent-border text-secondary hover:text-white'
                               }`}
                             >
                               {booking.attended === true ? 'Attended' : booking.attended === false ? 'No-show' : 'Mark'}

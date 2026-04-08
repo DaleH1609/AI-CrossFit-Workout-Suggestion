@@ -1,22 +1,26 @@
 // lib/claude/prompts.ts
 import type { WorkoutWeek, RecentWeek } from '@/lib/types'
 
-const CROSSFIT_BUILTIN = `You are an expert CrossFit programmer. Generate a Mon–Fri week with:
+const CROSSFIT_BUILTIN = `You are an expert CrossFit programmer. Generate a Mon–Sun week with:
 - Monday: Strength (squat/hinge) + interval conditioning
 - Tuesday: For-time or AMRAP with gymnastics and cardio
 - Wednesday: Pure strength (push/pull focus)
 - Thursday: Partner or team workout
 - Friday: Open-style benchmark or chipper
+- Saturday: Hero WOD or long chipper (community day)
+- Sunday: Active recovery or gymnastics skill work
 Use classic CrossFit movements: barbell cycling, gymnastics (pull-ups, HSPU, T2B),
 monostructural cardio (row, bike, run), and kettlebell work.
 Vary loading and time domains across the week.`
 
-const HYROX_BUILTIN = `You are an expert Hyrox programmer. Generate a Mon–Fri training week with:
+const HYROX_BUILTIN = `You are an expert Hyrox programmer. Generate a Mon–Sun training week with:
 - Monday: Ski erg intervals + strength (deadlift or squat)
 - Tuesday: Sled push/pull work + accessory lifting
 - Wednesday: Running + wall balls + sandbag lunges (race simulation)
 - Thursday: Farmers carry + burpee broad jumps + rowing
 - Friday: Full Hyrox race simulation (all 8 stations in sequence)
+- Saturday: Long aerobic effort + accessory work
+- Sunday: Active recovery / mobility
 Hyrox stations: 1km run (between each), ski erg 1000m, sled push 50m,
 sled pull 50m, burpee broad jumps 80m, rowing 1000m, farmers carry 200m,
 sandbag lunges 100m, wall balls 100 reps.
@@ -29,10 +33,12 @@ const PERIODIZATION_RULES = `## Periodization Requirements
 - Vary intensity: avoid programming heavy strength as the primary focus on 3+ consecutive days`
 
 const OUTPUT_REQUIREMENTS = `## Output Requirements
-Return ONLY a valid JSON array of 5 day objects. No markdown, no explanation, just the JSON.
+CRITICAL: Return EXACTLY 7 day objects — one for each day Monday through Sunday. Do NOT stop at Friday.
+The array must be: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+Return ONLY a valid JSON array. No markdown, no explanation, just the JSON.
 Each day object must match this schema exactly:
 {
-  "day": string,          // e.g. "Monday"
+  "day": string,          // MUST be one of: "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"
   "descriptor"?: string,  // e.g. "Strength", "Partner Workout" — optional
   "parts": [
     {
@@ -64,8 +70,8 @@ export function buildGenerationPrompt(
     const examplesText = styleExamples.join('\n\n---\n\n')
     const dayTypeRule = gymType === 'hyrox'
       ? '- Keep the same day types as the examples (adapt for Hyrox training structure)'
-      : '- Keep the same day types as the examples (Mon/Fri = interval, Wed = strength, Thu = partner, Tue = for time)'
-    return `You are a CrossFit programming coach. Generate a new Mon–Fri workout week that matches the style of the examples below.
+      : '- Keep the same day types as the examples (Mon/Fri = interval, Wed = strength, Thu = partner, Tue = for time, Sat = community/hero, Sun = recovery)'
+    return `You are a CrossFit programming coach. Generate a new Mon–Sun workout week (7 days) that matches the style of the examples below.
 
 ## Style Examples (match this format exactly)
 ${examplesText}
