@@ -29,8 +29,8 @@ const config: Config = {
         danger:           'var(--color-danger)',
       },
       fontFamily: {
-        display: ['Playfair Display', 'serif'],
-        body:    ['Inter', 'sans-serif'],
+        display: ['var(--font-playfair)', 'serif'],
+        body:    ['var(--font-inter)', 'sans-serif'],
       },
       borderRadius: {
         card: '8px',
