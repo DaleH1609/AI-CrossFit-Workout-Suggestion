@@ -1,15 +1,13 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { KovaLogo } from '@/components/ui/kova-logo'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -17,36 +15,53 @@ export default function LoginPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError(error.message); return }
-    router.refresh()
-    router.push('/')
+    window.location.href = '/'
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-full max-w-sm">
-        <div className="flex justify-center mb-8">
-          <KovaLogo size="md" />
+    <div className="min-h-screen flex">
+      {/* Left brand panel — desktop only */}
+      <div className="hidden lg:flex w-3/5 flex-col justify-between p-12"
+        style={{ background: '#050508', position: 'relative', overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse at 30% 40%, rgba(212,175,55,0.12) 0%, transparent 60%)',
+        }} />
+        <KovaLogo size="md" />
+        <div className="relative">
+          <p className="font-display text-4xl font-bold text-white leading-snug mb-4">
+            Your program,<br />refined by AI.
+          </p>
+          <p className="text-sm text-white/50">Trusted by 500+ gyms worldwide.</p>
         </div>
-      <div className="p-8 bg-surface rounded-card border border-accent-border">
-        <h1 className="font-display text-2xl text-white mb-6">Sign In</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="Email" required
-            className="w-full px-3 py-2 bg-background border border-accent-border rounded-btn text-white placeholder-secondary focus:outline-none focus:border-accent"
-          />
-          <input
-            type="password" value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="Password" required
-            className="w-full px-3 py-2 bg-background border border-accent-border rounded-btn text-white placeholder-secondary focus:outline-none focus:border-accent"
-          />
-          {error && <p className="text-danger text-sm">{error}</p>}
-          <Button type="submit" className="w-full">Sign In</Button>
-        </form>
-        <p className="mt-4 text-secondary text-sm text-center">
-          New gym? <a href="/signup" className="text-accent hover:underline">Create account</a>
-        </p>
       </div>
+
+      {/* Right form panel */}
+      <div className="flex-1 bg-surface flex items-center justify-center p-8">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden mb-8 flex justify-center"><KovaLogo size="md" /></div>
+          <h1 className="font-display text-2xl font-bold text-foreground mb-8">Welcome back</h1>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="Email" required
+              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+            />
+            <input
+              type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="Password" required
+              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+            />
+            {error && <p className="text-danger text-sm">{error}</p>}
+            <button type="submit"
+              className="w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors">
+              Sign In
+            </button>
+          </form>
+          <p className="mt-6 text-secondary text-sm text-center">
+            New gym? <Link href="/signup" className="text-accent hover:underline">Create account</Link>
+          </p>
+        </div>
       </div>
     </div>
   )
