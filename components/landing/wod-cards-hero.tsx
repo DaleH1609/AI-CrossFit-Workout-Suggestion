@@ -9,7 +9,7 @@ export function WodCardsHero() {
   }, [])
 
   return (
-    <div className="relative h-[380px] flex items-center justify-center select-none">
+    <div className="relative h-[380px] flex items-center justify-center select-none" aria-hidden="true">
       {/* Secondary card — behind, slightly offset */}
       <div
         className={`absolute w-72 bg-surface border border-border shadow rounded-xl p-4 transition-opacity duration-500
