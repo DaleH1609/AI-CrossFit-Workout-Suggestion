@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { KovaLogo } from '@/components/ui/kova-logo'
+import { AuthBrandPanel } from '@/components/auth/brand-panel'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -22,21 +23,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left brand panel — desktop only */}
-      <div className="hidden lg:flex w-3/5 flex-col justify-between p-12"
-        style={{ background: '#050508', position: 'relative', overflow: 'hidden' }}>
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse at 30% 40%, rgba(212,175,55,0.12) 0%, transparent 60%)',
-        }} />
-        <KovaLogo size="md" />
-        <div className="relative">
-          <p className="font-display text-4xl font-bold text-white leading-snug mb-4">
-            Your program,<br />refined by AI.
-          </p>
-          <p className="text-sm text-white/50">Trusted by 500+ gyms worldwide.</p>
-        </div>
-      </div>
+      <AuthBrandPanel />
 
       {/* Right form panel */}
       <div className="flex-1 bg-surface flex items-center justify-center p-8">

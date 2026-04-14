@@ -8,7 +8,7 @@ const sizes: Record<KovaLogoSize, { hex: number; fontSize: number; letterSpacing
   lg: { hex: 40, fontSize: 24, letterSpacing: 5, gap: 14 },
 }
 
-export function KovaLogo({ size = 'md' }: { size?: KovaLogoSize }) {
+export function KovaLogo({ size = 'md', variant = 'light' }: { size?: KovaLogoSize; variant?: 'light' | 'dark' }) {
   const { hex, fontSize, letterSpacing, gap } = sizes[size]
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap }}>
@@ -27,7 +27,7 @@ export function KovaLogo({ size = 'md' }: { size?: KovaLogoSize }) {
           fontSize,
           letterSpacing,
           fontWeight: 800,
-          color: '#ffffff',
+          color: variant === 'dark' ? '#1a1a1a' : '#ffffff',
           fontFamily: 'var(--font-inter)',
           textTransform: 'uppercase' as const,
           lineHeight: 1,
