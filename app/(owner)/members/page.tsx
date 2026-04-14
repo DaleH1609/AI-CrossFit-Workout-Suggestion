@@ -82,7 +82,7 @@ export default function MembersPage() {
           <Card key={m.id} className="flex items-center justify-between">
             <div>
               <p className="text-foreground text-sm">{m.email}</p>
-              <p className="text-zinc-400 text-xs">{attendanceCounts[m.id] ?? 0} classes this month</p>
+              <p className="text-secondary text-xs">{attendanceCounts[m.id] ?? 0} classes this month</p>
               {m.revoked_at && <p className="text-danger text-xs">Revoked</p>}
             </div>
             <div className="flex items-center gap-2">
