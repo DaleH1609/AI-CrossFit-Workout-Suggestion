@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [week, setWeek] = useState<{ id: string; workouts: WorkoutWeek; status: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [creatingManual, setCreatingManual] = useState(false)
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [editingDay, setEditingDay] = useState<WorkoutDay | null>(null)
   const [editingScalingDay, setEditingScalingDay] = useState<WorkoutDay | null>(null)
@@ -71,12 +72,37 @@ export default function DashboardPage() {
   }
 
   async function handleApprove() {
-    await fetch('/api/workouts/approve', {
+    const res = await fetch('/api/workouts/approve', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weekId: week!.id })
     })
     setShowApproveModal(false)
+    if (!res.ok) {
+      const data = await res.json()
+      setError((data as { error?: string }).error || 'Failed to publish week')
+    }
     await loadWeek()
+  }
+
+  async function handleCreateManual() {
+    setCreatingManual(true)
+    setError(null)
+    const res = await fetch('/api/workouts/create-manual', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weekStart })
+    })
+    if (res.ok) {
+      const apiData = await res.json() as { week?: { id: string; workouts: WorkoutWeek; status: string } }
+      if (apiData.week) {
+        setWeek({ id: apiData.week.id, workouts: apiData.week.workouts, status: apiData.week.status ?? 'draft' })
+      } else {
+        await loadWeek()
+      }
+    } else {
+      const data = await res.json()
+      setError((data as { error?: string }).error || 'Failed to create manual week')
+    }
+    setCreatingManual(false)
   }
 
   async function handleDiscard() {
@@ -99,7 +125,7 @@ export default function DashboardPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-3xl text-white">Weekly Program</h1>
+          <h1 className="font-display text-3xl text-foreground">Weekly Program</h1>
           <p className="text-secondary text-sm mt-1">Week of {weekStart}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -114,9 +140,14 @@ export default function DashboardPage() {
             </>
           )}
           {(!week || week.status === 'published') && (
-            <Button onClick={handleGenerate} disabled={generating}>
-              {generating ? <><Spinner />Generating…</> : 'Generate This Week'}
-            </Button>
+            <>
+              <Button variant="ghost" onClick={handleCreateManual} disabled={creatingManual}>
+                {creatingManual ? <><Spinner />Creating…</> : 'Create Manually'}
+              </Button>
+              <Button onClick={handleGenerate} disabled={generating}>
+                {generating ? <><Spinner />Generating…</> : 'Generate This Week'}
+              </Button>
+            </>
           )}
         </div>
       </div>

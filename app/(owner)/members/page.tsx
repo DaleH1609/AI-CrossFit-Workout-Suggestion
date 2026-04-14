@@ -64,13 +64,13 @@ export default function MembersPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-white mb-6">Members</h1>
+      <h1 className="font-display text-3xl text-foreground mb-6">Members</h1>
       <Card className="mb-6">
-        <h2 className="text-white font-semibold mb-3">Invite Member</h2>
+        <h2 className="text-foreground font-semibold mb-3">Invite Member</h2>
         <form onSubmit={handleInvite} className="flex gap-3">
           <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
             placeholder="member@email.com" required
-            className="flex-1 px-3 py-2 bg-background border border-accent-border rounded-btn text-white placeholder-secondary focus:outline-none focus:border-accent"
+            className="flex-1 px-3 py-2 bg-background border border-border rounded-btn text-foreground placeholder-secondary focus:outline-none focus:border-accent"
           />
           <Button type="submit">Send Invite</Button>
         </form>
@@ -81,7 +81,7 @@ export default function MembersPage() {
         {members.map(m => (
           <Card key={m.id} className="flex items-center justify-between">
             <div>
-              <p className="text-white text-sm">{m.email}</p>
+              <p className="text-foreground text-sm">{m.email}</p>
               <p className="text-zinc-400 text-xs">{attendanceCounts[m.id] ?? 0} classes this month</p>
               {m.revoked_at && <p className="text-danger text-xs">Revoked</p>}
             </div>

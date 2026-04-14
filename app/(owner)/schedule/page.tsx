@@ -94,7 +94,7 @@ export default function SchedulePage() {
   return (
     <div className="max-w-5xl">
       <div className="mb-6">
-        <h1 className="font-display text-3xl text-white">Class Schedule</h1>
+        <h1 className="font-display text-3xl text-foreground">Class Schedule</h1>
         <p className="text-secondary text-sm mt-1">This schedule repeats every week automatically.</p>
       </div>
 
@@ -110,13 +110,13 @@ export default function SchedulePage() {
 
       {/* Attendance */}
       <div className="mt-10">
-        <h2 className="font-display text-xl text-white mb-4">Attendance</h2>
+        <h2 className="font-display text-xl text-foreground mb-4">Attendance</h2>
         <div className="flex items-center gap-3 mb-4">
           <input
             type="date"
             value={attendanceDate}
             onChange={e => setAttendanceDate(e.target.value)}
-            className="bg-background border border-accent-border rounded-btn px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+            className="bg-background border border-border rounded-btn px-3 py-2 text-sm text-foreground focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -134,12 +134,12 @@ export default function SchedulePage() {
                 <div key={instance.id}>
                   <button
                     onClick={() => setSelectedInstanceId(isOpen ? null : instance.id)}
-                    className="w-full flex items-center justify-between bg-surface border border-accent-border rounded-card px-4 py-3 text-left hover:border-accent transition-colors"
+                    className="w-full flex items-center justify-between bg-surface border border-border rounded-card px-4 py-3 text-left hover:border-accent transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-white font-medium tabular-nums">{time}</span>
+                      <span className="text-foreground font-medium tabular-nums">{time}</span>
                       {instance.name && instance.name !== 'WOD' && (
-                        <span className="text-xs text-accent border border-accent-border rounded px-1.5 py-0.5">
+                        <span className="text-xs text-accent border border-border rounded px-1.5 py-0.5">
                           {instance.name}
                         </span>
                       )}
@@ -149,13 +149,13 @@ export default function SchedulePage() {
                     </span>
                   </button>
                   {isOpen && (
-                    <div className="border border-t-0 border-accent-border rounded-b-card px-4 py-3 space-y-2">
+                    <div className="border border-t-0 border-border rounded-b-card px-4 py-3 space-y-2">
                       {instance.bookings.length === 0 ? (
                         <p className="text-secondary text-sm">No confirmed bookings.</p>
                       ) : (
                         instance.bookings.map(booking => (
                           <div key={booking.id} className="flex items-center justify-between">
-                            <span className="text-white text-sm">{booking.name}</span>
+                            <span className="text-foreground text-sm">{booking.name}</span>
                             <button
                               onClick={() => handleAttendanceToggle(booking.id, booking.attended)}
                               className={`px-3 py-1 rounded-btn text-xs font-medium border transition-colors ${
@@ -163,7 +163,7 @@ export default function SchedulePage() {
                                   ? 'bg-green-500/20 border-green-600 text-green-400'
                                   : booking.attended === false
                                   ? 'bg-red-500/20 border-red-700 text-red-400'
-                                  : 'bg-surface border-accent-border text-secondary hover:text-white'
+                                  : 'bg-surface border-border text-secondary hover:text-foreground'
                               }`}
                             >
                               {booking.attended === true ? 'Attended' : booking.attended === false ? 'No-show' : 'Mark'}
