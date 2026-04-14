@@ -50,11 +50,11 @@ export function ScalingEditModal({ day, weekId, onSave, onClose }: ScalingEditMo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-      <div className="relative bg-surface border border-accent-border rounded-card w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
+      <div className="relative bg-surface border border-border rounded-card w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-accent-border flex-shrink-0">
-          <h2 className="font-display text-xl text-white">Edit Scaling — {day.day}</h2>
-          <button className="text-secondary hover:text-white transition-colors text-lg leading-none" onClick={onClose}>
+        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
+          <h2 className="font-display text-xl text-foreground">Edit Scaling — {day.day}</h2>
+          <button className="text-secondary hover:text-foreground transition-colors text-lg leading-none" onClick={onClose}>
             ✕
           </button>
         </div>
@@ -71,14 +71,14 @@ export function ScalingEditModal({ day, weekId, onSave, onClose }: ScalingEditMo
                 onChange={e => setScaling(s => ({ ...s, [level]: e.target.value }))}
                 rows={5}
                 placeholder={`Enter ${level === 'rx' ? 'as-prescribed' : level} scaling notes…`}
-                className="w-full bg-background border border-accent-border rounded-btn px-3 py-2 text-white text-sm focus:outline-none focus:border-accent resize-y placeholder-secondary"
+                className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foregroundtext-sm focus:outline-none focus:border-accent resize-y placeholder-secondary"
               />
             </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-accent-border flex-shrink-0">
+        <div className="flex items-center justify-between p-6 border-t border-border flex-shrink-0">
           <div>{error && <p className="text-red-400 text-sm">{error}</p>}</div>
           <div className="flex gap-3">
             <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>

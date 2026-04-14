@@ -27,7 +27,7 @@ export function WorkoutWeekGrid({ week, loading, onEdit, onEditScaling }: Workou
           {onEdit && (
             <button
               onClick={() => onEdit(day)}
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-accent bg-surface border border-accent-border rounded px-2 py-1 hover:bg-accent/10"
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-accent bg-surface border border-border rounded px-2 py-1 hover:bg-accent-10"
             >
               Edit
             </button>

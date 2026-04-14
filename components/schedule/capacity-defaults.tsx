@@ -56,7 +56,7 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
     <div className="mb-6 space-y-3">
       {/* Global default */}
       <div className="flex items-center gap-3">
-        <label className="text-sm text-gray-400 w-32">Global default</label>
+        <label className="text-sm text-secondary w-32">Global default</label>
         <input
           type="number"
           min={1}
@@ -64,9 +64,9 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
           value={globalVal}
           onChange={e => setGlobalVal(e.target.value)}
           onBlur={() => saveDefault(null, globalVal)}
-          className="w-20 bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-sm text-white text-center focus:outline-none focus:border-yellow-500"
+          className="w-20 bg-surface border border-border rounded px-2 py-1 text-sm text-foreground text-center focus:outline-none focus:border-accent"
         />
-        <span className="text-xs text-gray-500">spots per class (applies to all days unless overridden)</span>
+        <span className="text-xs text-secondary">spots per class (applies to all days unless overridden)</span>
       </div>
 
       {/* Per-day defaults */}
@@ -76,7 +76,7 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
           const isSet = dayVals[day] !== ''
           return (
             <div key={day} className="flex flex-col items-center gap-1">
-              <span className={`text-xs font-medium ${isSet ? 'text-yellow-400' : 'text-gray-500'}`}>{name}</span>
+              <span className={`text-xs font-medium ${isSet ? 'text-accent' : 'text-secondary'}`}>{name}</span>
               <input
                 type="number"
                 min={1}
@@ -85,8 +85,8 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
                 value={dayVals[day]}
                 onChange={e => setDayVals(prev => ({ ...prev, [day]: e.target.value }))}
                 onBlur={() => saveDefault(day, dayVals[day])}
-                className={`w-14 bg-zinc-800 border rounded px-1 py-1 text-xs text-center focus:outline-none focus:border-yellow-500 ${
-                  isSet ? 'border-yellow-600 text-yellow-400' : 'border-zinc-700 text-gray-500'
+                className={`w-14 bg-surface border rounded px-1 py-1 text-xs text-center focus:outline-none focus:border-accent ${
+                  isSet ? 'border-accent text-accent' : 'border-border text-secondary'
                 }`}
               />
             </div>

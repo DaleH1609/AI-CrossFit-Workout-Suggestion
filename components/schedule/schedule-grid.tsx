@@ -1,7 +1,6 @@
 'use client'
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, Fragment } from 'react'
 import type { ClassType, ScheduleDefaults, ScheduleTemplate } from '@/lib/types'
-import { CapacityPopover } from './capacity-popover'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -22,7 +21,6 @@ function formatTime(t: string): string {
   return `${h12}:${mStr} ${ampm}`
 }
 
-/** Returns black or white text depending on the background colour's luminance */
 function textColor(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)
@@ -42,10 +40,16 @@ function resolveCapacity(
   return defaults.globalDefault
 }
 
-interface PopoverState {
+interface EditState {
+  day: number
+  time: string
   templateId: string
-  dayOfWeek: number
-  localTime: string
+  classTypeId: string | null
+  capacity: string
+  overriding: boolean
+  notes: string
+  saved: boolean
+  error: string
 }
 
 interface Props {
@@ -58,21 +62,14 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
   const [templates, setTemplates] = useState<ScheduleTemplate[]>(
     initialTemplates.map(t => ({ ...t, local_time: t.local_time.slice(0, 5) }))
   )
-  const [popover, setPopover] = useState<PopoverState | null>(null)
+  const [editState, setEditState] = useState<EditState | null>(null)
+  const [defaultTypeId, setDefaultTypeId] = useState<string | null>(classTypes[0]?.id ?? null)
+  const [editingCapacity, setEditingCapacity] = useState<{ templateId: string; value: string } | null>(null)
   const [customTimes, setCustomTimes] = useState<string[]>([])
   const [newTimeInput, setNewTimeInput] = useState('')
   const [addError, setAddError] = useState('')
   const [confirmingClear, setConfirmingClear] = useState(false)
-
-  const isDragging = useRef(false)
-  const dragMode = useRef<'fill' | 'erase' | null>(null)
-  const dragProcessed = useRef<Set<string>>(new Set())
-  const dragCellCount = useRef(0)
-  const eraseStartCell = useRef<{ day: number; time: string; templateId: string } | null>(null)
-  const eraseStartFired = useRef(false)
-  const templatesRef = useRef<ScheduleTemplate[]>([])
-
-  useEffect(() => { templatesRef.current = templates }, [templates])
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const templateTimes = new Set(templates.map(t => t.local_time))
   const allTimes = Array.from(new Set([
@@ -91,7 +88,6 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     if (template.class_type_id) {
       return classTypes.find(t => t.id === template.class_type_id)?.color ?? '#eab308'
     }
-    // Fall back: non-WOD name = blue, WOD = yellow
     return template.name && template.name !== 'WOD' ? '#3b82f6' : '#eab308'
   }
 
@@ -103,17 +99,18 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
   }
 
   async function callPost(day: number, time: string) {
+    if (getTemplate(day, time)) return
     const tempId = crypto.randomUUID()
-    const defaultType = classTypes[0] ?? null
+    const activeType = classTypes.find(t => t.id === defaultTypeId) ?? classTypes[0] ?? null
     const optimistic: ScheduleTemplate = {
       id: tempId,
       day_of_week: day,
       local_time: time,
       capacity: null,
       active: true,
-      name: defaultType?.name ?? 'WOD',
+      name: activeType?.name ?? 'WOD',
       workout_notes: null,
-      class_type_id: defaultType?.id ?? null,
+      class_type_id: activeType?.id ?? null,
     }
     setTemplates(prev => [...prev, optimistic])
     const res = await fetch('/api/schedule/templates', {
@@ -123,8 +120,8 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
         dayOfWeek: day,
         localTime: time,
         capacity: null,
-        classTypeId: defaultType?.id ?? null,
-        name: defaultType?.name ?? 'WOD',
+        classTypeId: activeType?.id ?? null,
+        name: activeType?.name ?? 'WOD',
       }),
     })
     if (!res.ok) {
@@ -132,53 +129,129 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
       return
     }
     const { template } = await res.json()
-    if (template) setTemplates(prev => prev.map(t => t.id === tempId ? {
-      ...template,
-      local_time: template.local_time.slice(0, 5),
-    } : t))
+    if (template) {
+      setTemplates(prev => prev.map(t =>
+        t.id === tempId ? { ...template, local_time: template.local_time.slice(0, 5) } : t
+      ))
+    }
   }
 
-  async function callDelete(templateId: string, day: number, time: string) {
+  async function callDelete(templateId: string) {
     setTemplates(prev => prev.filter(t => t.id !== templateId))
-    const res = await fetch('/api/schedule/templates', {
+    await fetch('/api/schedule/templates', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: templateId }),
     })
+  }
+
+  function openEdit(template: ScheduleTemplate, day: number) {
+    const effectiveCap = resolveCapacity(template, day, defaults)
+    setEditState({
+      day,
+      time: template.local_time,
+      templateId: template.id,
+      classTypeId: template.class_type_id,
+      capacity: template.capacity !== null ? String(template.capacity) : String(effectiveCap),
+      overriding: template.capacity !== null,
+      notes: template.workout_notes ?? '',
+      saved: false,
+      error: '',
+    })
+  }
+
+  async function autoSave(patch: Partial<EditState>, current: EditState) {
+    const merged = { ...current, ...patch }
+    const cap = merged.overriding ? parseInt(merged.capacity) : null
+    if (merged.overriding && (isNaN(cap!) || cap! < 1 || cap! > 200)) {
+      setEditState(prev => prev ? { ...prev, ...patch, error: 'Capacity must be 1–200', saved: false } : null)
+      return
+    }
+    setEditState(prev => prev ? { ...prev, ...patch, error: '', saved: false } : null)
+    const resolvedTypeId = merged.classTypeId ?? classTypes[0]?.id ?? null
+    const resolvedName = classTypes.find(t => t.id === resolvedTypeId)?.name ?? 'WOD'
+    const res = await fetch('/api/schedule/templates', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: merged.templateId,
+        capacity: cap,
+        name: resolvedName,
+        workout_notes: merged.notes.trim() || null,
+        class_type_id: resolvedTypeId,
+      }),
+    })
     if (!res.ok) {
-      const defaultType = classTypes[0] ?? null
-      setTemplates(prev => [...prev, {
-        id: templateId,
-        day_of_week: day,
-        local_time: time,
-        capacity: null,
-        active: true,
-        name: defaultType?.name ?? 'WOD',
-        workout_notes: null,
-        class_type_id: defaultType?.id ?? null,
-      }])
+      setEditState(prev => prev ? { ...prev, error: 'Failed to save', saved: false } : null)
+      return
+    }
+    setTemplates(prev => prev.map(t =>
+      t.id === merged.templateId
+        ? { ...t, capacity: cap, name: resolvedName, workout_notes: merged.notes.trim() || null, class_type_id: resolvedTypeId }
+        : t
+    ))
+    setEditState(prev => prev ? { ...prev, saved: true, error: '' } : null)
+  }
+
+  function handleSlotClick(template: ScheduleTemplate, day: number) {
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current)
+    clickTimerRef.current = setTimeout(() => {
+      clickTimerRef.current = null
+      if (editState?.templateId === template.id) {
+        setEditState(null)
+      } else {
+        openEdit(template, day)
+      }
+    }, 220)
+  }
+
+  function handleFillRow(time: string) {
+    for (const day of [1, 2, 3, 4, 5, 6, 7]) {
+      if (!getTemplate(day, time)) callPost(day, time)
     }
   }
 
-  function handlePopoverSave(templateId: string, capacity: number | null, classTypeId: string | null, workout_notes: string | null) {
-    const name = classTypes.find(t => t.id === classTypeId)?.name ?? 'WOD'
-    setTemplates(prev =>
-      prev.map(t => t.id === templateId ? { ...t, capacity, name, workout_notes, class_type_id: classTypeId } : t)
-    )
+  function handleSlotDoubleClick(template: ScheduleTemplate) {
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current)
+      clickTimerRef.current = null
+    }
+    if (editState?.templateId === template.id) setEditState(null)
+    callDelete(template.id)
   }
 
-  function handlePopoverRemove(templateId: string) {
-    setTemplates(prev => {
-      const updated = prev.filter(t => t.id !== templateId)
-      if (popover) {
-        const { localTime } = popover
-        const remaining = updated.filter(t => t.local_time === localTime)
-        if (remaining.length === 0 && !generateDefaultTimes().includes(localTime)) {
-          setCustomTimes(ct => ct.filter(t => t !== localTime))
-        }
-      }
-      return updated
+  async function handleCapacitySave(template: ScheduleTemplate, value: string) {
+    setEditingCapacity(null)
+    const cap = parseInt(value)
+    if (isNaN(cap) || cap < 1 || cap > 200) return
+    const resolvedTypeId = template.class_type_id
+    const resolvedName = classTypes.find(t => t.id === resolvedTypeId)?.name ?? template.name
+    const res = await fetch('/api/schedule/templates', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: template.id, capacity: cap, name: resolvedName, workout_notes: template.workout_notes, class_type_id: resolvedTypeId }),
     })
+    if (res.ok) setTemplates(prev => prev.map(t => t.id === template.id ? { ...t, capacity: cap } : t))
+  }
+
+  async function handleClearAll() {
+    const snapshot = templates
+    setTemplates([])
+    setEditState(null)
+    setConfirmingClear(false)
+    const results = await Promise.allSettled(
+      snapshot.map(t =>
+        fetch('/api/schedule/templates', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: t.id }),
+        })
+      )
+    )
+    const anyFailed = results.some(
+      r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)
+    )
+    if (anyFailed) setTemplates(snapshot)
   }
 
   function handleAddCustomTime() {
@@ -202,204 +275,270 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     setNewTimeInput('')
   }
 
-  async function handleClearAll() {
-    const snapshot = templates
-    setTemplates([])
-    setConfirmingClear(false)
-    const results = await Promise.allSettled(
-      snapshot.map(t =>
-        fetch('/api/schedule/templates', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: t.id }),
-        })
-      )
-    )
-    const anyFailed = results.some(
-      r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)
-    )
-    if (anyFailed) setTemplates(snapshot)
-  }
-
-  function handleDragMouseDown(e: React.MouseEvent, day: number, time: string) {
-    e.preventDefault()
-    setPopover(null)
-    isDragging.current = true
-    dragMode.current = null
-    dragProcessed.current.clear()
-    dragCellCount.current = 0
-    eraseStartCell.current = null
-    eraseStartFired.current = false
-
-    const template = getTemplate(day, time)
-    if (template) {
-      dragMode.current = 'erase'
-      eraseStartCell.current = { day, time, templateId: template.id }
-    } else {
-      dragMode.current = 'fill'
-      callPost(day, time)
-    }
-    dragProcessed.current.add(`${day}:${time}`)
-    dragCellCount.current = 1
-  }
-
-  function handleDragMouseEnter(day: number, time: string) {
-    if (!isDragging.current) return
-    const key = `${day}:${time}`
-    if (dragProcessed.current.has(key)) return
-    dragProcessed.current.add(key)
-    dragCellCount.current++
-
-    if (dragMode.current === 'fill') callPost(day, time)
-
-    if (dragMode.current === 'erase') {
-      if (!eraseStartFired.current && eraseStartCell.current) {
-        eraseStartFired.current = true
-        const s = eraseStartCell.current
-        callDelete(s.templateId, s.day, s.time)
-      }
-      const template = templatesRef.current.find(
-        t => t.day_of_week === day && t.local_time === time
-      )
-      if (template) callDelete(template.id, day, time)
-    }
-  }
-
-  useEffect(() => {
-    function handleMouseUp() {
-      if (!isDragging.current) return
-      const wasSingleCell = dragCellCount.current === 1
-      const startedOnActive = dragMode.current === 'erase'
-      const startCellNotDeleted = !eraseStartFired.current
-
-      if (wasSingleCell && startedOnActive && startCellNotDeleted && eraseStartCell.current) {
-        const { day, time } = eraseStartCell.current
-        const template = templatesRef.current.find(
-          t => t.day_of_week === day && t.local_time === time
-        )
-        if (template) setPopover({ templateId: template.id, dayOfWeek: day, localTime: time })
-      }
-
-      isDragging.current = false
-      dragMode.current = null
-      dragProcessed.current.clear()
-      dragCellCount.current = 0
-      eraseStartCell.current = null
-      eraseStartFired.current = false
-    }
-    window.addEventListener('mouseup', handleMouseUp)
-    return () => window.removeEventListener('mouseup', handleMouseUp)
-  }, [setPopover])
-
   return (
-    <div className="overflow-x-auto select-none">
-      {/* Grid header */}
-      <div className="flex items-center justify-between mb-1 min-w-[640px]">
-        <div className="grid flex-1" style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}>
+    <div>
+      {/* Controls: "Adding as:" type selector + Clear all */}
+      {classTypes.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <span className="text-xs text-secondary shrink-0">Adding as:</span>
+          {classTypes.map(ct => {
+            const isSelected = (defaultTypeId ?? classTypes[0]?.id) === ct.id
+            return (
+              <button
+                key={ct.id}
+                type="button"
+                onClick={() => setDefaultTypeId(ct.id)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                  isSelected
+                    ? 'border-transparent'
+                    : 'border-border text-secondary hover:text-foreground hover:border-accent bg-transparent'
+                }`}
+                style={isSelected ? { backgroundColor: ct.color, color: textColor(ct.color) } : undefined}
+              >
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ backgroundColor: isSelected ? (textColor(ct.color) === '#000000' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.4)') : ct.color }}
+                />
+                {ct.name}
+              </button>
+            )
+          })}
+          <div className="ml-auto">
+            {confirmingClear ? (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-secondary">Remove all?</span>
+                <button type="button" onClick={handleClearAll} className="text-danger hover:text-foreground font-semibold">Yes</button>
+                <button type="button" onClick={() => setConfirmingClear(false)} className="text-secondary hover:text-foreground">Cancel</button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => { setEditState(null); setConfirmingClear(true) }}
+                className="text-xs text-danger hover:text-foreground border border-border hover:border-danger rounded px-2 py-0.5 transition-colors"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Grid */}
+      <div className={`overflow-x-auto select-none${confirmingClear ? ' opacity-40 pointer-events-none' : ''}`}>
+
+        {/* Header row */}
+        <div className="grid min-w-[640px] mb-1" style={{ gridTemplateColumns: '72px repeat(7, 1fr) 28px' }}>
           <div />
           {DAY_NAMES.map(name => (
-            <div key={name} className="text-center text-xs font-semibold text-accent py-2 border-b border-accent-border">
+            <div key={name} className="text-center text-xs font-semibold text-accent py-2 border-b border-border">
               {name}
             </div>
           ))}
+          <div />
         </div>
-        {confirmingClear ? (
-          <div className="flex items-center gap-2 text-xs shrink-0 ml-2">
-            <span className="text-secondary">Remove all slots?</span>
-            <button type="button" onClick={handleClearAll} className="text-danger hover:text-white font-semibold">Yes</button>
-            <button type="button" onClick={() => setConfirmingClear(false)} className="text-secondary hover:text-white">Cancel</button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => { setPopover(null); setConfirmingClear(true) }}
-            className="text-xs text-danger hover:text-white border border-accent-border hover:border-danger rounded px-2 py-0.5 shrink-0 ml-2 transition-colors"
-          >
-            Clear all
-          </button>
-        )}
-      </div>
 
-      {/* Grid body */}
-      <div className={`min-w-[640px]${confirmingClear ? ' opacity-40 pointer-events-none' : ''}`}>
-        {allTimes.map(time => (
-          <div
-            key={time}
-            className="grid items-center"
-            style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}
-          >
-            <div className="text-right pr-3 text-xs text-secondary py-1">{formatTime(time)}</div>
-            {[1, 2, 3, 4, 5, 6, 7].map(day => {
-              const template = getTemplate(day, time)
-              const isActive = !!template
-              const effectiveCapacity = resolveCapacity(template, day, defaults)
-              const isPopoverOpen = popover?.dayOfWeek === day && popover?.localTime === time
-              const cellColor = isActive ? resolveTypeColor(template!) : null
-              const cellTextColor = cellColor ? textColor(cellColor) : undefined
-              const displayName = isActive ? resolveTypeName(template!) : ''
+        {/* Time rows */}
+        <div className="min-w-[640px]">
+          {allTimes.map(time => {
+            const isEditingThisRow = editState?.time === time
 
-              return (
-                <div
-                  key={day}
-                  className="relative p-0.5"
-                  onMouseDown={e => handleDragMouseDown(e, day, time)}
-                  onMouseEnter={() => handleDragMouseEnter(day, time)}
-                >
-                  <button
-                    type="button"
-                    className={`w-full h-10 rounded text-xs font-medium transition-colors leading-tight px-1 ${
-                      isActive
-                        ? ''
-                        : 'border border-dashed border-accent-border hover:border-accent text-transparent hover:text-secondary'
-                    }`}
-                    style={isActive ? {
-                      backgroundColor: cellColor!,
-                      color: cellTextColor,
-                    } : undefined}
-                  >
-                    {isActive
-                      ? <span className="truncate block">{displayName !== 'WOD' ? displayName : effectiveCapacity}</span>
-                      : '+'}
-                  </button>
-                  {isPopoverOpen && template && (
-                    <CapacityPopover
-                      templateId={template.id}
-                      currentCapacity={template.capacity}
-                      effectiveCapacity={effectiveCapacity}
-                      currentClassTypeId={template.class_type_id}
-                      classTypes={classTypes}
-                      currentNotes={template.workout_notes ?? null}
-                      dayOfWeek={day}
-                      defaults={defaults}
-                      onSave={(cap, typeId, notes) => handlePopoverSave(template.id, cap, typeId, notes)}
-                      onRemove={() => handlePopoverRemove(template.id)}
-                      onClose={() => setPopover(null)}
-                    />
-                  )}
+            return (
+              <Fragment key={time}>
+                <div className="grid" style={{ gridTemplateColumns: '72px repeat(7, 1fr) 28px' }}>
+                  {/* Time label */}
+                  <div className="text-right pr-3 text-xs text-secondary flex items-center justify-end h-[68px]">
+                    {formatTime(time)}
+                  </div>
+
+                  {/* Day cells */}
+                  {[1, 2, 3, 4, 5, 6, 7].map(day => {
+                    const template = getTemplate(day, time)
+                    const isActive = !!template
+                    const isEditing = editState?.templateId === template?.id
+                    const effectiveCapacity = isActive ? resolveCapacity(template, day, defaults) : 0
+                    const color = isActive ? resolveTypeColor(template!) : null
+                    const txt = color ? textColor(color) : undefined
+                    const name = isActive ? resolveTypeName(template!) : ''
+
+                    return (
+                      <div key={day} className="p-0.5 relative">
+                        {isActive ? (
+
+                          <div
+                            className={`w-full h-[64px] rounded px-2 py-1.5 cursor-pointer transition-all flex flex-col justify-between ${
+                              isEditing
+                                ? 'ring-2 ring-white/40 ring-offset-1 ring-offset-background scale-105 z-10 shadow-lg shadow-black/40'
+                                : 'hover:scale-110 hover:z-10 hover:shadow-xl hover:shadow-black/50'
+                            }`}
+                            style={{ backgroundColor: color! }}
+                            onClick={() => handleSlotClick(template!, day)}
+                            onDoubleClick={() => handleSlotDoubleClick(template!)}
+                          >
+                            {/* Time inside tile */}
+                            <div className="text-[9px] font-medium leading-none" style={{ color: txt, opacity: 0.72 }}>
+                              {formatTime(time)}
+                            </div>
+                            {/* Class name */}
+                            <div className="text-[11px] font-bold truncate leading-tight" style={{ color: txt }}>
+                              {name}
+                            </div>
+                            {/* Capacity — click to edit inline */}
+                            {editingCapacity?.templateId === template!.id ? (
+                              <input
+                                autoFocus
+                                type="number"
+                                value={editingCapacity.value}
+                                onChange={e => setEditingCapacity(prev => prev ? { ...prev, value: e.target.value } : null)}
+                                onBlur={() => handleCapacitySave(template!, editingCapacity.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') handleCapacitySave(template!, editingCapacity.value)
+                                  if (e.key === 'Escape') setEditingCapacity(null)
+                                }}
+                                onClick={e => e.stopPropagation()}
+                                onDoubleClick={e => e.stopPropagation()}
+                                className="block w-10 text-[9px] font-semibold bg-transparent border-b border-current/40 outline-none"
+                                style={{ color: txt }}
+                              />
+                            ) : (
+                              <div
+                                className="text-[9px] font-medium cursor-text leading-none"
+                                style={{ color: txt, opacity: 0.7 }}
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = null }
+                                  setEditingCapacity({ templateId: template!.id, value: String(effectiveCapacity) })
+                                }}
+                                onDoubleClick={e => e.stopPropagation()}
+                              >
+                                {effectiveCapacity} spots
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => callPost(day, time)}
+                            className="w-full h-[64px] rounded border border-dashed border-border hover:border-accent text-secondary hover:text-secondary text-lg transition-colors"
+                          >
+                            +
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+
+                  {/* Fill-row button */}
+                  <div className="flex items-center justify-center h-[68px]">
+                    <button
+                      type="button"
+                      onClick={() => handleFillRow(time)}
+                      title="Fill all empty slots in this row"
+                      className="w-6 h-6 rounded border border-border hover:border-accent text-secondary hover:text-accent text-xs transition-colors flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              )
-            })}
-          </div>
-        ))}
+
+                {/* Inline edit bar — spans below the row when a slot in this row is selected */}
+                {isEditingThisRow && editState && (
+                  <div className="grid mb-1" style={{ gridTemplateColumns: '72px 1fr' }}>
+                    <div />
+                    <div className="border border-accent rounded-card bg-surface px-3 py-2 flex flex-wrap items-end gap-3">
+                      {/* Class type */}
+                      <div className="flex flex-col gap-1 min-w-[120px]">
+                        <label className="text-[10px] text-secondary uppercase tracking-wide">Class type</label>
+                        <select
+                          value={editState.classTypeId ?? classTypes[0]?.id ?? ''}
+                          onChange={e => autoSave({ classTypeId: e.target.value || null, saved: false }, editState)}
+                          className="bg-background border border-border rounded-btn px-2 py-1 text-xs text-foreground focus:outline-none focus:border-accent"
+                        >
+                          {classTypes.map(ct => (
+                            <option key={ct.id} value={ct.id}>{ct.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {/* Capacity */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-secondary uppercase tracking-wide">Capacity</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={200}
+                            value={editState.capacity}
+                            onChange={e => setEditState(prev => prev ? { ...prev, capacity: e.target.value, overriding: true, saved: false, error: '' } : null)}
+                            onBlur={() => editState && autoSave({ overriding: true }, editState)}
+                            className="w-16 bg-background border border-border rounded-btn px-2 py-1 text-xs text-foreground text-center focus:outline-none focus:border-accent"
+                          />
+                          {editState.overriding && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const effectiveCap = resolveCapacity(getTemplate(editState.day, editState.time), editState.day, defaults)
+                                autoSave({ overriding: false, capacity: String(effectiveCap) }, editState)
+                              }}
+                              className="text-[10px] text-secondary hover:text-foreground"
+                            >
+                              Default
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {/* Notes */}
+                      <div className="flex flex-col gap-1 flex-1 min-w-[120px]">
+                        <label className="text-[10px] text-secondary uppercase tracking-wide">Notes</label>
+                        <input
+                          type="text"
+                          value={editState.notes}
+                          onChange={e => setEditState(prev => prev ? { ...prev, notes: e.target.value, saved: false } : null)}
+                          onBlur={() => editState && autoSave({}, editState)}
+                          placeholder="Optional…"
+                          className="bg-background border border-border rounded-btn px-2 py-1 text-xs text-foreground focus:outline-none focus:border-accent"
+                        />
+                      </div>
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 ml-auto pb-0.5">
+                        {editState.saved && <span className="text-[10px] text-green-400">✓ Saved</span>}
+                        {editState.error && <span className="text-[10px] text-danger">{editState.error}</span>}
+                        <button
+                          onClick={async () => { await callDelete(editState.templateId); setEditState(null) }}
+                          className="text-[10px] text-danger border border-border hover:border-danger rounded px-2 py-0.5 transition-colors"
+                        >
+                          Remove
+                        </button>
+                        <button onClick={() => setEditState(null)} className="text-[10px] text-secondary hover:text-foreground">
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Fragment>
+            )
+          })}
+        </div>
+
+        {/* Add custom time row */}
+        <div className="flex items-center gap-2 mt-4 min-w-[640px] select-text">
+          <div className="w-[72px]" />
+          <input
+            type="time"
+            value={newTimeInput}
+            onChange={e => { setNewTimeInput(e.target.value); setAddError('') }}
+            className="bg-background border border-border rounded-btn px-2 py-1 text-sm text-foreground w-28 focus:outline-none focus:border-accent"
+          />
+          <button
+            onClick={handleAddCustomTime}
+            className="text-xs text-accent hover:text-foreground border border-border hover:border-accent rounded-btn px-3 py-1 transition-colors"
+          >
+            Add Row
+          </button>
+          {addError && <span className="text-xs text-danger">{addError}</span>}
+        </div>
       </div>
 
-      {/* Add custom time */}
-      <div className="flex items-center gap-2 mt-4 min-w-[640px] select-text">
-        <div className="w-[72px]" />
-        <input
-          type="time"
-          value={newTimeInput}
-          onChange={e => { setNewTimeInput(e.target.value); setAddError('') }}
-          className="bg-background border border-accent-border rounded-btn px-2 py-1 text-sm text-white w-28 focus:outline-none focus:border-accent"
-        />
-        <button
-          onClick={handleAddCustomTime}
-          className="text-xs text-accent hover:text-white border border-accent-border hover:border-accent rounded-btn px-3 py-1 transition-colors"
-        >
-          Add Row
-        </button>
-        {addError && <span className="text-xs text-danger">{addError}</span>}
-      </div>
+      <p className="text-[10px] text-secondary mt-3">Click slot to edit · Double-click to remove · Click capacity to change</p>
     </div>
   )
 }

@@ -146,27 +146,27 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-      <div className="relative bg-surface border border-accent-border rounded-card w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
+      <div className="relative bg-surface border border-border rounded-card w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-accent-border flex-shrink-0">
-          <h2 className="font-display text-xl text-white">Edit {day.day}</h2>
+        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
+          <h2 className="font-display text-xl text-foreground">Edit {day.day}</h2>
           <div className="flex items-center gap-3">
             {mode === 'structured' ? (
               <button
-                className="text-sm text-secondary hover:text-white transition-colors"
+                className="text-sm text-secondary hover:text-foreground transition-colors"
                 onClick={switchToFreeText}
               >
                 Switch to free text
               </button>
             ) : (
               <button
-                className="text-sm text-secondary hover:text-white transition-colors"
+                className="text-sm text-secondary hover:text-foreground transition-colors"
                 onClick={switchToStructured}
               >
                 Switch to structured
               </button>
             )}
-            <button className="text-secondary hover:text-white transition-colors text-lg leading-none" onClick={onClose}>
+            <button className="text-secondary hover:text-foreground transition-colors text-lg leading-none" onClick={onClose}>
               ✕
             </button>
           </div>
@@ -175,9 +175,9 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
         {/* Warning banner */}
         {warnSwitch && mode === 'freetext' && (
           <div className="px-6 pt-4 flex-shrink-0">
-            <div className="bg-yellow-500/10 border border-yellow-500/40 rounded-btn px-4 py-3 flex items-center justify-between gap-4">
-              <p className="text-yellow-300 text-sm">Switching back to structured may lose formatting. Click again to confirm.</p>
-              <button className="text-yellow-300 hover:text-white text-xs flex-shrink-0" onClick={() => setWarnSwitch(false)}>
+            <div className="bg-accent-10 border border-accent-40 rounded-btn px-4 py-3 flex items-center justify-between gap-4">
+              <p className="text-accent text-sm">Switching back to structured may lose formatting. Click again to confirm.</p>
+              <button className="text-accent hover:text-foreground text-xs flex-shrink-0" onClick={() => setWarnSwitch(false)}>
                 Dismiss
               </button>
             </div>
@@ -196,18 +196,18 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                   value={descriptor}
                   onChange={e => setDescriptor(e.target.value)}
                   placeholder="e.g. Heavy lower + conditioning"
-                  className="w-full bg-background border border-accent-border rounded-btn px-3 py-2 text-white text-sm placeholder-secondary focus:outline-none focus:border-accent"
+                  className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm placeholder-secondary focus:outline-none focus:border-accent"
                 />
               </div>
 
               {/* Parts */}
               {parts.map((part, idx) => (
-                <div key={idx} className="border border-accent-border rounded-card p-4 space-y-3">
+                <div key={idx} className="border border-border rounded-card p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-secondary uppercase tracking-wider">Part {idx + 1}</span>
                     <div className="flex items-center gap-2">
                       <button
-                        className="text-secondary hover:text-white text-xs px-1 disabled:opacity-30"
+                        className="text-secondary hover:text-foreground text-xs px-1 disabled:opacity-30"
                         onClick={() => movePart(idx, -1)}
                         disabled={idx === 0}
                         title="Move up"
@@ -215,7 +215,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                         ↑
                       </button>
                       <button
-                        className="text-secondary hover:text-white text-xs px-1 disabled:opacity-30"
+                        className="text-secondary hover:text-foreground text-xs px-1 disabled:opacity-30"
                         onClick={() => movePart(idx, 1)}
                         disabled={idx === parts.length - 1}
                         title="Move down"
@@ -223,7 +223,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                         ↓
                       </button>
                       <button
-                        className="text-danger hover:text-white text-xs px-2 py-1 rounded border border-danger disabled:opacity-30 transition-colors"
+                        className="text-danger hover:text-foreground text-xs px-2 py-1 rounded border border-danger disabled:opacity-30 transition-colors"
                         onClick={() => removePart(idx)}
                         disabled={parts.length <= 1}
                         title="Remove part"
@@ -241,7 +241,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                         value={part.label ?? ''}
                         onChange={e => updatePart(idx, { label: e.target.value || null })}
                         placeholder="No label"
-                        className="w-full bg-background border border-accent-border rounded-btn px-3 py-2 text-white text-sm placeholder-secondary focus:outline-none focus:border-accent"
+                        className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm placeholder-secondary focus:outline-none focus:border-accent"
                       />
                     </div>
                     <div>
@@ -249,7 +249,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                       <select
                         value={part.type}
                         onChange={e => updatePart(idx, { type: e.target.value as WorkoutPart['type'] })}
-                        className="w-full bg-background border border-accent-border rounded-btn px-3 py-2 text-white text-sm focus:outline-none focus:border-accent"
+                        className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm focus:outline-none focus:border-accent"
                       >
                         {PART_TYPES.map(t => (
                           <option key={t} value={t}>{t}</option>
@@ -264,14 +264,14 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                       value={part.content}
                       onChange={e => updatePart(idx, { content: e.target.value })}
                       rows={4}
-                      className="w-full bg-background border border-accent-border rounded-btn px-3 py-2 text-white text-sm font-mono whitespace-pre-wrap focus:outline-none focus:border-accent resize-y"
+                      className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm font-mono whitespace-pre-wrap focus:outline-none focus:border-accent resize-y"
                     />
                   </div>
                 </div>
               ))}
 
               <button
-                className="w-full border border-dashed border-accent-border rounded-btn py-2 text-secondary hover:text-white hover:border-accent text-sm transition-colors"
+                className="w-full border border-dashed border-border rounded-btn py-2 text-secondary hover:text-foreground hover:border-accent text-sm transition-colors"
                 onClick={addPart}
               >
                 + Add Part
@@ -285,14 +285,14 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                 value={freeText}
                 onChange={e => setFreeText(e.target.value)}
                 rows={20}
-                className="w-full bg-background border border-accent-border rounded-btn px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-accent resize-y"
+                className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm font-mono focus:outline-none focus:border-accent resize-y"
               />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-accent-border flex-shrink-0">
+        <div className="flex items-center justify-between p-6 border-t border-border flex-shrink-0">
           <div>
             {error && <p className="text-red-400 text-sm">{error}</p>}
           </div>

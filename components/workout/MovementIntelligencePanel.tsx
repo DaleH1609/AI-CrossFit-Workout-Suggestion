@@ -31,11 +31,11 @@ export function MovementIntelligencePanel() {
 
   if (state.status === 'loading') {
     return (
-      <div className="mb-4 p-4 bg-surface rounded-card border border-accent-border animate-pulse">
-        <div className="h-3 w-40 bg-accent-border rounded mb-3" />
+      <div className="mb-4 p-4 bg-surface rounded-card border border-border animate-shimmer">
+        <div className="h-3 w-40 bg-foreground-10 rounded mb-3" />
         <div className="flex gap-2">
-          <div className="h-6 w-24 bg-accent-border rounded" />
-          <div className="h-6 w-32 bg-accent-border rounded" />
+          <div className="h-6 w-24 bg-foreground-10 rounded" />
+          <div className="h-6 w-32 bg-foreground-10 rounded" />
         </div>
       </div>
     )
@@ -44,7 +44,7 @@ export function MovementIntelligencePanel() {
   const { data } = state
 
   return (
-    <div className="mb-4 p-4 bg-surface rounded-card border border-accent-border">
+    <div className="mb-4 p-4 bg-surface rounded-card border border-border">
       <p className="text-secondary text-xs font-medium uppercase tracking-wide mb-3">
         Programming Intelligence — Last {data.weeksAnalysed} weeks
       </p>
@@ -54,7 +54,7 @@ export function MovementIntelligencePanel() {
           {data.gaps.map(g => (
             <span
               key={g.movement}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400 text-xs"
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent-10 border border-accent-30 rounded text-accent text-xs"
             >
               <span aria-hidden="true">⚠</span> {g.movement} · {g.daysSince}d ago
             </span>
@@ -78,7 +78,7 @@ export function MovementIntelligencePanel() {
       <div className="flex gap-4 mt-2">
         {(['push', 'pull', 'squat', 'hinge', 'carry'] as const).map(key => (
           <span key={key} className="text-secondary text-xs capitalize">
-            {key} <span className="text-white font-medium">{data.balance[key]}</span>
+            {key} <span className="text-foreground font-medium">{data.balance[key]}</span>
           </span>
         ))}
       </div>
