@@ -62,21 +62,21 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
               onClick={() => setSelectedIndex(i)}
               className={`flex flex-col items-center px-3 py-2.5 rounded-xl border transition-all duration-150 shrink-0 min-w-[56px] ${
                 isSelected
-                  ? 'bg-accent/15 border-accent/50'
+                  ? 'bg-accent-15 border-accent-50'
                   : isDayToday
-                  ? 'border-accent/25 hover:bg-accent/8 hover:border-accent/40'
-                  : 'border-border/40 hover:border-border hover:bg-surface'
+                  ? 'border-accent-25 hover:bg-accent-8 hover:border-accent-40'
+                  : 'border-border hover:border-border hover:bg-surface'
               }`}
             >
               <span className={`text-xs font-medium uppercase tracking-wide ${
-                isSelected ? 'text-accent' : isDayToday ? 'text-accent/70' : 'text-secondary'
+                isSelected ? 'text-accent' : isDayToday ? 'text-accent' : 'text-secondary'
               }`}>{DAY_SHORT[i]}</span>
               <span className={`text-lg font-bold tabular-nums leading-tight mt-0.5 ${
                 isSelected ? 'text-accent' : isDayToday ? 'text-foreground' : 'text-foreground-70'
               }`}>{dayDate.getDate()}</span>
               {/* Dot: green if booked, dim if just has classes */}
               <span className={`w-1.5 h-1.5 rounded-full mt-1 transition-colors ${
-                hasBooking ? 'bg-green-400' : hasClasses ? 'bg-accent/40' : 'bg-transparent'
+                hasBooking ? 'bg-green-400' : hasClasses ? 'bg-accent-40' : 'bg-transparent'
               }`} />
             </button>
           )
@@ -92,11 +92,11 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
           <span className="text-secondary text-sm">
             {selectedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}
           </span>
-          {isToday && <span className="text-xs bg-accent/15 text-accent px-2 py-0.5 rounded-full font-medium">Today</span>}
+          {isToday && <span className="text-xs bg-accent-15 text-accent px-2 py-0.5 rounded-full font-medium">Today</span>}
         </div>
 
         {!selectedWorkout && selectedInstances.length === 0 ? (
-          <p className="text-secondary/60 text-sm">Rest day</p>
+          <p className="text-secondary-60 text-sm">Rest day</p>
         ) : (
           <div className="space-y-4">
             {selectedWorkout && <WorkoutCard day={selectedWorkout} />}

@@ -56,8 +56,8 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
     <div>
       <div className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-all duration-150 ${
         isBooked
-          ? 'bg-accent/5 border-accent-20 hover:border-accent/35'
-          : 'bg-surface border-border/40 hover:border-border hover:bg-surface/80'
+          ? 'bg-accent-5 border-accent-20 hover:border-accent-35'
+          : 'bg-surface border-border hover:border-border hover:bg-surface'
       }`}>
         {/* Left: time + name */}
         <div className="flex items-center gap-4 min-w-0">
@@ -78,18 +78,18 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
               </span>
               {!isTooEarly && (
                 <button onClick={handleCancel} disabled={loading}
-                  className="text-xs px-3 py-1.5 rounded border border-border/60 text-secondary hover:text-danger hover:border-danger/40 transition-colors disabled:opacity-50">
+                  className="text-xs px-3 py-1.5 rounded border border-border text-secondary hover:text-danger hover:border-danger-40 transition-colors disabled:opacity-50">
                   {loading ? '…' : 'Cancel'}
                 </button>
               )}
             </>
           ) : isTooEarly ? (
-            <span className="text-secondary/60 text-xs">Opens {opensLabel}</span>
+            <span className="text-secondary-60 text-xs">Opens {opensLabel}</span>
           ) : isFull && !waitlistEnabled ? (
-            <span className="text-danger/60 text-xs">Full</span>
+            <span className="text-danger-60 text-xs">Full</span>
           ) : (
             <>
-              <span className={`text-xs tabular-nums ${isFull ? 'text-danger/60' : 'text-secondary'}`}>
+              <span className={`text-xs tabular-nums ${isFull ? 'text-danger-60' : 'text-secondary'}`}>
                 {isFull ? 'Full' : `${spotsLeft}/${instance.capacity}`}
               </span>
               <button onClick={handleBook} disabled={loading}
@@ -102,7 +102,7 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
       </div>
       {error && <p className="text-danger text-xs mt-1 px-1">{error}</p>}
       {bookedMemberNames && bookedMemberNames.length > 0 && (
-        <p className="text-secondary/60 text-xs mt-1 px-1 truncate">
+        <p className="text-secondary-60 text-xs mt-1 px-1 truncate">
           {bookedMemberNames.join(', ')}
         </p>
       )}

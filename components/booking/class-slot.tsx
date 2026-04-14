@@ -62,7 +62,7 @@ export function ClassSlot({ instance, confirmedCount, userBooking }: ClassSlotPr
             <span className="ml-2 text-xs font-medium text-accent">{className}</span>
           )}
         </div>
-        <span className={`text-xs font-medium ${isFull ? 'text-danger/80' : 'text-secondary'}`}>
+        <span className={`text-xs font-medium ${isFull ? 'text-danger' : 'text-secondary'}`}>
           {isFull ? 'Full' : `${spotsLeft} / ${instance.capacity}`}
         </span>
       </div>
@@ -106,7 +106,7 @@ export function ClassSlot({ instance, confirmedCount, userBooking }: ClassSlotPr
           onClick={handleCancel}
           disabled={loading}
           className="w-full py-1.5 rounded text-xs font-medium transition-colors disabled:opacity-50
-            bg-danger/10 border border-danger/30 text-danger hover:bg-danger/20"
+            bg-danger-10 border border-danger-30 text-danger hover:bg-danger-20"
         >
           {loading ? 'Cancelling…' : 'Cancel booking'}
         </button>

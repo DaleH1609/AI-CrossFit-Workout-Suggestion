@@ -23,7 +23,7 @@ export function CancelBookingButton({ bookingId }: { bookingId: string }) {
       <button
         onClick={handleCancel}
         disabled={loading}
-        className="text-xs px-3 py-1.5 rounded border border-border text-secondary hover:text-danger hover:border-danger/40 transition-colors disabled:opacity-50"
+        className="text-xs px-3 py-1.5 rounded border border-border text-secondary hover:text-danger hover:border-danger-40 transition-colors disabled:opacity-50"
       >
         {loading ? '…' : 'Cancel'}
       </button>

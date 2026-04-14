@@ -27,6 +27,13 @@ const config: Config = {
         'accent-90':      'var(--color-accent-90)',
         border:           'var(--color-border)',
         danger:           'var(--color-danger)',
+        'danger-10':      'var(--color-danger-10)',
+        'danger-20':      'var(--color-danger-20)',
+        'danger-30':      'var(--color-danger-30)',
+        'danger-40':      'var(--color-danger-40)',
+        'danger-60':      'var(--color-danger-60)',
+        'danger-70':      'var(--color-danger-70)',
+        'secondary-60':   'var(--color-secondary-60)',
       },
       fontFamily: {
         display: ['var(--font-playfair)', 'serif'],

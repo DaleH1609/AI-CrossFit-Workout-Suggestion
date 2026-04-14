@@ -66,7 +66,7 @@ export function ClassSlotInline({ instance, confirmedCount, userBooking }: Class
         <div className="flex items-center gap-2 shrink-0">
           {/* Spots count or booked status */}
           {!isBooked && !isTooEarly && (
-            <span className={`text-xs ${isFull ? 'text-danger/70' : 'text-secondary'}`}>
+            <span className={`text-xs ${isFull ? 'text-danger-70' : 'text-secondary'}`}>
               {isFull ? 'Full' : `${spotsLeft}/${instance.capacity}`}
             </span>
           )}
@@ -97,7 +97,7 @@ export function ClassSlotInline({ instance, confirmedCount, userBooking }: Class
             <button
               onClick={handleCancel}
               disabled={loading}
-              className="text-xs px-2 py-1 rounded border border-border text-secondary hover:text-danger hover:border-danger/40 transition-colors disabled:opacity-50"
+              className="text-xs px-2 py-1 rounded border border-border text-secondary hover:text-danger hover:border-danger-40 transition-colors disabled:opacity-50"
             >
               {loading ? '…' : 'Cancel'}
             </button>
