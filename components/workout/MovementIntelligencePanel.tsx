@@ -67,7 +67,7 @@ export function MovementIntelligencePanel() {
           {data.overused.map(o => (
             <span
               key={o.movement}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-500/10 border border-orange-500/30 rounded text-orange-400 text-xs"
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-danger-10 border border-danger-30 rounded text-danger text-xs"
             >
               <span aria-hidden="true">↑</span> {o.movement} × {o.count}
             </span>
