@@ -3,10 +3,10 @@ import { cn } from '@/lib/utils'
 type BadgeVariant = 'draft' | 'published' | 'confirmed' | 'waitlisted' | 'pending_confirmation'
 
 const variants: Record<BadgeVariant, string> = {
-  draft: 'bg-white/10 text-secondary',
-  published: 'bg-accent/20 text-accent',
-  confirmed: 'bg-green-500/20 text-green-400',
-  waitlisted: 'bg-white/10 text-secondary',
+  draft:                'bg-foreground-10 text-secondary',
+  published:            'bg-accent-20 text-accent',
+  confirmed:            'bg-green-500/20 text-green-400',
+  waitlisted:           'bg-foreground-10 text-secondary',
   pending_confirmation: 'bg-yellow-500/20 text-yellow-400',
 }
 
