@@ -8,6 +8,7 @@ export default function InvitePage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [sessionReady, setSessionReady] = useState(false)
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -32,9 +33,12 @@ export default function InvitePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setLoading(true)
     const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
-    if (error) { setError(error.message); return }
+    if (error) { setError(error.message); setLoading(false); return }
+    // Full reload required — forces server to re-read the Supabase session cookie.
+    // Using router.push here would serve a stale RSC payload from before auth.
     window.location.href = '/this-week'
   }
 
@@ -68,9 +72,9 @@ export default function InvitePage() {
               className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
             />
             {error && <p className="text-danger text-sm">{error}</p>}
-            <button type="submit"
+            <button type="submit" disabled={loading}
               className="w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors">
-              Set Password &amp; Enter
+              {loading ? 'Setting…' : 'Set Password & Enter'}
             </button>
           </form>
         </div>

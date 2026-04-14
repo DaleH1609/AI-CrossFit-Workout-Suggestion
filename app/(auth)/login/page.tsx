@@ -15,6 +15,8 @@ export default function LoginPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError(error.message); return }
+    // Full reload required — forces server to re-read the Supabase session cookie.
+    // Using router.push here would serve a stale RSC payload from before auth.
     window.location.href = '/'
   }
 
