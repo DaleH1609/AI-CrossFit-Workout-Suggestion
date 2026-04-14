@@ -53,11 +53,11 @@ export function ClassSlot({ instance, confirmedCount, userBooking }: ClassSlotPr
   const className = instance.name && instance.name !== 'WOD' ? instance.name : null
 
   return (
-    <div className="rounded-lg border border-accent-border bg-background p-3 flex flex-col gap-2">
+    <div className="rounded-lg border border-border bg-background p-3 flex flex-col gap-2">
       {/* Time + spots */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-white font-semibold text-sm">{displayTime}</span>
+          <span className="text-foreground font-semibold text-sm">{displayTime}</span>
           {className && (
             <span className="ml-2 text-xs font-medium text-accent">{className}</span>
           )}
@@ -79,7 +79,7 @@ export function ClassSlot({ instance, confirmedCount, userBooking }: ClassSlotPr
             ? 'bg-green-500/10 text-green-400 border border-green-500/20'
             : status === 'waitlisted'
             ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-            : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+            : 'bg-zinc-500/10 text-secondary border border-zinc-500/20'
         }`}>
           {status === 'confirmed' ? 'Confirmed' : status === 'waitlisted' ? 'Waitlisted' : 'Pending'}
         </div>
@@ -95,7 +95,7 @@ export function ClassSlot({ instance, confirmedCount, userBooking }: ClassSlotPr
           onClick={handleBook}
           disabled={loading}
           className="w-full py-1.5 rounded text-xs font-semibold transition-colors disabled:opacity-50
-            bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20"
+            bg-accent-10 border border-accent-30 text-accent hover:bg-accent-20"
         >
           {loading ? 'Booking…' : isFull ? 'Join Waitlist' : 'Book Class'}
         </button>
