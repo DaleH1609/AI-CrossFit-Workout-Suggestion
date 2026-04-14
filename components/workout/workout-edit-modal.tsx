@@ -294,7 +294,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-border flex-shrink-0">
           <div>
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-danger text-sm">{error}</p>}
           </div>
           <div className="flex gap-3">
             <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>

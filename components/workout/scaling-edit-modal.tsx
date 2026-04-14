@@ -71,7 +71,7 @@ export function ScalingEditModal({ day, weekId, onSave, onClose }: ScalingEditMo
                 onChange={e => setScaling(s => ({ ...s, [level]: e.target.value }))}
                 rows={5}
                 placeholder={`Enter ${level === 'rx' ? 'as-prescribed' : level} scaling notes…`}
-                className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foregroundtext-sm focus:outline-none focus:border-accent resize-y placeholder-secondary"
+                className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm focus:outline-none focus:border-accent resize-y placeholder-secondary"
               />
             </div>
           ))}
@@ -79,7 +79,7 @@ export function ScalingEditModal({ day, weekId, onSave, onClose }: ScalingEditMo
 
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-border flex-shrink-0">
-          <div>{error && <p className="text-red-400 text-sm">{error}</p>}</div>
+          <div>{error && <p className="text-danger text-sm">{error}</p>}</div>
           <div className="flex gap-3">
             <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
             <Button onClick={handleSave} disabled={saving}>
