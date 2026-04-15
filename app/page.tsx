@@ -153,6 +153,55 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* TESTIMONIALS */}
+      <section className="max-w-6xl mx-auto px-8 py-24">
+        <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-4">
+          What gym owners say
+        </p>
+        <h2 className="font-display text-4xl font-bold text-foreground tracking-tight mb-14">
+          Real gyms.<br />
+          <span className="text-accent">Real results.</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              initials: 'JM',
+              name: 'Jamie M.',
+              gym: 'CrossFit Northside',
+              quote: 'Cut my weekly programming time from 4 hours to under 20 minutes. I actually look forward to programming now.',
+            },
+            {
+              initials: 'SR',
+              name: 'Sarah R.',
+              gym: 'Forge Functional Fitness',
+              quote: 'My members love that the scaling is actually smart — not just lighter weights. KOVA gets it.',
+            },
+            {
+              initials: 'TK',
+              name: 'Tom K.',
+              gym: 'HYROX Academy',
+              quote: 'Worth every penny. Programming used to be the worst part of my week. Now it takes 20 minutes on a Sunday.',
+            },
+          ].map(t => (
+            <div key={t.name} className="bg-surface border border-border rounded-card p-8">
+              <div className="text-accent text-sm mb-3">★★★★★</div>
+              <p className="text-sm text-foreground leading-relaxed mb-5 italic">
+                &ldquo;{t.quote}&rdquo;
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-accent-10 text-accent text-xs font-bold flex items-center justify-center flex-shrink-0">
+                  {t.initials}
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">{t.name}</div>
+                  <div className="text-xs text-secondary mt-0.5">{t.gym}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="bg-[#0A0A0A] py-24 text-center relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none"
