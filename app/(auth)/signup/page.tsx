@@ -53,6 +53,10 @@ export default function SignupPage() {
       <div className="flex-1 bg-surface flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
           <div className="lg:hidden mb-8 flex justify-center"><KovaLogo size="md" /></div>
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-secondary hover:text-foreground transition-colors mb-8 group">
+            <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
+            Back to home
+          </Link>
           <h1 className="font-display text-2xl font-bold text-foreground mb-8">Create your gym</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input type="text" value={form.gymName}
