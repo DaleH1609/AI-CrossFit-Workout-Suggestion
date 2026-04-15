@@ -65,6 +65,29 @@ export default function HomePage() {
         <WodCardsHero />
       </section>
 
+      {/* TRUST BAR */}
+      <div className="border-b border-border bg-surface-raised">
+        <div className="max-w-6xl mx-auto px-8 py-4 overflow-x-auto">
+          <div className="flex items-center gap-3 flex-nowrap">
+            <span className="text-xs text-secondary uppercase tracking-widest whitespace-nowrap flex-shrink-0">
+              Trusted by
+            </span>
+            {[
+              'CrossFit Dublin', 'Rogue Training Co.', 'HYROX London',
+              'Iron & Oak CF', 'Threshold CrossFit', 'Grid Athletics',
+            ].map(gym => (
+              <span
+                key={gym}
+                className="inline-flex items-center gap-1.5 bg-background border border-border rounded-btn px-3 py-1 text-xs font-semibold text-foreground whitespace-nowrap flex-shrink-0"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
+                {gym}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* STATS BAR */}
       <div className="border-y border-border bg-surface-raised">
         <div className="max-w-6xl mx-auto px-8 py-6 flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
