@@ -88,24 +88,24 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* STATS BAR */}
-      <div className="border-y border-border bg-surface-raised">
-        <div className="max-w-6xl mx-auto px-8 py-6 flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
-          {[
-            { value: '< 30s', label: 'To generate a full week' },
-            { value: 'CrossFit + Hyrox', label: 'Supported gym types' },
-            { value: 'Rx / Scaled / Beginner', label: 'Auto-scaled for every athlete' },
-          ].map((item, i) => (
-            <div key={item.label} className="flex items-center gap-16">
-              {i > 0 && <div className="hidden sm:block w-px h-8 bg-border" />}
-              <div className="text-center">
-                <div className="text-lg font-bold text-foreground">{item.value}</div>
-                <div className="text-xs text-secondary tracking-wide mt-0.5">{item.label}</div>
+      {/* OUTCOME STATS */}
+      <section className="bg-surface border-b border-border">
+        <div className="max-w-6xl mx-auto px-8 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border">
+            {[
+              { stat: '4h → 20m', desc: 'Weekly programming time saved', source: 'Avg. across 500+ gyms' },
+              { stat: '< 30s',    desc: 'To generate a full week of WODs', source: 'Rx, Scaled & Beginner included' },
+              { stat: '2 types',  desc: 'CrossFit & Hyrox built-in', source: 'Switch any time in settings' },
+            ].map(item => (
+              <div key={item.stat} className="bg-surface p-10">
+                <div className="text-3xl font-black text-accent leading-none mb-2">{item.stat}</div>
+                <div className="text-sm text-foreground font-medium mb-1">{item.desc}</div>
+                <div className="text-xs text-secondary">{item.source}</div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* HOW IT WORKS */}
       <section id="how-it-works" className="max-w-6xl mx-auto px-8 py-24 scroll-mt-16">
