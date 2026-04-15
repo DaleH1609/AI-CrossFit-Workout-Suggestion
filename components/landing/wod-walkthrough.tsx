@@ -140,20 +140,19 @@ export function WodWalkthrough() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        let next = active
         entries.forEach(e => {
           if (e.isIntersecting) {
             const idx = sentinelRefs.findIndex(r => r.current === (e.target as Element))
-            if (idx !== -1 && idx > next) next = idx
+            if (idx !== -1) setActive(prev => Math.max(prev, idx))
           }
         })
-        if (next !== active) setActive(next)
       },
       { threshold: 0.3, rootMargin: '0px' }
     )
     sentinelRefs.forEach(r => { if (r.current) observer.observe(r.current) })
     return () => observer.disconnect()
-  }, [active])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <section
