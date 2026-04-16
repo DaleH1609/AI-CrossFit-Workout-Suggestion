@@ -29,7 +29,7 @@ export default function HomePage() {
       </nav>
 
       {/* HERO */}
-      <section className="max-w-6xl mx-auto px-8 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="min-h-screen max-w-6xl mx-auto px-8 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div>
           <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-5">AI-Powered Gym Programming</p>
           <h1 className="font-display text-5xl font-bold leading-tight tracking-tight text-foreground mb-5">

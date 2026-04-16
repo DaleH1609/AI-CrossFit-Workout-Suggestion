@@ -131,84 +131,78 @@ const PANELS = [<PanelGenerate key="generate" />, <PanelReview key="review" />, 
 
 export function WodWalkthrough() {
   const [active, setActive] = useState(0)
-
-  const sentinel0 = useRef<HTMLDivElement>(null)
-  const sentinel1 = useRef<HTMLDivElement>(null)
-  const sentinel2 = useRef<HTMLDivElement>(null)
-  const sentinelRefs = [sentinel0, sentinel1, sentinel2]
+  const sectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            const idx = sentinelRefs.findIndex(r => r.current === (e.target as Element))
-            if (idx !== -1) setActive(prev => Math.max(prev, idx))
-          }
-        })
-      },
-      { threshold: 0.3, rootMargin: '0px' }
-    )
-    sentinelRefs.forEach(r => { if (r.current) observer.observe(r.current) })
-    return () => observer.disconnect()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleScroll = () => {
+      if (!sectionRef.current) return
+      const rect = sectionRef.current.getBoundingClientRect()
+      const sectionH = sectionRef.current.offsetHeight
+      const vh = window.innerHeight
+      const progress = Math.max(0, Math.min(1, -rect.top / (sectionH - vh)))
+      setActive(Math.min(2, Math.floor(progress * 3)))
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   return (
     <section
+      ref={sectionRef}
       id="how-it-works"
-      className="max-w-6xl mx-auto px-8 py-24 scroll-mt-16"
+      className="relative scroll-mt-16"
+      style={{ height: '550vh' }}
     >
-      <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-4">How It Works</p>
-      <h2 className="font-display text-4xl font-bold text-foreground tracking-tight mb-14">
-        From idea to published<br />
-        <span className="text-accent">in three steps.</span>
-      </h2>
+      <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
+        <div className="max-w-6xl mx-auto w-full px-8 py-12">
+          <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-4">How It Works</p>
+          <h2 className="font-display text-4xl font-bold text-foreground tracking-tight mb-10">
+            From idea to published<br />
+            <span className="text-accent">in three steps.</span>
+          </h2>
 
-      <div className="flex gap-12 lg:gap-16">
-        {/* Left: step list */}
-        <div className="hidden lg:flex sticky top-24 w-56 flex-shrink-0 flex-col gap-8 self-start">
-          {STEPS.map((step, i) => (
-            <div
-              key={step.num}
-              className={`border-l-2 pl-5 transition-all duration-300 ${
-                active === i ? 'border-accent' : 'border-transparent'
-              }`}
-            >
-              <div className={`text-xs font-bold tracking-widest uppercase transition-colors duration-300 ${
-                active === i ? 'text-accent' : 'text-secondary'
-              }`}>
-                {step.num}
-              </div>
-              <div className="text-base font-bold text-foreground mt-1">{step.title}</div>
-              <div className="text-sm text-secondary mt-1">{step.benefit}</div>
+          <div className="flex gap-12 lg:gap-16">
+            {/* Left: step list */}
+            <div className="hidden lg:flex w-56 flex-shrink-0 flex-col gap-8">
+              {STEPS.map((step, i) => (
+                <div
+                  key={step.num}
+                  className={`border-l-2 pl-5 transition-all duration-300 ${
+                    active === i ? 'border-accent' : 'border-transparent'
+                  }`}
+                >
+                  <div className={`text-xs font-bold tracking-widest uppercase transition-colors duration-300 ${
+                    active === i ? 'text-accent' : 'text-secondary'
+                  }`}>
+                    {step.num}
+                  </div>
+                  <div className="text-base font-bold text-foreground mt-1">{step.title}</div>
+                  <div className="text-sm text-secondary mt-1">{step.benefit}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Right: panel container */}
-        <div className="flex-1 sticky top-24 self-start">
-          <div className="relative h-[440px] lg:h-[480px]">
-            {PANELS.map((panel, i) => (
-              <div
-                key={i}
-                className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-                  active === i
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-2 pointer-events-none'
-                }`}
-              >
-                {panel}
+            {/* Right: panel container */}
+            <div className="flex-1">
+              <div className="relative h-[400px] lg:h-[440px]">
+                {PANELS.map((panel, i) => (
+                  <div
+                    key={i}
+                    className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                      active === i
+                        ? 'opacity-100 translate-y-0'
+                        : 'opacity-0 translate-y-2 pointer-events-none'
+                    }`}
+                  >
+                    {panel}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Scroll sentinels */}
-      <div ref={sentinel0} className="h-[300px] mt-8" aria-hidden="true" />
-      <div ref={sentinel1} className="h-[300px]" aria-hidden="true" />
-      <div ref={sentinel2} className="h-[300px]" aria-hidden="true" />
     </section>
   )
 }
