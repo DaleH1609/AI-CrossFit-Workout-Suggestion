@@ -3,6 +3,7 @@ import { KovaLogo } from '@/components/ui/kova-logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { WodCardsHero } from '@/components/landing/wod-cards-hero'
 import { WodWalkthrough } from '@/components/landing/wod-walkthrough'
+import { PhraseSpinner } from '@/components/landing/phrase-spinner'
 
 export default function HomePage() {
   return (
@@ -53,6 +54,8 @@ export default function HomePage() {
 
         <WodCardsHero />
       </section>
+
+      <PhraseSpinner />
 
       <WodWalkthrough />
 
