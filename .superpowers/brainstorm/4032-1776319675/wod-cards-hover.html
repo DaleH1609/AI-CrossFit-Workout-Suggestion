@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOVA — WOD Cards Hero Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #FAFAF8;
+    font-family: -apple-system, 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    padding: 18px 24px 12px;
+    border-bottom: 1px solid #E5E5E0;
+    flex-shrink: 0;
+  }
+  .header h1 { font-size: 14px; font-weight: 600; color: #0A0A0A; margin-bottom: 3px; }
+  .header p { font-size: 12px; color: #595F6B; }
+
+  /* ── HERO MOCKUP ── */
+  .hero-mock {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 0;
+    padding: 48px 60px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Left: copy */
+  .hero-copy { padding-right: 40px; }
+  .eyebrow {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; color: #B8952A; margin-bottom: 16px;
+  }
+  .hero-copy h1 {
+    font-family: 'Georgia', serif;
+    font-size: 42px; font-weight: 700; line-height: 1.1;
+    letter-spacing: -0.02em; color: #0A0A0A; margin-bottom: 16px;
+  }
+  .hero-copy h1 em { font-style: normal; color: #B8952A; }
+  .hero-copy p { font-size: 13px; color: #595F6B; line-height: 1.7; margin-bottom: 28px; max-width: 380px; }
+  .btn { background: #B8952A; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 28px; border-radius: 4px; display: inline-block; }
+
+  /* ── CARD STACK ── */
+  .stack-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 380px;
+    position: relative;
+  }
+
+  /* The stack container — hover triggers fan */
+  .card-stack {
+    position: relative;
+    width: 288px;
+    height: 220px;
+    cursor: pointer;
+  }
+
+  .wod-card {
+    position: absolute;
+    width: 272px;
+    background: #fff;
+    border: 1px solid #E5E5E0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 0 0 0px rgba(184,149,42,0);
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.35s ease,
+                box-shadow 0.35s ease;
+    will-change: transform;
+  }
+
+  /* ── DEFAULT stacked positions (no hover) ── */
+  /* Card 3 — deepest */
+  .card-stack .c3 {
+    top: 18px; left: 10px;
+    transform: rotate(5deg);
+    opacity: 0.45;
+    z-index: 1;
+    animation: float-c 7s ease-in-out infinite 0.5s;
+  }
+  /* Card 2 — middle */
+  .card-stack .c2 {
+    top: 9px; left: 5px;
+    transform: rotate(-3deg);
+    opacity: 0.72;
+    z-index: 2;
+    animation: float-b 6s ease-in-out infinite 1s;
+  }
+  /* Card 1 — front */
+  .card-stack .c1 {
+    top: 0; left: 0;
+    transform: rotate(-1deg);
+    opacity: 1;
+    z-index: 3;
+    animation: float-a 5s ease-in-out infinite;
+  }
+
+  @keyframes float-a {
+    0%,100% { transform: translateY(0) rotate(-1deg); }
+    50%      { transform: translateY(-8px) rotate(-1deg); }
+  }
+  @keyframes float-b {
+    0%,100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-5px) rotate(-3deg); }
+  }
+  @keyframes float-c {
+    0%,100% { transform: translateY(0) rotate(5deg); }
+    50%      { transform: translateY(-3px) rotate(5deg); }
+  }
+
+  /* ── HOVER: fan out ── */
+  .card-stack:hover .c1 {
+    transform: translateX(-110px) rotate(-12deg) translateY(-10px);
+    opacity: 1;
+    z-index: 3;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12), 0 0 0 2px rgba(184,149,42,0.15);
+    animation: none;
+  }
+  .card-stack:hover .c2 {
+    transform: translateX(0px) rotate(0deg) translateY(-18px);
+    opacity: 1;
+    z-index: 4;
+    box-shadow: 0 20px 48px rgba(0,0,0,0.14), 0 0 0 2px rgba(184,149,42,0.2);
+    animation: none;
+  }
+  .card-stack:hover .c3 {
+    transform: translateX(110px) rotate(12deg) translateY(-10px);
+    opacity: 1;
+    z-index: 3;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12), 0 0 0 2px rgba(184,149,42,0.15);
+    animation: none;
+  }
+
+  /* Card content */
+  .card-tag {
+    font-size: 8px; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #B8952A; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-dot { width: 7px; height: 7px; border-radius: 50%; background: #B8952A; }
+  .card-title { font-size: 15px; font-weight: 700; color: #0A0A0A; margin-bottom: 3px; }
+  .card-sub { font-size: 11px; color: #595F6B; margin-bottom: 12px; }
+  .card-divider { border: none; border-top: 1px solid #E5E5E0; margin-bottom: 12px; }
+  .card-section-label {
+    font-size: 8px; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #B8952A; margin-bottom: 7px;
+  }
+  .card-movements { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .card-movements li { font-size: 11px; color: #595F6B; }
+  .card-movements li::before { content: '·  '; color: #B8952A; }
+
+  /* hint text below stack */
+  .stack-hint {
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #C8C4BB;
+    white-space: nowrap;
+    transition: opacity 0.3s;
+  }
+  .card-stack:hover .stack-hint { opacity: 0; }
+
+  /* Bottom panel */
+  .bottom-panel {
+    flex-shrink: 0;
+    background: #F3F3F0;
+    border-top: 1px solid #E5E5E0;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: #595F6B;
+  }
+  .bottom-panel strong { color: #0A0A0A; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>WOD Cards Hero — hover demo</h1>
+  <p>Hover over the card stack on the right to see the fan effect</p>
+</div>
+
+<div class="hero-mock">
+
+  <!-- LEFT: copy (unchanged) -->
+  <div class="hero-copy">
+    <p class="eyebrow">AI-Powered Gym Programming</p>
+    <h1>Train Smarter.<br><em>Perform Better.</em></h1>
+    <p>KOVA generates weekly programs tailored to your gym's coaching style — so you spend less time programming and more time coaching.</p>
+    <span class="btn">Create Your Gym</span>
+  </div>
+
+  <!-- RIGHT: card stack -->
+  <div class="stack-wrap">
+    <div class="card-stack">
+
+      <!-- Card 3 (back) — Skills -->
+      <div class="wod-card c3">
+        <div class="card-tag">
+          Wednesday — Skills
+          <span class="card-dot" style="background:#9CA3AF"></span>
+        </div>
+        <p class="card-title">Gymnastics Skill Work</p>
+        <p class="card-sub">20 min EMOM</p>
+        <hr class="card-divider">
+        <p class="card-section-label">Movements</p>
+        <ul class="card-movements">
+          <li>Strict Handstand Push-ups</li>
+          <li>L-Sit Hold 30s</li>
+          <li>Ring Muscle-ups (scaled)</li>
+        </ul>
+      </div>
+
+      <!-- Card 2 (middle) — Metcon -->
+      <div class="wod-card c2">
+        <div class="card-tag">
+          Tuesday — Metcon
+          <span class="card-dot" style="background:#595F6B"></span>
+        </div>
+        <p class="card-title">For Time: 21-15-9</p>
+        <p class="card-sub">Target: sub 8 min</p>
+        <hr class="card-divider">
+        <p class="card-section-label">Movements</p>
+        <ul class="card-movements">
+          <li>Thrusters (42.5 / 30 kg)</li>
+          <li>Pull-ups</li>
+        </ul>
+      </div>
+
+      <!-- Card 1 (front) — Strength -->
+      <div class="wod-card c1">
+        <div class="card-tag">
+          Monday — Strength
+          <span class="card-dot"></span>
+        </div>
+        <p class="card-title">Back Squat 5×5</p>
+        <p class="card-sub">@ 80% 1RM — 3 min rest</p>
+        <hr class="card-divider">
+        <p class="card-section-label">AMRAP 15 min</p>
+        <ul class="card-movements">
+          <li>10 Pull-ups</li>
+          <li>15 Box Jumps (24 / 20")</li>
+          <li>20 KB Swings (24 / 16 kg)</li>
+        </ul>
+      </div>
+
+      <p class="stack-hint">Hover to expand</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-panel">
+  ✦ <strong>3 cards</strong> stacked with gentle float &nbsp;·&nbsp; hover fans them open &nbsp;·&nbsp; no library needed — pure CSS transitions
+</div>
+
+</body>
+</html>

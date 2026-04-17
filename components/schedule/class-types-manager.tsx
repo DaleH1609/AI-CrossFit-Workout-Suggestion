@@ -49,21 +49,47 @@ export function ClassTypesManager({ classTypes, onChange }: Props) {
   }
 
   async function handleDelete(id: string) {
-    const res = await fetch('/api/class-types', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
-    if (res.ok) onChange(classTypes.filter(t => t.id !== id))
+    try {
+      const res = await fetch('/api/class-types', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (res.ok) {
+        onChange(classTypes.filter(t => t.id !== id))
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Failed to delete class type')
+      }
+    } catch (err) {
+      console.error('[class-types] delete failed', err)
+      setError('Network error — could not delete')
+    }
   }
 
   async function handleColorChange(id: string, color: string) {
+    const snapshot = classTypes.find(t => t.id === id)?.color
     onChange(classTypes.map(t => t.id === id ? { ...t, color } : t))
-    await fetch('/api/class-types', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, color }),
-    })
+    try {
+      const res = await fetch('/api/class-types', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, color }),
+      })
+      if (!res.ok) {
+        // Roll back on failure so the swatch stays truthful.
+        if (snapshot !== undefined) {
+          onChange(classTypes.map(t => t.id === id ? { ...t, color: snapshot } : t))
+        }
+        setError('Failed to update colour')
+      }
+    } catch (err) {
+      console.error('[class-types] colour change failed', err)
+      if (snapshot !== undefined) {
+        onChange(classTypes.map(t => t.id === id ? { ...t, color: snapshot } : t))
+      }
+      setError('Network error — could not update colour')
+    }
   }
 
   return (

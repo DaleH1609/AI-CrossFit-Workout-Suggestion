@@ -10,6 +10,23 @@ interface ClassTileProps {
   waitlistEnabled?: boolean
 }
 
+function CapacityBar({ count, capacity }: { count: number; capacity: number }) {
+  const pct = Math.min((count / capacity) * 100, 100)
+  const barColor = pct < 60 ? 'bg-green-400' : pct < 85 ? 'bg-yellow-400' : 'bg-danger'
+  const textColor = pct >= 100 ? 'text-danger' : 'text-secondary'
+
+  return (
+    <div className="flex items-center gap-2 shrink-0">
+      <div className="w-14 h-0.5 bg-border rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-300 ${barColor}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className={`text-xs tabular-nums ${textColor}`}>
+        {count}<span className="opacity-40">/{capacity}</span>
+      </span>
+    </div>
+  )
+}
+
 export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberNames, waitlistEnabled = true }: ClassTileProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,7 +73,7 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
     <div>
       <div className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-all duration-150 ${
         isBooked
-          ? 'bg-accent-5 border-accent-20 hover:border-accent-35'
+          ? 'bg-accent-5 border-l-4 border-accent-20 border-l-accent'
           : 'bg-surface border-border hover:border-border hover:bg-surface'
       }`}>
         {/* Left: time + name */}
@@ -65,8 +82,13 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
           <span className="text-foreground-70 text-sm truncate">{className}</span>
         </div>
 
-        {/* Right: spots + action */}
+        {/* Right: capacity + status + action */}
         <div className="flex items-center gap-3 shrink-0">
+          {/* Capacity bar — always visible unless booking hasn't opened yet */}
+          {!isTooEarly && (
+            <CapacityBar count={confirmedCount} capacity={instance.capacity} />
+          )}
+
           {isBooked ? (
             <>
               <span className={`text-xs font-medium ${
@@ -78,7 +100,7 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
               </span>
               {!isTooEarly && (
                 <button onClick={handleCancel} disabled={loading}
-                  className="text-xs px-3 py-1.5 rounded border border-border text-secondary hover:text-danger hover:border-danger-40 transition-colors disabled:opacity-50">
+                  className="text-xs px-3 py-1.5 rounded border border-border text-secondary hover:text-danger hover:border-danger-40 transition-colors disabled:opacity-50 active:scale-[0.97]">
                   {loading ? '…' : 'Cancel'}
                 </button>
               )}
@@ -86,17 +108,12 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
           ) : isTooEarly ? (
             <span className="text-secondary-60 text-xs">Opens {opensLabel}</span>
           ) : isFull && !waitlistEnabled ? (
-            <span className="text-danger-60 text-xs">Full</span>
+            <span className="text-danger-60 text-xs font-medium">Full</span>
           ) : (
-            <>
-              <span className={`text-xs tabular-nums ${isFull ? 'text-danger-60' : 'text-secondary'}`}>
-                {isFull ? 'Full' : `${spotsLeft}/${instance.capacity}`}
-              </span>
-              <button onClick={handleBook} disabled={loading}
-                className="text-xs px-3 py-1.5 rounded bg-accent-10 border border-accent-40 text-accent hover:bg-accent-20 transition-colors disabled:opacity-50 font-medium">
-                {loading ? '…' : isFull ? 'Waitlist' : 'Book'}
-              </button>
-            </>
+            <button onClick={handleBook} disabled={loading || (isFull && !waitlistEnabled)}
+              className="text-xs px-3 py-1.5 rounded bg-accent-10 border border-accent-40 text-accent hover:bg-accent-20 transition-colors disabled:opacity-50 font-medium active:scale-[0.97]">
+              {loading ? '…' : isFull ? 'Waitlist' : 'Book'}
+            </button>
           )}
         </div>
       </div>

@@ -7,11 +7,11 @@
   "crons": [
     {
       "path": "/api/cron/generate-instances",
-      "schedule": "0 0 * * *"
+      "schedule": "0 1 * * *"
     },
     {
       "path": "/api/cron/waitlist-expire",
-      "schedule": "0 0 * * *"
+      "schedule": "0 2 * * *"
     }
   ]
 }

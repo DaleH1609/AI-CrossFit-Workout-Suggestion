@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { ScheduleDefaults } from '@/lib/types'
+import { useToast } from '@/components/ui/toast'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -18,15 +19,26 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
     }
     return result
   })
+  const { toast } = useToast()
 
   async function saveDefault(dayOfWeek: number | null, rawVal: string) {
     // Empty string on a per-day input = clear the override
     if (dayOfWeek !== null && rawVal === '') {
-      await fetch('/api/schedule/defaults', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dayOfWeek }),
-      })
+      try {
+        const res = await fetch('/api/schedule/defaults', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dayOfWeek }),
+        })
+        if (!res.ok) {
+          toast('Failed to clear day default', 'error')
+          return
+        }
+      } catch (err) {
+        console.error('[capacity-defaults] delete failed', err)
+        toast('Network error — could not clear default', 'error')
+        return
+      }
       const updated = { ...defaults.dayDefaults }
       delete updated[String(dayOfWeek)]
       onUpdate({ ...defaults, dayDefaults: updated })
@@ -36,11 +48,22 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
     const capacity = parseInt(rawVal)
     if (isNaN(capacity) || capacity < 1 || capacity > 200) return
 
-    await fetch('/api/schedule/defaults', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dayOfWeek, capacity }),
-    })
+    try {
+      const res = await fetch('/api/schedule/defaults', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dayOfWeek, capacity }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast(data.error ?? 'Failed to save default capacity', 'error')
+        return
+      }
+    } catch (err) {
+      console.error('[capacity-defaults] save failed', err)
+      toast('Network error — could not save default', 'error')
+      return
+    }
 
     if (dayOfWeek === null) {
       onUpdate({ ...defaults, globalDefault: capacity })

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useCallback, useRef, Fragment } from 'react'
 import type { ClassType, ScheduleDefaults, ScheduleTemplate } from '@/lib/types'
+import { useToast } from '@/components/ui/toast'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -70,6 +71,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
   const [addError, setAddError] = useState('')
   const [confirmingClear, setConfirmingClear] = useState(false)
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { toast } = useToast()
 
   const templateTimes = new Set(templates.map(t => t.local_time))
   const allTimes = Array.from(new Set([
@@ -78,6 +80,14 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     ...Array.from(templateTimes).filter(t => !generateDefaultTimes().includes(t)),
   ])).sort()
 
+  // Returns all templates at a given (day, time) — used for cell rendering
+  const getTemplates = useCallback(
+    (dayOfWeek: number, localTime: string) =>
+      templates.filter(t => t.day_of_week === dayOfWeek && t.local_time === localTime),
+    [templates]
+  )
+
+  // Returns first template at (day, time) — used for fill-row existence check
   const getTemplate = useCallback(
     (dayOfWeek: number, localTime: string) =>
       templates.find(t => t.day_of_week === dayOfWeek && t.local_time === localTime),
@@ -98,8 +108,9 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     return template.name
   }
 
-  async function callPost(day: number, time: string) {
-    if (getTemplate(day, time)) return
+  // force=true skips the existence check, allowing a second tile at the same (day, time)
+  async function callPost(day: number, time: string, force = false) {
+    if (!force && getTemplate(day, time)) return
     const tempId = crypto.randomUUID()
     const activeType = classTypes.find(t => t.id === defaultTypeId) ?? classTypes[0] ?? null
     const optimistic: ScheduleTemplate = {
@@ -136,13 +147,56 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     }
   }
 
+  async function callOverwrite(template: ScheduleTemplate, activeType: ClassType) {
+    const snapshot = template
+    setTemplates(prev => prev.map(t =>
+      t.id === template.id ? { ...t, class_type_id: activeType.id, name: activeType.name } : t
+    ))
+    if (editState?.templateId === template.id) setEditState(null)
+    try {
+      const res = await fetch('/api/schedule/templates', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: template.id,
+          class_type_id: activeType.id,
+          name: activeType.name,
+          capacity: template.capacity,
+          workout_notes: template.workout_notes,
+        }),
+      })
+      if (!res.ok) {
+        setTemplates(prev => prev.map(t => t.id === snapshot.id ? snapshot : t))
+        const data = await res.json().catch(() => ({}))
+        toast(data.error ?? 'Failed to update class', 'error')
+      }
+    } catch (err) {
+      console.error('[schedule-grid] overwrite failed', err)
+      setTemplates(prev => prev.map(t => t.id === snapshot.id ? snapshot : t))
+      toast('Network error — could not update class', 'error')
+    }
+  }
+
   async function callDelete(templateId: string) {
+    const snapshot = templates.find(t => t.id === templateId)
     setTemplates(prev => prev.filter(t => t.id !== templateId))
-    await fetch('/api/schedule/templates', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: templateId }),
-    })
+    if (editState?.templateId === templateId) setEditState(null)
+    try {
+      const res = await fetch('/api/schedule/templates', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: templateId }),
+      })
+      if (!res.ok) {
+        if (snapshot) setTemplates(prev => [...prev, snapshot])
+        const data = await res.json().catch(() => ({}))
+        toast(data.error ?? 'Failed to delete class', 'error')
+      }
+    } catch (err) {
+      console.error('[schedule-grid] delete failed', err)
+      if (snapshot) setTemplates(prev => [...prev, snapshot])
+      toast('Network error — could not delete class', 'error')
+    }
   }
 
   function openEdit(template: ScheduleTemplate, day: number) {
@@ -197,7 +251,10 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current)
     clickTimerRef.current = setTimeout(() => {
       clickTimerRef.current = null
-      if (editState?.templateId === template.id) {
+      const activeType = classTypes.find(t => t.id === defaultTypeId) ?? classTypes[0] ?? null
+      if (activeType && template.class_type_id !== activeType.id) {
+        callOverwrite(template, activeType)
+      } else if (editState?.templateId === template.id) {
         setEditState(null)
       } else {
         openEdit(template, day)
@@ -205,9 +262,25 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     }, 220)
   }
 
+  // Fill-row: only fills completely empty cells (cells with any tile are skipped)
   function handleFillRow(time: string) {
     for (const day of [1, 2, 3, 4, 5, 6, 7]) {
       if (!getTemplate(day, time)) callPost(day, time)
+    }
+  }
+
+  // Clear-row: removes every tile at this time across all days
+  function handleClearRow(time: string) {
+    const toRemove = templates.filter(t => t.local_time === time)
+    if (toRemove.length === 0) return
+    setTemplates(prev => prev.filter(t => t.local_time !== time))
+    if (editState && toRemove.some(t => t.id === editState.templateId)) setEditState(null)
+    for (const t of toRemove) {
+      fetch('/api/schedule/templates', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: t.id }),
+      })
     }
   }
 
@@ -216,7 +289,6 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
       clearTimeout(clickTimerRef.current)
       clickTimerRef.current = null
     }
-    if (editState?.templateId === template.id) setEditState(null)
     callDelete(template.id)
   }
 
@@ -277,7 +349,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
 
   return (
     <div>
-      {/* Controls: "Adding as:" type selector + Clear all */}
+      {/* Controls: type selector + clear all */}
       {classTypes.length > 0 && (
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <span className="text-xs text-secondary shrink-0">Adding as:</span>
@@ -323,18 +395,22 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
         </div>
       )}
 
-      {/* Grid */}
-      <div className={`overflow-x-auto select-none${confirmingClear ? ' opacity-40 pointer-events-none' : ''}`}>
+      {/* Grid — WAI-ARIA grid role so screen readers recognise the layout */}
+      <div
+        role="grid"
+        aria-label="Weekly class schedule"
+        className={`overflow-x-auto select-none${confirmingClear ? ' opacity-40 pointer-events-none' : ''}`}
+      >
 
-        {/* Header row */}
-        <div className="grid min-w-[640px] mb-1" style={{ gridTemplateColumns: '72px repeat(7, 1fr) 28px' }}>
-          <div />
+        {/* Header */}
+        <div role="row" className="grid min-w-[640px] mb-1" style={{ gridTemplateColumns: '72px repeat(7, 1fr) 36px' }}>
+          <div role="columnheader" aria-label="Time" />
           {DAY_NAMES.map(name => (
-            <div key={name} className="text-center text-xs font-semibold text-accent py-2 border-b border-border">
+            <div key={name} role="columnheader" className="text-center text-xs font-semibold text-accent py-2 border-b border-border">
               {name}
             </div>
           ))}
-          <div />
+          <div role="columnheader" aria-label="Actions" />
         </div>
 
         {/* Time rows */}
@@ -344,81 +420,115 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
 
             return (
               <Fragment key={time}>
-                <div className="grid" style={{ gridTemplateColumns: '72px repeat(7, 1fr) 28px' }}>
-                  {/* Time label */}
-                  <div className="text-right pr-3 text-xs text-secondary flex items-center justify-end h-[68px]">
+                <div role="row" className="grid items-start" style={{ gridTemplateColumns: '72px repeat(7, 1fr) 36px' }}>
+
+                  {/* Time label — top-aligned */}
+                  <div role="rowheader" className="text-right pr-3 text-xs text-secondary flex justify-end pt-[22px]">
                     {formatTime(time)}
                   </div>
 
-                  {/* Day cells */}
+                  {/* Day cells — now support multiple stacked tiles */}
                   {[1, 2, 3, 4, 5, 6, 7].map(day => {
-                    const template = getTemplate(day, time)
-                    const isActive = !!template
-                    const isEditing = editState?.templateId === template?.id
-                    const effectiveCapacity = isActive ? resolveCapacity(template, day, defaults) : 0
-                    const color = isActive ? resolveTypeColor(template!) : null
-                    const txt = color ? textColor(color) : undefined
-                    const name = isActive ? resolveTypeName(template!) : ''
+                    const cellTemplates = getTemplates(day, time)
 
                     return (
-                      <div key={day} className="p-0.5 relative">
-                        {isActive ? (
+                      <div key={day} role="gridcell" className="p-0.5 flex flex-col gap-0.5">
 
-                          <div
-                            className={`w-full h-[64px] rounded px-2 py-1.5 cursor-pointer transition-all flex flex-col justify-between ${
-                              isEditing
-                                ? 'ring-2 ring-white/40 ring-offset-1 ring-offset-background scale-105 z-10 shadow-lg shadow-black/40'
-                                : 'hover:scale-110 hover:z-10 hover:shadow-xl hover:shadow-black/50'
-                            }`}
-                            style={{ backgroundColor: color! }}
-                            onClick={() => handleSlotClick(template!, day)}
-                            onDoubleClick={() => handleSlotDoubleClick(template!)}
-                          >
-                            {/* Time inside tile */}
-                            <div className="text-[9px] font-medium leading-none" style={{ color: txt, opacity: 0.72 }}>
-                              {formatTime(time)}
-                            </div>
-                            {/* Class name */}
-                            <div className="text-[11px] font-bold truncate leading-tight" style={{ color: txt }}>
-                              {name}
-                            </div>
-                            {/* Capacity — click to edit inline */}
-                            {editingCapacity?.templateId === template!.id ? (
-                              <input
-                                autoFocus
-                                type="number"
-                                value={editingCapacity.value}
-                                onChange={e => setEditingCapacity(prev => prev ? { ...prev, value: e.target.value } : null)}
-                                onBlur={() => handleCapacitySave(template!, editingCapacity.value)}
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter') handleCapacitySave(template!, editingCapacity.value)
-                                  if (e.key === 'Escape') setEditingCapacity(null)
-                                }}
-                                onClick={e => e.stopPropagation()}
-                                onDoubleClick={e => e.stopPropagation()}
-                                className="block w-10 text-[9px] font-semibold bg-transparent border-b border-current/40 outline-none"
+                        {/* Existing tiles */}
+                        {cellTemplates.map(template => {
+                          const isEditing = editState?.templateId === template.id
+                          const effectiveCapacity = resolveCapacity(template, day, defaults)
+                          const color = resolveTypeColor(template)
+                          const txt = textColor(color)
+                          const name = resolveTypeName(template)
+
+                          return (
+                            <div
+                              key={template.id}
+                              className={`group relative w-full h-[60px] rounded px-2 py-1.5 cursor-pointer transition-all flex flex-col justify-between ${
+                                isEditing
+                                  ? 'ring-2 ring-white/40 ring-offset-1 ring-offset-background scale-[1.03] z-10 shadow-lg shadow-black/40'
+                                  : 'hover:scale-[1.04] hover:z-10 hover:shadow-xl hover:shadow-black/50'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              onClick={() => handleSlotClick(template, day)}
+                              onDoubleClick={() => handleSlotDoubleClick(template)}
+                            >
+                              {/* Hover delete button */}
+                              <button
+                                type="button"
+                                className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded text-[11px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/20 leading-none"
                                 style={{ color: txt }}
-                              />
-                            ) : (
-                              <div
-                                className="text-[9px] font-medium cursor-text leading-none"
-                                style={{ color: txt, opacity: 0.7 }}
-                                onClick={e => {
-                                  e.stopPropagation()
-                                  if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = null }
-                                  setEditingCapacity({ templateId: template!.id, value: String(effectiveCapacity) })
-                                }}
+                                onClick={e => { e.stopPropagation(); callDelete(template.id) }}
                                 onDoubleClick={e => e.stopPropagation()}
+                                title="Remove this slot"
                               >
-                                {effectiveCapacity} spots
+                                ×
+                              </button>
+
+                              {/* Time inside tile */}
+                              <div className="text-[9px] font-medium leading-none" style={{ color: txt, opacity: 0.72 }}>
+                                {formatTime(time)}
                               </div>
-                            )}
-                          </div>
-                        ) : (
+
+                              {/* Class name */}
+                              <div className="text-[11px] font-bold truncate leading-tight pr-3" style={{ color: txt }}>
+                                {name}
+                              </div>
+
+                              {/* Capacity — click to edit inline */}
+                              {editingCapacity?.templateId === template.id ? (
+                                <input
+                                  autoFocus
+                                  type="number"
+                                  value={editingCapacity.value}
+                                  onChange={e => setEditingCapacity(prev => prev ? { ...prev, value: e.target.value } : null)}
+                                  onBlur={() => handleCapacitySave(template, editingCapacity.value)}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') handleCapacitySave(template, editingCapacity.value)
+                                    if (e.key === 'Escape') setEditingCapacity(null)
+                                  }}
+                                  onClick={e => e.stopPropagation()}
+                                  onDoubleClick={e => e.stopPropagation()}
+                                  className="block w-10 text-[9px] font-semibold bg-transparent border-b border-current/40 outline-none"
+                                  style={{ color: txt }}
+                                />
+                              ) : (
+                                <div
+                                  className="text-[9px] font-medium cursor-text leading-none"
+                                  style={{ color: txt, opacity: 0.7 }}
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = null }
+                                    setEditingCapacity({ templateId: template.id, value: String(effectiveCapacity) })
+                                  }}
+                                  onDoubleClick={e => e.stopPropagation()}
+                                >
+                                  {effectiveCapacity} spots
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+
+                        {/* Empty cell: full dashed button */}
+                        {cellTemplates.length === 0 && (
                           <button
                             type="button"
                             onClick={() => callPost(day, time)}
-                            className="w-full h-[64px] rounded border border-dashed border-border hover:border-accent text-secondary hover:text-secondary text-lg transition-colors"
+                            className="w-full h-[60px] rounded border border-dashed border-border hover:border-accent text-secondary text-lg transition-colors"
+                          >
+                            +
+                          </button>
+                        )}
+
+                        {/* Filled cell: thin "add another" button at bottom */}
+                        {cellTemplates.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => callPost(day, time, true)}
+                            title="Add another class at this time"
+                            className="w-full h-[18px] rounded border border-dashed border-border/50 hover:border-accent text-secondary/50 hover:text-accent text-[10px] transition-colors leading-none"
                           >
                             +
                           </button>
@@ -427,20 +537,28 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                     )
                   })}
 
-                  {/* Fill-row button */}
-                  <div className="flex items-center justify-center h-[68px]">
+                  {/* Row actions: fill + clear */}
+                  <div className="flex flex-col items-center gap-1 pt-[18px]">
                     <button
                       type="button"
                       onClick={() => handleFillRow(time)}
                       title="Fill all empty slots in this row"
-                      className="w-6 h-6 rounded border border-border hover:border-accent text-secondary hover:text-accent text-xs transition-colors flex items-center justify-center"
+                      className="w-6 h-6 rounded border border-border hover:border-accent text-secondary hover:text-accent text-xs transition-colors flex items-center justify-center leading-none"
                     >
                       +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleClearRow(time)}
+                      title="Remove all slots in this row"
+                      className="w-6 h-6 rounded border border-border hover:border-danger/60 text-secondary hover:text-danger text-xs transition-colors flex items-center justify-center leading-none"
+                    >
+                      −
                     </button>
                   </div>
                 </div>
 
-                {/* Inline edit bar — spans below the row when a slot in this row is selected */}
+                {/* Inline edit bar */}
                 {isEditingThisRow && editState && (
                   <div className="grid mb-1" style={{ gridTemplateColumns: '72px 1fr' }}>
                     <div />
@@ -475,7 +593,8 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                             <button
                               type="button"
                               onClick={() => {
-                                const effectiveCap = resolveCapacity(getTemplate(editState.day, editState.time), editState.day, defaults)
+                                const t = templates.find(t => t.id === editState.templateId)
+                                const effectiveCap = resolveCapacity(t, editState.day, defaults)
                                 autoSave({ overriding: false, capacity: String(effectiveCap) }, editState)
                               }}
                               className="text-[10px] text-secondary hover:text-foreground"
@@ -502,7 +621,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                         {editState.saved && <span className="text-[10px] text-green-400">✓ Saved</span>}
                         {editState.error && <span className="text-[10px] text-danger">{editState.error}</span>}
                         <button
-                          onClick={async () => { await callDelete(editState.templateId); setEditState(null) }}
+                          onClick={() => callDelete(editState.templateId)}
                           className="text-[10px] text-danger border border-border hover:border-danger rounded px-2 py-0.5 transition-colors"
                         >
                           Remove
@@ -538,7 +657,9 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
         </div>
       </div>
 
-      <p className="text-[10px] text-secondary mt-3">Click slot to edit · Double-click to remove · Click capacity to change</p>
+      <p className="text-[10px] text-secondary mt-3">
+        Click to place selected type · Click same type to edit · Hover tile for × to delete · Row − removes all slots at that time
+      </p>
     </div>
   )
 }

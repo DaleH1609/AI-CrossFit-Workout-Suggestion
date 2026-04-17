@@ -20,16 +20,17 @@ export async function PATCH(
     return NextResponse.json({ error: 'dayName and updatedDay are required' }, { status: 400 })
   }
 
-  // Fetch the week, verifying gym ownership and draft status
+  // Fetch the week, verifying gym ownership — only draft weeks may be edited
   const { data: week, error: fetchError } = await supabase
     .from('workout_weeks')
     .select('id, workouts, status')
     .eq('id', params.weekId)
     .eq('gym_id', userData.gym_id)
+    .eq('status', 'draft')
     .single()
 
   if (fetchError || !week) {
-    return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Week not found or is not a draft' }, { status: 404 })
   }
 
   // Replace the matching day in the workouts JSONB array

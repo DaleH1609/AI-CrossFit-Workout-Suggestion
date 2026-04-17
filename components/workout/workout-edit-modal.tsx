@@ -68,8 +68,13 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !saving) onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [onClose, saving])
 
   function switchToFreeText() {
     const current: WorkoutDay = { day: day.day, descriptor, parts }

@@ -2,15 +2,21 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
+import { z } from '@/lib/validation/z'
+import { parseBody } from '@/lib/api/response'
 
 interface BookingWithInstance { id: string; instance_id: string; status: string; class_instances: { starts_at: string } }
+
+const schema = z.object({ memberId: z.uuid() })
 
 export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { memberId } = await req.json()
+  const parsed = await parseBody(req, schema)
+  if (parsed instanceof NextResponse) return parsed
+  const { memberId } = parsed
   const now = new Date().toISOString()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
@@ -45,17 +51,28 @@ export async function POST(req: Request) {
       .in('id', futureBookingIds)
   }
 
-  // Promote next waitlisted member for each instance that had a spot freed
-  for (const instanceId of instanceIdsToPromote) {
-    const { data: instanceData } = await supabase
-      .from('class_instances')
-      .select('starts_at')
-      .eq('id', instanceId)
-      .single()
-    if (instanceData?.starts_at) {
-      await promoteNextWaitlistMember(supabase, instanceId, instanceData.starts_at, appUrl)
+  // Build a map of instance_id → starts_at from already-fetched data
+  const instanceStartsAt = new Map<string, string>()
+  for (const b of futureBookings) {
+    if (!instanceStartsAt.has(b.instance_id)) {
+      instanceStartsAt.set(b.instance_id, b.class_instances.starts_at)
     }
   }
+
+  // Promote next waitlisted member for each instance that had a spot freed.
+  // Parallelize to avoid serial latency when a member with many bookings is
+  // deleted (addresses the "serial awaits in loop" performance finding).
+  await Promise.all(
+    instanceIdsToPromote.map(async instanceId => {
+      const startsAt = instanceStartsAt.get(instanceId)
+      if (!startsAt) return
+      try {
+        await promoteNextWaitlistMember(supabase, instanceId, startsAt, appUrl)
+      } catch (err) {
+        console.error('[members/delete] promote failed', { instanceId, err })
+      }
+    })
+  )
 
   // Delete user row
   await supabase.from('users').delete().eq('id', memberId).eq('gym_id', userData.gym_id)

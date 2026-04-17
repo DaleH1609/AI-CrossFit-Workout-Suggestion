@@ -1,8 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+
+function SavedBadge({ show }: { show: boolean }) {
+  return (
+    <span className={`text-xs text-accent transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}>
+      ✓ Saved
+    </span>
+  )
+}
 
 export default function ProfilePage() {
   const [name, setName] = useState('')
@@ -12,6 +18,7 @@ export default function ProfilePage() {
   const [password, setPassword] = useState('')
   const [passwordSaved, setPasswordSaved] = useState(false)
   const [passwordError, setPasswordError] = useState('')
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
 
   const supabase = createClient()
 
@@ -43,32 +50,73 @@ export default function ProfilePage() {
     if (error) { setPasswordError(error.message); return }
     setPassword('')
     setPasswordSaved(true)
+    setShowPasswordForm(false)
     setTimeout(() => setPasswordSaved(false), 2000)
   }
 
   return (
-    <div>
-      <h1 className="font-display text-3xl text-foreground mb-6">Profile</h1>
-      <div className="space-y-4 max-w-md">
-        <Card>
-          <h2 className="text-foreground font-semibold mb-4">Your Name</h2>
-          <form onSubmit={handleSaveName} className="space-y-4">
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Your name"
-              required
-              className="w-full px-3 py-2 bg-background border border-border rounded-btn text-foreground placeholder-secondary focus:outline-none focus:border-accent"
-            />
-            {nameError && <p className="text-danger text-sm">{nameError}</p>}
-            <Button type="submit">{nameSaved ? 'Saved!' : 'Save Name'}</Button>
-          </form>
-        </Card>
+    <div className="max-w-md">
+      <h1 className="font-display text-3xl text-foreground mb-8">Profile</h1>
 
-        <Card>
-          <h2 className="text-foreground font-semibold mb-4">Change Password</h2>
-          <form onSubmit={handleChangePassword} className="space-y-4">
+      {/* Avatar + name header */}
+      <div className="flex items-center gap-4 mb-10">
+        <div className="w-14 h-14 rounded-full bg-accent-10 border border-accent-20 flex items-center justify-center shrink-0">
+          <span className="font-display text-xl text-accent leading-none">
+            {name ? name[0].toUpperCase() : '?'}
+          </span>
+        </div>
+        <div>
+          <p className="font-display text-xl text-foreground leading-tight">{name || 'Your Profile'}</p>
+          <p className="text-secondary text-xs mt-0.5 uppercase tracking-wider">Member</p>
+        </div>
+      </div>
+
+      {/* Name section */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-foreground">Your Name</h2>
+          <SavedBadge show={nameSaved} />
+        </div>
+        <form onSubmit={handleSaveName} className="space-y-3">
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Your name"
+            required
+            className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
+          />
+          {nameError && (
+            <div className="px-4 py-3 rounded-lg border border-danger/20 bg-danger/5 text-sm text-danger">
+              {nameError}
+            </div>
+          )}
+          <button type="submit"
+            className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
+            Save Name
+          </button>
+        </form>
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Password section — collapsible */}
+      <section className="pt-7">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-foreground">Password</h2>
+          <SavedBadge show={passwordSaved} />
+        </div>
+
+        {!showPasswordForm ? (
+          <button
+            onClick={() => setShowPasswordForm(true)}
+            className="text-sm text-secondary hover:text-foreground transition-colors flex items-center gap-1.5 group"
+          >
+            Change password
+            <span className="group-hover:translate-x-0.5 transition-transform text-secondary">→</span>
+          </button>
+        ) : (
+          <form onSubmit={handleChangePassword} className="space-y-3">
             <input
               type="password"
               value={password}
@@ -76,13 +124,27 @@ export default function ProfilePage() {
               placeholder="New password"
               minLength={8}
               required
-              className="w-full px-3 py-2 bg-background border border-border rounded-btn text-foreground placeholder-secondary focus:outline-none focus:border-accent"
+              autoFocus
+              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
             />
-            {passwordError && <p className="text-danger text-sm">{passwordError}</p>}
-            <Button type="submit">{passwordSaved ? 'Updated!' : 'Update Password'}</Button>
+            {passwordError && (
+              <div className="px-4 py-3 rounded-lg border border-danger/20 bg-danger/5 text-sm text-danger">
+                {passwordError}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button type="submit"
+                className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
+                Update Password
+              </button>
+              <button type="button" onClick={() => { setShowPasswordForm(false); setPassword(''); setPasswordError('') }}
+                className="text-sm text-secondary hover:text-foreground transition-colors">
+                Cancel
+              </button>
+            </div>
           </form>
-        </Card>
-      </div>
+        )}
+      </section>
     </div>
   )
 }

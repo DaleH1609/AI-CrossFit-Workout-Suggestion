@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign-In Left Panel — Animation Options</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f13;
+    color: #e5e5e5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 32px;
+  }
+  h2 { font-size: 1.3rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 32px; }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .card {
+    border: 2px solid #2a2a35;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    background: #16161e;
+  }
+  .card:hover { border-color: #d4af37; transform: translateY(-2px); }
+  .card.selected { border-color: #d4af37; box-shadow: 0 0 0 1px #d4af3760, 0 4px 24px #d4af3720; }
+
+  .card-preview {
+    height: 260px;
+    position: relative;
+    overflow: hidden;
+    background: #050508;
+  }
+
+  /* — Preview A: Floating Particles — */
+  .preview-a {
+    background: #050508;
+  }
+  .preview-a .glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 40%, rgba(212,175,55,0.12) 0%, transparent 60%);
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,175,55,0.8) 0%, transparent 70%);
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 0.4; }
+    100% { transform: translateY(-240px) translateX(var(--drift)) scale(0.5); opacity: 0; }
+  }
+
+  /* — Preview B: Breathing Aurora — */
+  .preview-b {
+    background: #050508;
+  }
+  .aurora-layer {
+    position: absolute;
+    inset: -50%;
+    border-radius: 50%;
+    animation: aurora ease-in-out infinite alternate;
+    mix-blend-mode: screen;
+  }
+  .aurora-1 {
+    background: radial-gradient(ellipse at 40% 50%, rgba(212,175,55,0.18) 0%, transparent 55%);
+    animation-duration: 6s;
+    animation-delay: 0s;
+  }
+  .aurora-2 {
+    background: radial-gradient(ellipse at 60% 30%, rgba(180,130,40,0.10) 0%, transparent 50%);
+    animation-duration: 8s;
+    animation-delay: -2s;
+  }
+  .aurora-3 {
+    background: radial-gradient(ellipse at 30% 70%, rgba(100,80,20,0.08) 0%, transparent 45%);
+    animation-duration: 10s;
+    animation-delay: -4s;
+  }
+  @keyframes aurora {
+    0% { transform: translate(-8%, -5%) scale(1); opacity: 0.6; }
+    50% { transform: translate(6%, 4%) scale(1.1); opacity: 1; }
+    100% { transform: translate(-4%, 6%) scale(0.95); opacity: 0.7; }
+  }
+
+  /* — Preview C: Grid Pulse — */
+  .preview-c {
+    background: #050508;
+  }
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(212,175,55,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212,175,55,0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .grid-node {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,175,55,0.22) 0%, transparent 70%);
+    animation: node-move 8s ease-in-out infinite alternate;
+    filter: blur(6px);
+  }
+  .grid-node-2 {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(212,175,55,0.14) 0%, transparent 70%);
+    animation: node-move-2 11s ease-in-out infinite alternate;
+    filter: blur(3px);
+  }
+  @keyframes node-move {
+    0% { top: 10%; left: 5%; }
+    33% { top: 40%; left: 55%; }
+    66% { top: 65%; left: 15%; }
+    100% { top: 20%; left: 70%; }
+  }
+  @keyframes node-move-2 {
+    0% { top: 60%; left: 60%; }
+    50% { top: 15%; left: 30%; }
+    100% { top: 70%; left: 20%; }
+  }
+
+  /* Shared preview text overlay */
+  .preview-text {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px;
+    background: linear-gradient(transparent, rgba(5,5,8,0.95));
+    z-index: 10;
+  }
+  .preview-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .preview-logo-mark {
+    width: 20px;
+    height: 20px;
+    background: #d4af37;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  }
+  .preview-logo-text {
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: #d4af37;
+    letter-spacing: 0.15em;
+  }
+  .preview-headline {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .preview-sub {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+  .card-body h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .card-body p {
+    font-size: 0.8rem;
+    color: #888;
+    line-height: 1.5;
+  }
+  .card-label {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #d4af3715;
+    color: #d4af37;
+    border: 1px solid #d4af3730;
+  }
+
+  .select-hint {
+    text-align: center;
+    margin-top: 24px;
+    color: #555;
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+<h2>Sign-in left panel — animation direction</h2>
+<p class="subtitle">Three directions for animating the dark brand panel. Click a card to select.</p>
+
+<div class="cards">
+
+  <!-- Option A: Floating Particles -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-preview preview-a">
+      <div class="glow"></div>
+      <!-- Particles injected by JS below -->
+      <div class="preview-text">
+        <div class="preview-logo">
+          <div class="preview-logo-mark"></div>
+          <span class="preview-logo-text">KOVA</span>
+        </div>
+        <div class="preview-headline">Your program,<br>refined by AI.</div>
+        <div class="preview-sub">Trusted by 500+ gyms worldwide.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Floating Particles</h3>
+      <p>Tiny glowing gold orbs drift slowly upward — like embers or stars. Subtle, ambient, and premium. Feels alive without being distracting.</p>
+      <span class="card-label">Ambient · Elegant</span>
+    </div>
+  </div>
+
+  <!-- Option B: Breathing Aurora -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-preview preview-b">
+      <div class="aurora-layer aurora-1"></div>
+      <div class="aurora-layer aurora-2"></div>
+      <div class="aurora-layer aurora-3"></div>
+      <div class="preview-text">
+        <div class="preview-logo">
+          <div class="preview-logo-mark"></div>
+          <span class="preview-logo-text">KOVA</span>
+        </div>
+        <div class="preview-headline">Your program,<br>refined by AI.</div>
+        <div class="preview-sub">Trusted by 500+ gyms worldwide.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Breathing Aurora</h3>
+      <p>The gold radial glow slowly breathes — expanding and shifting like a living light. Enhances the existing gradient with organic movement. Very minimal.</p>
+      <span class="card-label">Organic · Calm</span>
+    </div>
+  </div>
+
+  <!-- Option C: Grid Pulse -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-preview preview-c">
+      <div class="grid-bg"></div>
+      <div class="grid-node"></div>
+      <div class="grid-node grid-node-2"></div>
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%, rgba(212,175,55,0.08) 0%, transparent 60%);"></div>
+      <div class="preview-text">
+        <div class="preview-logo">
+          <div class="preview-logo-mark"></div>
+          <span class="preview-logo-text">KOVA</span>
+        </div>
+        <div class="preview-headline">Your program,<br>refined by AI.</div>
+        <div class="preview-sub">Trusted by 500+ gyms worldwide.</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Grid Pulse</h3>
+      <p>A faint dot-grid background with glowing nodes that drift slowly across it. Evokes AI, data, and programming. Feels technical and modern.</p>
+      <span class="card-label">Technical · AI-forward</span>
+    </div>
+  </div>
+
+</div>
+
+<p class="select-hint">Click a card to select · You can also just reply in the terminal</p>
+
+<script>
+// Create floating particles for Option A
+(function() {
+  const preview = document.querySelector('.preview-a');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 4 + 1.5;
+    p.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      left: ${Math.random() * 90 + 5}%;
+      top: ${Math.random() * 100 + 20}%;
+      --drift: ${(Math.random() - 0.5) * 40}px;
+      animation-duration: ${Math.random() * 6 + 5}s;
+      animation-delay: ${Math.random() * -8}s;
+    `;
+    preview.appendChild(p);
+  }
+})();
+
+// Selection logic
+function toggleSelect(el) {
+  const wasSelected = el.classList.contains('selected');
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  if (!wasSelected) el.classList.add('selected');
+
+  const choice = el.dataset.choice;
+  const text = el.querySelector('h3').textContent;
+  if (window.recordEvent) window.recordEvent({ type: 'click', choice, text });
+}
+</script>
+</body>
+</html>

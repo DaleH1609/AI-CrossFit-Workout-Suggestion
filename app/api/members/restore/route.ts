@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const { supabase, userData } = auth
   const { memberId } = await req.json()
 
-  const { data: member } = await supabase.from('users').select('email, name').eq('id', memberId).single()
+  const { data: member } = await supabase.from('users').select('email, name').eq('id', memberId).eq('gym_id', userData.gym_id).single()
   const { data: gym } = await supabase.from('gyms').select('name').eq('id', userData.gym_id).single()
 
   await supabase.from('users')

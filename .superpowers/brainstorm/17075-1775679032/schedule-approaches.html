@@ -1,0 +1,134 @@
+<h2>Schedule Builder — Which approach feels right?</h2>
+<p class="subtitle">Three ways to replace the drag-and-drop grid. Click one to select it.</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Click-to-toggle Grid + Edit Panel</h3>
+      <p>Keep the week grid, but replace drag with simple clicks. Click an empty cell to instantly add a slot. Click an active slot to open an edit panel on the right — no popover, more space for details. Feels like a spreadsheet but without the drag frustration.</p>
+      <div style="margin-top:12px; background:#111; border-radius:8px; padding:12px; font-size:11px;">
+        <div style="display:grid; grid-template-columns: 60px repeat(7,1fr); gap:2px; margin-bottom:4px;">
+          <div></div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Mon</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Tue</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Wed</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Thu</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Fri</div>
+          <div style="text-align:center;color:#888;">Sat</div>
+          <div style="text-align:center;color:#888;">Sun</div>
+        </div>
+        <div style="display:grid; grid-template-columns: 60px repeat(7,1fr); gap:2px;">
+          <div style="color:#666;font-size:10px;text-align:right;padding-right:6px;">6:00 AM</div>
+          <div style="background:#f59e0b;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;">WOD · 20</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#f59e0b;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;">WOD · 20</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#f59e0b;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;">WOD · 20</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+        </div>
+        <div style="display:grid; grid-template-columns: 60px repeat(7,1fr); gap:2px; margin-top:2px;">
+          <div style="color:#666;font-size:10px;text-align:right;padding-right:6px;">9:00 AM</div>
+          <div style="background:#3b82f6;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:700;flex-direction:column;line-height:1.2;">
+            <span>Run Club</span><span>15</span>
+          </div>
+          <div style="background:#3b82f6;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:700;flex-direction:column;line-height:1.2;">
+            <span>Run Club</span><span>15</span>
+          </div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#f59e0b;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;">WOD · 20</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+        </div>
+        <div style="margin-top:6px;color:#666;font-size:9px;">← Click any cell to add/remove · Click active slot to edit in side panel →</div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Familiar grid layout</li><li>Fast overview of full week</li><li>One click to add/remove</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Grid can feel cramped on mobile</li><li>Side panel needs screen space</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Day-by-Day List Builder</h3>
+      <p>Each day is its own section. Click "Add slot" to append a new time slot — pick the time and class type from dropdowns, set capacity. Slots appear as cards below. No grid, no dragging — pure form-based. Like building a list for each day.</p>
+      <div style="margin-top:12px; background:#111; border-radius:8px; padding:12px; font-size:11px;">
+        <div style="margin-bottom:8px;">
+          <div style="color:#f59e0b;font-weight:700;margin-bottom:4px;">Monday</div>
+          <div style="display:flex;gap:6px;margin-bottom:4px;">
+            <div style="background:#222;border:1px solid #333;border-radius:4px;padding:4px 8px;color:#fff;flex:1;">6:00 AM · WOD · 20 spots</div>
+            <div style="background:#222;border:1px solid #333;border-radius:4px;padding:4px 8px;color:#fff;flex:1;">9:00 AM · Run Club · 15 spots</div>
+            <div style="background:#f59e0b;border-radius:4px;padding:4px 10px;color:#000;font-weight:700;cursor:pointer;">+ Add slot</div>
+          </div>
+        </div>
+        <div style="margin-bottom:8px;">
+          <div style="color:#f59e0b;font-weight:700;margin-bottom:4px;">Tuesday</div>
+          <div style="display:flex;gap:6px;">
+            <div style="background:#222;border:1px solid #333;border-radius:4px;padding:4px 8px;color:#fff;flex:1;">6:00 AM · WOD · 20 spots</div>
+            <div style="background:#f59e0b;border-radius:4px;padding:4px 10px;color:#000;font-weight:700;cursor:pointer;">+ Add slot</div>
+          </div>
+        </div>
+        <div>
+          <div style="color:#888;font-weight:700;margin-bottom:4px;">Wednesday</div>
+          <div style="background:#f59e0b;border-radius:4px;padding:4px 10px;color:#000;font-weight:700;cursor:pointer;display:inline-block;">+ Add slot</div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Very easy to understand</li><li>Works great on mobile</li><li>No accidental edits</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Harder to see the full week at a glance</li><li>More clicks to set up a full schedule</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hybrid — Day columns, time rows, click only</h3>
+      <p>Keep the 7-column week view but make the whole grid click-based. Clicking an empty cell adds a slot and immediately opens an inline edit row (no popover, no side panel — edits appear right in the cell row). Clicking an active slot opens the same inline edit. No drag, no popover positioning issues.</p>
+      <div style="margin-top:12px; background:#111; border-radius:8px; padding:12px; font-size:11px;">
+        <div style="display:grid; grid-template-columns: 60px repeat(7,1fr); gap:2px; margin-bottom:4px;">
+          <div></div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Mon</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Tue</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Wed</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Thu</div>
+          <div style="text-align:center;color:#f59e0b;font-weight:600;">Fri</div>
+          <div style="text-align:center;color:#888;">Sat</div>
+          <div style="text-align:center;color:#888;">Sun</div>
+        </div>
+        <div style="display:grid; grid-template-columns: 60px repeat(7,1fr); gap:2px;">
+          <div style="color:#666;font-size:10px;text-align:right;padding-right:6px;">6:00 AM</div>
+          <div style="background:#f59e0b;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;">WOD · 20</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#f59e0b;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;">WOD · 20</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#f59e0b;border-radius:4px;height:24px;display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700;">WOD · 20</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+          <div style="background:#1a1a1a;border-radius:4px;height:24px;border:1px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">+</div>
+        </div>
+        <!-- Inline edit row -->
+        <div style="background:#1e293b;border:1px solid #f59e0b;border-radius:4px;margin-top:4px;padding:8px;display:grid;grid-template-columns:60px 1fr 1fr 1fr auto;gap:6px;align-items:center;">
+          <div style="color:#f59e0b;font-size:9px;font-weight:700;">Edit: Mon 6am</div>
+          <select style="background:#111;border:1px solid #444;border-radius:3px;color:#fff;padding:3px;font-size:9px;"><option>WOD</option><option>Run Club</option></select>
+          <input style="background:#111;border:1px solid #444;border-radius:3px;color:#fff;padding:3px;font-size:9px;width:100%;" value="20" placeholder="Capacity" />
+          <input style="background:#111;border:1px solid #444;border-radius:3px;color:#fff;padding:3px;font-size:9px;width:100%;" placeholder="Notes..." />
+          <div style="display:flex;gap:3px;">
+            <div style="background:#22c55e;border-radius:3px;padding:3px 6px;color:#fff;font-size:9px;font-weight:700;">✓</div>
+            <div style="background:#ef4444;border-radius:3px;padding:3px 6px;color:#fff;font-size:9px;font-weight:700;">✕</div>
+          </div>
+        </div>
+        <div style="margin-top:4px;color:#666;font-size:9px;">↑ Inline edit row appears when slot is clicked — no popovers</div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Full week visible at once</li><li>No finicky popovers</li><li>Edit row is hard to miss</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Edit row pushes layout down</li><li>One slot editable at a time</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>

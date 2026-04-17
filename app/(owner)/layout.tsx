@@ -1,20 +1,15 @@
 export const dynamic = 'force-dynamic'
 import { OwnerSidebar } from '@/components/layout/owner-sidebar'
-import { SignOutButton } from '@/components/layout/sign-out-button'
 import { ToastProvider } from '@/components/ui/toast'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   return (
     <ToastProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         <OwnerSidebar />
-        <div className="flex-1 flex flex-col overflow-auto">
-          <header className="sticky top-0 z-30 flex justify-end items-center gap-3 px-8 py-3 bg-background border-b border-border">
-            <ThemeToggle />
-            <SignOutButton />
-          </header>
-          <main className="flex-1 p-8">
+        {/* md:ml-16 matches the collapsed sidebar width (w-16 = 64px) */}
+        <div className="md:ml-16 flex flex-col min-h-screen">
+          <main className="flex-1 p-8 page-fade-in">
             {children}
           </main>
         </div>

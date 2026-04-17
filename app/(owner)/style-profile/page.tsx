@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Card } from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
 
 const MIN_EXAMPLES = 3
 
@@ -19,15 +20,25 @@ export default function StyleProfilePage() {
   const [addError, setAddError] = useState('')
   const [adding, setAdding] = useState(false)
   const [selectedDay, setSelectedDay] = useState('Monday')
+  const { toast } = useToast()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadExamples() }, [])
 
   async function loadExamples() {
-    const res = await fetch('/api/style')
-    const data = await res.json()
-    setExamples(data.examples ?? [])
-    if (data.gymType) setGymType(data.gymType)
+    try {
+      const res = await fetch('/api/style')
+      if (!res.ok) {
+        toast('Failed to load style examples', 'error')
+        return
+      }
+      const data = await res.json()
+      setExamples(data.examples ?? [])
+      if (data.gymType) setGymType(data.gymType)
+    } catch (err) {
+      console.error('[style-profile] load failed', err)
+      toast('Network error — could not load examples', 'error')
+    }
   }
 
   async function handleAdd() {
@@ -47,14 +58,40 @@ export default function StyleProfilePage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch('/api/style', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    await loadExamples()
+    try {
+      const res = await fetch('/api/style', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast(data.error ?? 'Failed to delete example', 'error')
+      }
+    } catch (err) {
+      console.error('[style-profile] delete failed', err)
+      toast('Network error — could not delete example', 'error')
+    } finally {
+      await loadExamples()
+    }
   }
 
   async function handleNewProgram() {
-    await fetch('/api/style/new-program', { method: 'POST' })
-    setShowNewProgramModal(false)
-    await loadExamples()
+    try {
+      const res = await fetch('/api/style/new-program', { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast(data.error ?? 'Failed to start new program', 'error')
+      } else {
+        toast('Program archived — start adding fresh examples', 'success')
+      }
+    } catch (err) {
+      console.error('[style-profile] new-program failed', err)
+      toast('Network error — could not start new program', 'error')
+    } finally {
+      setShowNewProgramModal(false)
+      await loadExamples()
+    }
   }
 
   async function handleGenerate() {
@@ -75,16 +112,23 @@ export default function StyleProfilePage() {
     setAddingSelected(true)
     const toAdd = pendingSamples.filter((_, i) => selectedSamples.has(i))
     try {
-      await Promise.all(
+      const results = await Promise.all(
         toAdd.map(rawText =>
           fetch('/api/style', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawText }),
-          })
+          }).then(r => r.ok).catch(() => false)
         )
       )
-    } catch {
+      const failures = results.filter(ok => !ok).length
+      if (failures > 0) {
+        setGenerateError(`${failures} of ${toAdd.length} example${failures === 1 ? '' : 's'} failed to save`)
+      } else {
+        toast(`Added ${toAdd.length} example${toAdd.length === 1 ? '' : 's'}`, 'success')
+      }
+    } catch (err) {
+      console.error('[style-profile] add-selected failed', err)
       setGenerateError('Some examples failed to save')
     }
     setPendingSamples([])
@@ -287,42 +331,41 @@ export default function StyleProfilePage() {
         </div>
 
         {examples.length === 0 ? (
-          <Card className="py-10 text-center">
-            <div className="w-8 h-8 mx-auto mb-3 rounded border border-border flex items-center justify-center opacity-40">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" className="text-accent">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V19.5a2.25 2.25 0 002.25 2.25h.75" />
-              </svg>
-            </div>
+          <div className="border border-border rounded-xl py-12 text-center">
             <p className="text-secondary text-sm">No examples saved yet.</p>
-            <p className="text-secondary text-xs mt-1 opacity-60">
+            <p className="text-secondary/50 text-xs mt-1">
               Add at least {MIN_EXAMPLES} workouts to unlock AI generation.
             </p>
-          </Card>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {examples.map((ex, i) => (
-              <Card key={ex.id} className="group">
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0 w-7 h-7 rounded flex items-center justify-center border border-border">
-                    <span className="font-display text-accent text-sm leading-none">{i + 1}</span>
+          <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
+            {examples.map((ex, i) => {
+              const lines = ex.raw_text.split('\n')
+              const dayLine = lines[0] ?? ''
+              const body = lines.slice(1).join('\n').trim()
+              return (
+                <div key={ex.id} className="group flex items-start gap-4 px-5 py-4 hover:bg-surface-raised transition-colors">
+                  <div className="shrink-0 pt-0.5">
+                    <span className="text-[10px] font-semibold tracking-widest text-accent uppercase">{dayLine || `Example ${i + 1}`}</span>
                   </div>
-                  <pre className="flex-1 text-foreground-70 text-sm whitespace-pre-wrap font-mono leading-relaxed min-w-0">{ex.raw_text}</pre>
-                  <Button
-                    variant="danger"
-                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  <pre className="flex-1 text-foreground/60 text-sm whitespace-pre-wrap font-mono leading-relaxed min-w-0 italic">{body || ex.raw_text}</pre>
+                  <button
                     onClick={() => handleDelete(ex.id)}
+                    className="shrink-0 text-secondary/40 hover:text-danger text-lg leading-none opacity-0 group-hover:opacity-100 transition-all duration-150 mt-0.5"
+                    title="Remove example"
                   >
-                    Remove
-                  </Button>
+                    ×
+                  </button>
                 </div>
-              </Card>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
 
       {/* Danger Zone */}
-      <div className="border-t border-border pt-6">
+      <div className="border border-danger/20 rounded-xl p-5">
+        <p className="text-[10px] font-semibold tracking-widest text-danger/60 uppercase mb-3">Danger Zone</p>
         <div className="flex items-start justify-between gap-6">
           <div>
             <p className="text-sm font-medium text-foreground">Start a new program</p>

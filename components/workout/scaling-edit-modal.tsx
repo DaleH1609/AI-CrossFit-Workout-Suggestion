@@ -19,8 +19,13 @@ export function ScalingEditModal({ day, weekId, onSave, onClose }: ScalingEditMo
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !saving) onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [onClose, saving])
 
   async function handleSave() {
     setSaving(true)

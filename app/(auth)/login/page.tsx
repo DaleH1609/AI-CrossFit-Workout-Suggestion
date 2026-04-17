@@ -9,15 +9,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setLoading(true)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError(error.message); return }
+    if (error) { setError(error.message); setLoading(false); return }
     // Full reload required — forces server to re-read the Supabase session cookie.
-    // Using router.push here would serve a stale RSC payload from before auth.
     window.location.href = '/'
   }
 
@@ -28,30 +29,50 @@ export default function LoginPage() {
       {/* Right form panel */}
       <div className="flex-1 bg-surface flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden mb-8 flex justify-center"><KovaLogo size="md" /></div>
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-secondary hover:text-foreground transition-colors mb-8 group">
+          <div className="lg:hidden mb-8 flex justify-center auth-field" style={{ animationDelay: '0ms' }}>
+            <KovaLogo size="md" />
+          </div>
+          <Link
+            href="/"
+            className="auth-field inline-flex items-center gap-1.5 text-xs text-secondary hover:text-foreground transition-colors mb-8 group"
+            style={{ animationDelay: '40ms' }}
+          >
             <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
             Back to home
           </Link>
-          <h1 className="font-display text-2xl font-bold text-foreground mb-8">Welcome back</h1>
+          <h1
+            className="auth-field font-display text-2xl font-bold text-foreground mb-8"
+            style={{ animationDelay: '80ms' }}
+          >
+            Welcome back
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="Email" required
-              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+              className="auth-field w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+              style={{ animationDelay: '120ms' }}
             />
             <input
               type="password" value={password} onChange={e => setPassword(e.target.value)}
               placeholder="Password" required
-              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+              className="auth-field w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+              style={{ animationDelay: '160ms' }}
             />
             {error && <p className="text-danger text-sm">{error}</p>}
-            <button type="submit"
-              className="w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors">
-              Sign In
+            <button
+              type="submit"
+              disabled={loading}
+              className="auth-field w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] ring-1 ring-transparent hover:ring-accent/20 disabled:opacity-50"
+              style={{ animationDelay: '200ms' }}
+            >
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
-          <p className="mt-6 text-secondary text-sm text-center">
+          <p
+            className="auth-field mt-6 text-secondary text-sm text-center"
+            style={{ animationDelay: '240ms' }}
+          >
             New gym? <Link href="/signup" className="text-accent hover:underline">Create account</Link>
           </p>
         </div>

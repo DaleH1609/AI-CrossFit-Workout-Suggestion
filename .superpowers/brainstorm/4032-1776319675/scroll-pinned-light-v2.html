@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOVA — Scroll Demo (Light v2)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+
+  body {
+    background: #FAFAF8;
+    color: #0A0A0A;
+    font-family: -apple-system, 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    justify-content: space-between;
+    border-bottom: 1px solid #E5E5E0;
+    background: rgba(250,250,248,0.92);
+    backdrop-filter: blur(12px);
+  }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: 0.15em; color: #B8952A; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { font-size: 12px; color: #595F6B; text-decoration: none; letter-spacing: 0.04em; }
+  .nav-cta {
+    background: #B8952A; color: #fff;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 20px; border-radius: 4px;
+    text-decoration: none;
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 100px 40px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .hero-content { max-width: 540px; }
+  .hero-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #B8952A; margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Georgia', serif;
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 700; line-height: 1.1;
+    letter-spacing: -0.02em; color: #0A0A0A; margin-bottom: 20px;
+  }
+  .hero h1 em { font-style: normal; color: #B8952A; }
+  .hero p { font-size: 15px; color: #595F6B; line-height: 1.7; margin-bottom: 36px; max-width: 420px; }
+  .hero-btns { display: flex; gap: 16px; align-items: center; }
+  .btn-primary {
+    background: #B8952A; color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 14px 32px; border-radius: 4px; text-decoration: none;
+  }
+  .btn-ghost { font-size: 13px; color: #595F6B; text-decoration: none; border-bottom: 1px solid rgba(89,95,107,0.3); padding-bottom: 1px; }
+
+  .scroll-indicator {
+    position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    animation: si-fade 2s ease-in-out infinite;
+  }
+  .scroll-indicator span { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #9CA3AF; }
+  .scroll-indicator svg { animation: si-bounce 1.5s ease-in-out infinite; }
+  @keyframes si-bounce { 0%,100%{transform:translateY(0)} 60%{transform:translateY(5px)} }
+  @keyframes si-fade { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+
+  /* ── PINNED SECTION ── */
+  .pin-outer { height: 400vh; position: relative; }
+  .pin-sticky {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    overflow: hidden; background: #FAFAF8;
+    border-top: 1px solid #E5E5E0;
+    border-bottom: 1px solid #E5E5E0;
+  }
+
+  .carousel-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(184,149,42,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .progress-pips {
+    position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px; align-items: center;
+  }
+  .pip {
+    width: 5px; height: 5px; border-radius: 50%; background: #E5E5E0;
+    transition: background 0.5s, transform 0.5s;
+  }
+  .pip.active { background: #B8952A; transform: scale(1.6); }
+
+  .carousel-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.25em;
+    text-transform: uppercase; color: #D4CDBC;
+    margin-bottom: 44px; transition: color 0.6s; position: relative;
+  }
+  .carousel-eyebrow.lit { color: #B8952A; }
+
+  .scene {
+    perspective: 900px;
+    width: min(680px, 90vw);
+    height: 200px;
+    position: relative;
+  }
+  .carousel {
+    width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    position: relative;
+    will-change: transform;
+  }
+  .phrase {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .phrase-num {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.25em;
+    color: #B8952A; margin-bottom: 16px; opacity: 0.6;
+  }
+  .phrase-text {
+    font-family: 'Georgia', serif;
+    font-size: clamp(28px, 4.5vw, 52px);
+    font-weight: 700; line-height: 1.15;
+    text-align: center; color: #0A0A0A; letter-spacing: -0.01em;
+  }
+  .phrase-text em { font-style: normal; color: #B8952A; }
+
+  .phrase-0 { transform: rotateY(0deg)   translateZ(280px); }
+  .phrase-1 { transform: rotateY(120deg) translateZ(280px); }
+  .phrase-2 { transform: rotateY(240deg) translateZ(280px); }
+
+  .pin-scroll-cue {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: #C8C4BB; display: flex; align-items: center; gap: 6px;
+    transition: opacity 0.5s; white-space: nowrap;
+  }
+
+  /* ── FEATURES ── */
+  .features { padding: 120px 40px; max-width: 1100px; margin: 0 auto; }
+  .features-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #B8952A; margin-bottom: 16px;
+  }
+  .features h2 {
+    font-family: 'Georgia', serif;
+    font-size: clamp(30px, 4vw, 48px);
+    font-weight: 700; line-height: 1.15;
+    letter-spacing: -0.02em; color: #0A0A0A; margin-bottom: 60px;
+  }
+  .features h2 em { font-style: normal; color: #B8952A; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #E5E5E0; }
+  .feature-card { background: #fff; padding: 32px; }
+  .feature-card h3 { font-size: 14px; font-weight: 700; color: #0A0A0A; margin-bottom: 8px; }
+  .feature-card p { font-size: 12px; color: #595F6B; line-height: 1.65; }
+
+  .cta-section {
+    text-align: center; padding: 120px 40px;
+    background: #0A0A0A; position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 60%, rgba(184,149,42,0.08) 0%, transparent 65%);
+  }
+  .cta-section h2 {
+    font-family: 'Georgia', serif;
+    font-size: clamp(32px, 4.5vw, 56px);
+    font-weight: 700; color: #fff; margin-bottom: 16px; position: relative;
+  }
+  .cta-section h2 em { font-style: normal; color: #D4AF37; }
+  .cta-section p { font-size: 14px; color: #9CA3AF; margin-bottom: 40px; position: relative; }
+  .cta-section .btn-cta {
+    position: relative; background: #D4AF37; color: #000;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 14px 40px; border-radius: 4px; text-decoration: none; display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">KOVA</div>
+  <div class="nav-links"><a href="#">Features</a><a href="#">How It Works</a></div>
+  <a class="nav-cta" href="#">Sign In</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">AI-Powered Gym Programming</p>
+    <h1>Train Smarter.<br><em>Perform Better.</em></h1>
+    <p>KOVA generates weekly programs tailored to your gym's coaching style — so you spend less time programming and more time coaching.</p>
+    <div class="hero-btns">
+      <a class="btn-primary" href="#">Create Your Gym</a>
+      <a class="btn-ghost" href="#">Sign in →</a>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <svg width="14" height="18" viewBox="0 0 14 18" fill="none">
+      <rect x="1" y="1" width="12" height="16" rx="6" stroke="#9CA3AF" stroke-width="1.5"/>
+      <circle cx="7" cy="6" r="2" fill="#9CA3AF"/>
+    </svg>
+  </div>
+</section>
+
+<div class="pin-outer" id="pinOuter">
+  <div class="pin-sticky">
+    <div class="carousel-glow"></div>
+    <p class="carousel-eyebrow" id="carouselEyebrow">What KOVA is about</p>
+
+    <div class="scene">
+      <div class="carousel" id="carousel">
+        <div class="phrase phrase-0">
+          <div class="phrase-num">01</div>
+          <div class="phrase-text">Train <em>Smarter.</em><br>Coach Better.</div>
+        </div>
+        <div class="phrase phrase-1">
+          <div class="phrase-num">02</div>
+          <div class="phrase-text">Your Gym.<br><em>Your Style.</em></div>
+        </div>
+        <div class="phrase phrase-2">
+          <div class="phrase-num">03</div>
+          <div class="phrase-text">Less Planning.<br><em>More Coaching.</em></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-pips">
+      <div class="pip active" id="pip0"></div>
+      <div class="pip" id="pip1"></div>
+      <div class="pip" id="pip2"></div>
+    </div>
+
+    <p class="pin-scroll-cue" id="scrollCue">
+      <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+        <path d="M5 1v8M5 9l-3-3M5 9l3-3" stroke="#C8C4BB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Keep scrolling
+    </p>
+  </div>
+</div>
+
+<section class="features">
+  <p class="features-eyebrow">What KOVA does</p>
+  <h2>Everything your gym needs.<br><em>Nothing it doesn't.</em></h2>
+  <div class="features-grid">
+    <div class="feature-card"><h3>AI Workout Generation</h3><p>Generate a full week of WODs in seconds. KOVA learns your gym's style and keeps programming consistent.</p></div>
+    <div class="feature-card"><h3>Class Scheduling</h3><p>Set up recurring class slots, manage capacity, and let members book directly from their phone.</p></div>
+    <div class="feature-card"><h3>Member Management</h3><p>Invite members, track attendance, and manage your gym community — all in one place.</p></div>
+    <div class="feature-card"><h3>Auto-Scaling</h3><p>Every WOD automatically scaled to Rx, Scaled, and Beginner. No more writing three versions.</p></div>
+    <div class="feature-card"><h3>CrossFit & Hyrox</h3><p>Built-in programming logic for both gym types. Switch in settings — the AI adapts instantly.</p></div>
+    <div class="feature-card"><h3>Full Edit Control</h3><p>AI generates, you approve. Edit any workout before publishing — structured editor or free text.</p></div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <h2>Ready to elevate<br><em>your gym?</em></h2>
+  <p>Start programming smarter today.</p>
+  <a class="btn-cta" href="#">Get Started Free</a>
+</section>
+
+<script>
+  const carousel = document.getElementById('carousel');
+  const pinOuter = document.getElementById('pinOuter');
+  const eyebrow  = document.getElementById('carouselEyebrow');
+  const scrollCue = document.getElementById('scrollCue');
+
+  const NUM  = 3;
+  const STEP = 360 / NUM; // 120°
+  // Stop at the last phrase: 0° → 240° (phrase 0 → phrase 1 → phrase 2, then hold)
+  const MAX_ROTATION = STEP * (NUM - 1); // 240°
+
+  let currentRotation = 0;
+
+  function tick() {
+    const outerRect = pinOuter.getBoundingClientRect();
+    const outerH    = pinOuter.offsetHeight;
+    const viewH     = window.innerHeight;
+
+    const scrolled  = -outerRect.top;
+    const maxScroll = outerH - viewH;
+    const progress  = Math.max(0, Math.min(1, scrolled / maxScroll));
+
+    // Map progress 0→1 to rotation 0→240° then clamp — no wrap-around
+    const target = Math.min(progress * MAX_ROTATION * 1.15, MAX_ROTATION);
+    currentRotation += (target - currentRotation) * 0.12;
+
+    carousel.style.transform = `rotateY(${-currentRotation}deg)`;
+
+    // Active phrase: nearest 120° step, clamped to 0-2
+    const active = Math.min(Math.round(currentRotation / STEP), NUM - 1);
+    for (let i = 0; i < NUM; i++) {
+      document.getElementById(`pip${i}`).classList.toggle('active', i === active);
+    }
+
+    eyebrow.classList.toggle('lit', progress > 0.01 && progress < 0.99);
+    scrollCue.style.opacity = progress > 0.06 ? '0' : '1';
+
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

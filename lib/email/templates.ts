@@ -58,3 +58,10 @@ export function bookingCancelledHtml(name: string, date: string, time: string) {
     <p>Hi ${escapeHtml(name)}, your booking for <strong>${escapeHtml(date)}</strong> at <strong>${escapeHtml(time)}</strong> has been cancelled.</p>
   </div>`
 }
+
+export function accessRevokedHtml(name: string) {
+  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
+    <h2 style="color:#D4AF37;font-family:Georgia,serif">Access Removed</h2>
+    <p>Hi ${escapeHtml(name)}, your access to the gym has been removed and your upcoming bookings have been cancelled.</p>
+  </div>`
+}

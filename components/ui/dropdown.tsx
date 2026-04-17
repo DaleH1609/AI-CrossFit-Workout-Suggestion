@@ -43,8 +43,10 @@ export function Dropdown({ value, onChange, options, placeholder = 'Select…', 
         }}
         onKeyDown={handleKeyDown}
         className="w-full flex items-center justify-between px-3 py-2 bg-surface border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent transition-colors"
+        role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-controls="dropdown-listbox"
         aria-activedescendant={open ? `dropdown-option-${options[focused]?.value}` : undefined}
       >
         <span className={selected ? 'text-foreground' : 'text-foreground-50'}>{selected?.label ?? placeholder}</span>
@@ -55,6 +57,7 @@ export function Dropdown({ value, onChange, options, placeholder = 'Select…', 
 
       {open && (
         <ul
+          id="dropdown-listbox"
           role="listbox"
           className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-surface border border-border rounded-lg shadow-lg
             opacity-100 translate-y-0 scale-100"

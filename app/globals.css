@@ -136,3 +136,90 @@ body {
   vertical-align: middle;
   margin-left: 2px;
 }
+
+/* ─── Hero entrance animations ───────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ─── Scroll indicator bounce ─────────────────────────────────── */
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50%       { transform: translateY(6px); opacity: 1; }
+}
+.scroll-bounce {
+  animation: scrollBounce 1.6s ease-in-out infinite;
+}
+
+/* ─── Feature card scroll-in ──────────────────────────────────── */
+@keyframes featureIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.feature-in {
+  opacity: 0;
+}
+.feature-in.visible {
+  animation: featureIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ─── CTA glow pulse ──────────────────────────────────────────── */
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 12px 40px rgba(212,175,55,0.35); }
+  50%       { box-shadow: 0 16px 56px rgba(212,175,55,0.55), 0 0 0 6px rgba(212,175,55,0.10); }
+}
+.cta-pulse {
+  animation: ctaGlow 2.8s ease-in-out infinite;
+}
+
+/* ─── Custom scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-secondary-60); }
+
+/* ─── Global focus ring (gold, on-brand) ──────────────────────── */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-accent-50);
+  border-radius: 4px;
+}
+
+/* ─── Page fade-in transition ─────────────────────────────────── */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-fade-in {
+  animation: pageFadeIn 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ─── Auth form entrance stagger ──────────────────────────────── */
+@keyframes authFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.auth-field {
+  opacity: 0;
+  animation: authFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ─── Timeline booking layout ─────────────────────────────────── */
+.timeline-line {
+  position: relative;
+}
+.timeline-line::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 8px;
+  bottom: -24px;
+  width: 1px;
+  background: var(--color-border);
+}
+.timeline-line:last-child::before { display: none; }

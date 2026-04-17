@@ -3,57 +3,68 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import type { WorkoutDay } from '@/lib/types'
 
-export function WorkoutCard({ day, onEditScaling }: { day: WorkoutDay; onEditScaling?: () => void }) {
+export function WorkoutCard({ day, onEditScaling, isToday }: { day: WorkoutDay; onEditScaling?: () => void; isToday?: boolean }) {
   const [scalingOpen, setScalingOpen] = useState(false)
 
   return (
-    <Card className="h-full">
+    <Card className={`h-full ${isToday ? 'ring-1 ring-accent/40 shadow-[0_0_16px_rgba(212,175,55,0.08)]' : ''}`}>
       <div className="mb-3 pb-3 border-b border-border">
-        <h3 className="font-display text-foreground text-lg">{day.day}</h3>
-        {day.descriptor && <span className="text-accent text-xs uppercase tracking-widest">{day.descriptor}</span>}
+        <h3 className={`font-display text-lg ${isToday ? 'text-accent' : 'text-foreground'}`}>{day.day}</h3>
+        {day.descriptor && (
+          <span className="text-accent text-xs uppercase tracking-widest">{day.descriptor}</span>
+        )}
       </div>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {day.parts.map((part, i) => (
-          <div key={i}>
-            {part.label && <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-1">{part.label}</p>}
-            <pre className="text-foreground text-sm font-body whitespace-pre-wrap leading-relaxed">{part.content}</pre>
+          <div key={i} className={i > 0 ? 'mt-1' : ''}>
+            {part.label && (
+              <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-1.5 pl-2 border-l border-accent">
+                {part.label}
+              </p>
+            )}
+            <p className="text-foreground text-sm whitespace-pre-wrap leading-relaxed">{part.content}</p>
           </div>
         ))}
         {day.parts.length === 0 && <p className="text-secondary text-sm">Rest Day</p>}
       </div>
       {day.scaling && (
-        <div className="mt-4 pt-4 border-t border-border">
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => setScalingOpen(o => !o)}
-              className="flex items-center gap-1 text-secondary text-xs hover:text-foreground transition-colors"
-            >
-              <span>Show scaling</span>
-              <span className={`transition-transform ${scalingOpen ? 'rotate-180' : ''}`}>▾</span>
-            </button>
-            {onEditScaling && (
-              <button
-                type="button"
-                onClick={onEditScaling}
-                className="text-xs text-accent hover:text-foreground transition-colors"
-              >
-                Edit
-              </button>
-            )}
-          </div>
+        <div className="mt-4 pt-3 border-t border-border">
+          <button
+            type="button"
+            onClick={() => setScalingOpen(o => !o)}
+            className="w-full flex items-center justify-between py-1 text-secondary hover:text-foreground transition-colors"
+          >
+            <span className="text-xs font-semibold uppercase tracking-wider">Scaling</span>
+            <div className="flex items-center gap-2">
+              {onEditScaling && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={e => { e.stopPropagation(); onEditScaling() }}
+                  onKeyDown={e => e.key === 'Enter' && (e.stopPropagation(), onEditScaling())}
+                  className="text-xs text-accent hover:text-foreground transition-colors cursor-pointer"
+                >
+                  Edit
+                </span>
+              )}
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
+                className={`transition-transform duration-200 ${scalingOpen ? 'rotate-180' : ''}`}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
           {scalingOpen && (
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-3">
               <div>
-                <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-0.5">Rx</p>
+                <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-0.5 pl-2 border-l border-accent">Rx</p>
                 <p className="text-foreground text-sm leading-relaxed">{day.scaling.rx}</p>
               </div>
               <div>
-                <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-0.5">Scaled</p>
+                <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-0.5 pl-2 border-l border-accent">Scaled</p>
                 <p className="text-foreground text-sm leading-relaxed">{day.scaling.scaled}</p>
               </div>
               <div>
-                <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-0.5">Beginner</p>
+                <p className="text-accent text-xs font-semibold uppercase tracking-wider mb-0.5 pl-2 border-l border-accent">Beginner</p>
                 <p className="text-foreground text-sm leading-relaxed">{day.scaling.beginner}</p>
               </div>
             </div>

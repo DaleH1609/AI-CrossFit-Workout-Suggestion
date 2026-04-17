@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOVA — WOD Cards v3 (no stutter)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #FAFAF8;
+    font-family: -apple-system, 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    padding: 16px 24px 10px;
+    border-bottom: 1px solid #E5E5E0;
+    flex-shrink: 0;
+  }
+  .header h1 { font-size: 14px; font-weight: 600; color: #0A0A0A; margin-bottom: 2px; }
+  .header p { font-size: 11px; color: #595F6B; }
+
+  .hero-mock {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 40px 60px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .hero-copy { padding-right: 40px; }
+  .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #B8952A; margin-bottom: 14px; }
+  .hero-copy h1 { font-family: 'Georgia', serif; font-size: 42px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: #0A0A0A; margin-bottom: 14px; }
+  .hero-copy h1 em { font-style: normal; color: #B8952A; }
+  .hero-copy p { font-size: 13px; color: #595F6B; line-height: 1.7; margin-bottom: 26px; max-width: 380px; }
+  .btn { background: #B8952A; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 28px; border-radius: 4px; display: inline-block; }
+
+  /* ── STACK ── */
+  .stack-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 380px;
+    position: relative;
+  }
+
+  .card-stack {
+    position: relative;
+    width: 288px;
+    height: 230px;
+    cursor: pointer;
+    overflow: visible;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     KEY TRICK:
+     - transition on the BASE card  = controls COLLAPSE (hover-out)
+       → uses a snappy cubic-bezier with slight negative overshoot
+     - transition on .card-stack:hover card = controls EXPAND (hover-in)
+       → uses a spring cubic-bezier
+     Browser applies base transition on exit, hover transition on enter.
+     No JS class toggling = no stutter.
+  ───────────────────────────────────────────────────────────────── */
+
+  .wod-card {
+    position: absolute;
+    width: 272px;
+    background: #fff;
+    border: 1px solid #E5E5E0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    will-change: transform, opacity;
+    /* EXIT easing — snappy with slight overshoot back */
+    transition:
+      transform  0.42s cubic-bezier(0.36, 0, 0.66, -0.25),
+      opacity    0.35s ease,
+      box-shadow 0.35s ease;
+  }
+
+  /* ENTER easing — spring outward */
+  .card-stack:hover .wod-card {
+    transition:
+      transform  0.52s cubic-bezier(0.34, 1.5, 0.64, 1),
+      opacity    0.35s ease,
+      box-shadow 0.4s ease;
+  }
+
+  /* ── Default stacked positions ── */
+  .c1 {
+    top: 0; left: 8px;
+    transform: rotate(-1.5deg);
+    opacity: 1;
+    z-index: 3;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    animation: float-a 5s ease-in-out infinite;
+  }
+  .c2 {
+    top: 10px; left: 8px;
+    transform: rotate(3deg);
+    opacity: 0.65;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    animation: float-b 6.5s ease-in-out infinite 0.8s;
+  }
+  .c3 {
+    top: 18px; left: 8px;
+    transform: rotate(-4deg);
+    opacity: 0.38;
+    z-index: 1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    animation: float-c 7s ease-in-out infinite 1.6s;
+  }
+
+  @keyframes float-a {
+    0%,100% { transform: translateY(0px) rotate(-1.5deg); }
+    50%      { transform: translateY(-9px) rotate(-1.5deg); }
+  }
+  @keyframes float-b {
+    0%,100% { transform: translateY(0px) rotate(3deg); }
+    50%      { transform: translateY(-6px) rotate(3deg); }
+  }
+  @keyframes float-c {
+    0%,100% { transform: translateY(0px) rotate(-4deg); }
+    50%      { transform: translateY(-4px) rotate(-4deg); }
+  }
+
+  /* ── Hover: expanded positions ── */
+
+  /* c1 — front card stays exactly in place, float pauses */
+  .card-stack:hover .c1 {
+    animation: none;
+    transform: rotate(-1.5deg); /* identical — no movement */
+    z-index: 3;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.11), 0 0 0 1.5px rgba(184,149,42,0.18);
+  }
+
+  /* c2 — slides right */
+  .card-stack:hover .c2 {
+    animation: none;
+    transform: translateX(148px) rotate(9deg) translateY(-14px);
+    opacity: 1;
+    z-index: 2;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.1), 0 0 0 1.5px rgba(184,149,42,0.14);
+    transition-delay: 0.04s; /* stagger the spring out */
+  }
+
+  /* c3 — slides left */
+  .card-stack:hover .c3 {
+    animation: none;
+    transform: translateX(-148px) rotate(-10deg) translateY(-10px);
+    opacity: 1;
+    z-index: 2;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.1), 0 0 0 1.5px rgba(184,149,42,0.14);
+    transition-delay: 0.08s; /* stagger a little more */
+  }
+
+  /* hint */
+  .stack-hint {
+    position: absolute;
+    bottom: -22px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #C8C4BB; white-space: nowrap; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .card-stack:hover .stack-hint { opacity: 0; }
+
+  /* ── Card content ── */
+  .card-tag {
+    font-size: 8px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+    color: #B8952A; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .card-title { font-size: 15px; font-weight: 700; color: #0A0A0A; margin-bottom: 3px; }
+  .card-sub { font-size: 11px; color: #595F6B; margin-bottom: 12px; }
+  .card-divider { border: none; border-top: 1px solid #E5E5E0; margin-bottom: 12px; }
+  .card-section-label { font-size: 8px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #B8952A; margin-bottom: 7px; }
+  .card-movements { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .card-movements li { font-size: 11px; color: #595F6B; }
+  .card-movements li::before { content: '·  '; color: #B8952A; }
+
+  .bottom-bar {
+    flex-shrink: 0; background: #F3F3F0;
+    border-top: 1px solid #E5E5E0; padding: 12px 24px;
+    font-size: 11px; color: #595F6B; display: flex; gap: 8px; align-items: center;
+  }
+  .bottom-bar strong { color: #0A0A0A; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>WOD Cards v3 — stutter-free</h1>
+  <p>Pure CSS :hover · different easing in vs out · no JS class toggling</p>
+</div>
+
+<div class="hero-mock">
+  <div class="hero-copy">
+    <p class="eyebrow">AI-Powered Gym Programming</p>
+    <h1>Train Smarter.<br><em>Perform Better.</em></h1>
+    <p>KOVA generates weekly programs tailored to your gym's coaching style — so you spend less time programming and more time coaching.</p>
+    <span class="btn">Create Your Gym</span>
+  </div>
+
+  <div class="stack-wrap">
+    <div class="card-stack">
+
+      <!-- c3 — Skills (emerges left) -->
+      <div class="wod-card c3">
+        <div class="card-tag">Wednesday — Skills <span class="card-dot" style="background:#C8C4BB"></span></div>
+        <p class="card-title">Gymnastics EMOM</p>
+        <p class="card-sub">20 min — 4 movements</p>
+        <hr class="card-divider">
+        <p class="card-section-label">Movements</p>
+        <ul class="card-movements">
+          <li>Strict HSPU</li>
+          <li>L-Sit Hold 30s</li>
+          <li>Ring Muscle-ups</li>
+        </ul>
+      </div>
+
+      <!-- c2 — Metcon (emerges right) -->
+      <div class="wod-card c2">
+        <div class="card-tag">Tuesday — Metcon <span class="card-dot" style="background:#595F6B"></span></div>
+        <p class="card-title">For Time: 21-15-9</p>
+        <p class="card-sub">Target: sub 8 min</p>
+        <hr class="card-divider">
+        <p class="card-section-label">Movements</p>
+        <ul class="card-movements">
+          <li>Thrusters (42.5 / 30 kg)</li>
+          <li>Pull-ups</li>
+        </ul>
+      </div>
+
+      <!-- c1 — Strength (stays put) -->
+      <div class="wod-card c1">
+        <div class="card-tag">Monday — Strength <span class="card-dot" style="background:#B8952A"></span></div>
+        <p class="card-title">Back Squat 5×5</p>
+        <p class="card-sub">@ 80% 1RM — 3 min rest</p>
+        <hr class="card-divider">
+        <p class="card-section-label">AMRAP 15 min</p>
+        <ul class="card-movements">
+          <li>10 Pull-ups</li>
+          <li>15 Box Jumps (24 / 20")</li>
+          <li>20 KB Swings (24 / 16 kg)</li>
+        </ul>
+      </div>
+
+      <p class="stack-hint">Hover to reveal</p>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  ✦ <strong>Zero JS animation logic</strong> &nbsp;·&nbsp; spring easing in, overshoot snap back out &nbsp;·&nbsp; no stutter
+</div>
+
+</body>
+</html>

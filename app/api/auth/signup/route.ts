@@ -23,13 +23,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Gym type must be crossfit or hyrox' }, { status: 400 })
   }
 
+  // Validate timezone is a real IANA identifier
+  if (!timezone || typeof timezone !== 'string' || timezone.length > 50) {
+    return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 })
+  }
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: timezone })
+  } catch {
+    return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 })
+  }
+
   const resolvedGymType = gymType === 'hyrox' ? 'hyrox' : 'crossfit'
 
   // 1. Create auth user
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email, password, email_confirm: true
   })
-  if (authError) return NextResponse.json({ error: authError.message }, { status: 400 })
+  // Don't leak Supabase error details (e.g. "email already in use") to avoid enumeration
+  if (authError) return NextResponse.json({ error: 'Unable to create account. Check your details and try again.' }, { status: 400 })
 
   const userId = authData.user.id
 

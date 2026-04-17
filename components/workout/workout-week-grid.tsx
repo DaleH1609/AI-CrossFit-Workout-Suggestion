@@ -2,6 +2,15 @@ import { WorkoutCard } from './workout-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { WorkoutDay, WorkoutWeek } from '@/lib/types'
 
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+function getTodayDayName() {
+  const d = new Date()
+  const js = d.getDay() // 0=Sun
+  const idx = js === 0 ? 6 : js - 1
+  return DAY_NAMES[idx]
+}
+
 interface WorkoutWeekGridProps {
   week: WorkoutWeek | null
   loading: boolean
@@ -11,19 +20,25 @@ interface WorkoutWeekGridProps {
 }
 
 export function WorkoutWeekGrid({ week, loading, onEdit, onEditScaling }: WorkoutWeekGridProps) {
+  const todayName = getTodayDayName()
+
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
         {Array(7).fill(null).map((_, i) => <Skeleton key={i} className="h-64" />)}
       </div>
     )
   }
   if (!week) return null
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
       {week.map((day, i) => (
-        <div key={i} className="relative group transition-transform duration-200 hover:scale-105 hover:z-10">
-          <WorkoutCard day={day} onEditScaling={onEditScaling ? () => onEditScaling(day) : undefined} />
+        <div key={i} className="relative group transition-shadow duration-200 hover:shadow-[0_0_0_1px_var(--color-accent-30)] rounded-card">
+          <WorkoutCard
+            day={day}
+            isToday={day.day === todayName}
+            onEditScaling={onEditScaling ? () => onEditScaling(day) : undefined}
+          />
           {onEdit && (
             <button
               onClick={() => onEdit(day)}

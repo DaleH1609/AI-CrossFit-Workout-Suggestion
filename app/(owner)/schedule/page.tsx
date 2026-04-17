@@ -1,9 +1,10 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ClassType, ScheduleDefaults, ScheduleTemplate } from '@/lib/types'
 import { CapacityDefaults } from '@/components/schedule/capacity-defaults'
 import { ClassTypesManager } from '@/components/schedule/class-types-manager'
 import { ScheduleGrid } from '@/components/schedule/schedule-grid'
+import { useToast } from '@/components/ui/toast'
 
 interface Booking {
   id: string
@@ -21,7 +22,10 @@ interface InstanceWithBookings {
   bookings: Booking[]
 }
 
+type Tab = 'schedule' | 'attendance'
+
 export default function SchedulePage() {
+  const [activeTab, setActiveTab] = useState<Tab>('schedule')
   const [templates, setTemplates] = useState<ScheduleTemplate[]>([])
   const [defaults, setDefaults] = useState<ScheduleDefaults>({ globalDefault: 20, dayDefaults: {} })
   const [classTypes, setClassTypes] = useState<ClassType[]>([])
@@ -33,46 +37,70 @@ export default function SchedulePage() {
   const [instances, setInstances] = useState<InstanceWithBookings[]>([])
   const [loadingInstances, setLoadingInstances] = useState(false)
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
+  const { toast } = useToast()
+  const tabListRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function load() {
-      const [templatesRes, typesRes] = await Promise.all([
-        fetch('/api/schedule/templates'),
-        fetch('/api/class-types'),
-      ])
-      const templatesData = await templatesRes.json()
-      const typesData = await typesRes.json()
-      setTemplates(templatesData.templates ?? [])
-      setDefaults({
-        globalDefault: templatesData.globalDefault ?? 20,
-        dayDefaults: templatesData.dayDefaults ?? {},
-      })
-      setClassTypes(typesData.classTypes ?? [])
-      setLoading(false)
+      try {
+        const [templatesRes, typesRes] = await Promise.all([
+          fetch('/api/schedule/templates'),
+          fetch('/api/class-types'),
+        ])
+        if (!templatesRes.ok || !typesRes.ok) {
+          toast('Failed to load schedule', 'error')
+          setLoading(false)
+          return
+        }
+        const templatesData = await templatesRes.json()
+        const typesData = await typesRes.json()
+        setTemplates(templatesData.templates ?? [])
+        setDefaults({
+          globalDefault: templatesData.globalDefault ?? 20,
+          dayDefaults: templatesData.dayDefaults ?? {},
+        })
+        setClassTypes(typesData.classTypes ?? [])
+      } catch (err) {
+        console.error('[schedule] load failed', err)
+        toast('Network error — could not load schedule', 'error')
+      } finally {
+        setLoading(false)
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     load()
-  }, [])
+  }, [toast])
 
   useEffect(() => {
+    if (activeTab !== 'attendance') return
+    let cancelled = false
     async function loadInstances() {
       setLoadingInstances(true)
-      const res = await fetch(`/api/schedule/instances?date=${attendanceDate}`)
-      const data = await res.json()
-      setInstances(data.instances ?? [])
-      setSelectedInstanceId(null)
-      setLoadingInstances(false)
+      try {
+        const res = await fetch(`/api/schedule/instances?date=${attendanceDate}`)
+        if (!res.ok) {
+          if (!cancelled) toast('Failed to load attendance', 'error')
+          return
+        }
+        const data = await res.json()
+        if (cancelled) return
+        setInstances(data.instances ?? [])
+        setSelectedInstanceId(null)
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[schedule] instances load failed', err)
+          toast('Network error — could not load attendance', 'error')
+        }
+      } finally {
+        if (!cancelled) setLoadingInstances(false)
+      }
     }
     loadInstances()
-  }, [attendanceDate])
+    return () => { cancelled = true }
+  }, [attendanceDate, activeTab, toast])
 
   async function handleAttendanceToggle(bookingId: string, current: boolean | null) {
     const next = current === null ? true : current === true ? false : null
-    await fetch(`/api/bookings/${bookingId}/attend`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ attended: next }),
-    })
+    // Optimistic update so the UI responds instantly.
     setInstances(prev =>
       prev.map(inst => ({
         ...inst,
@@ -81,104 +109,201 @@ export default function SchedulePage() {
         ),
       }))
     )
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/attend`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attended: next }),
+      })
+      if (!res.ok) {
+        // Revert on failure.
+        setInstances(prev =>
+          prev.map(inst => ({
+            ...inst,
+            bookings: inst.bookings.map(b =>
+              b.id === bookingId ? { ...b, attended: current } : b
+            ),
+          }))
+        )
+        toast('Failed to update attendance', 'error')
+      }
+    } catch (err) {
+      console.error('[schedule] attend toggle failed', err)
+      setInstances(prev =>
+        prev.map(inst => ({
+          ...inst,
+          bookings: inst.bookings.map(b =>
+            b.id === bookingId ? { ...b, attended: current } : b
+          ),
+        }))
+      )
+      toast('Network error — could not update attendance', 'error')
+    }
   }
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <p className="text-secondary text-sm">Loading schedule…</p>
-      </div>
-    )
+  // Keyboard nav on the tablist: left/right arrows cycle tabs.
+  function handleTabKey(e: React.KeyboardEvent, current: Tab) {
+    const tabs: Tab[] = ['schedule', 'attendance']
+    const idx = tabs.indexOf(current)
+    if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      setActiveTab(tabs[(idx + 1) % tabs.length])
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length])
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      setActiveTab(tabs[0])
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      setActiveTab(tabs[tabs.length - 1])
+    }
   }
 
   return (
     <div className="max-w-5xl">
       <div className="mb-6">
         <h1 className="font-display text-3xl text-foreground">Class Schedule</h1>
-        <p className="text-secondary text-sm mt-1">This schedule repeats every week automatically.</p>
+        <p className="text-secondary text-sm mt-1">Weekly recurring schedule and attendance tracking.</p>
       </div>
 
-      <ClassTypesManager classTypes={classTypes} onChange={setClassTypes} />
+      {/* Tab bar — WAI-ARIA tabs pattern */}
+      <div ref={tabListRef} role="tablist" aria-label="Schedule sections" className="flex gap-1 mb-8 border-b border-border">
+        {(['schedule', 'attendance'] as const).map(tab => {
+          const isActive = activeTab === tab
+          return (
+            <button
+              key={tab}
+              id={`tab-${tab}`}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`panel-${tab}`}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => setActiveTab(tab)}
+              onKeyDown={e => handleTabKey(e, tab)}
+              className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors relative ${
+                isActive
+                  ? 'text-foreground'
+                  : 'text-secondary hover:text-foreground'
+              }`}
+            >
+              {tab}
+              {isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-px bg-accent" aria-hidden="true" />
+              )}
+            </button>
+          )
+        })}
+      </div>
 
-      <CapacityDefaults defaults={defaults} onUpdate={setDefaults} />
-
-      <ScheduleGrid
-        initialTemplates={templates}
-        defaults={defaults}
-        classTypes={classTypes}
-      />
-
-      {/* Attendance */}
-      <div className="mt-10">
-        <h2 className="font-display text-xl text-foreground mb-4">Attendance</h2>
-        <div className="flex items-center gap-3 mb-4">
-          <input
-            type="date"
-            value={attendanceDate}
-            onChange={e => setAttendanceDate(e.target.value)}
-            className="bg-background border border-border rounded-btn px-3 py-2 text-sm text-foreground focus:outline-none focus:border-accent"
-          />
+      {activeTab === 'schedule' && (
+        <div role="tabpanel" id="panel-schedule" aria-labelledby="tab-schedule">
+          {loading ? (
+            <div className="space-y-4">
+              {[120, 80, 320].map(h => (
+                <div key={h} className="h-[var(--h)] bg-surface border border-border rounded-card animate-pulse" style={{ ['--h' as string]: `${h}px` }} />
+              ))}
+            </div>
+          ) : (
+            <>
+              <ClassTypesManager classTypes={classTypes} onChange={setClassTypes} />
+              <CapacityDefaults defaults={defaults} onUpdate={setDefaults} />
+              <ScheduleGrid
+                initialTemplates={templates}
+                defaults={defaults}
+                classTypes={classTypes}
+              />
+            </>
+          )}
         </div>
+      )}
 
-        {loadingInstances ? (
-          <p className="text-secondary text-sm">Loading…</p>
-        ) : instances.length === 0 ? (
-          <p className="text-secondary text-sm">No classes scheduled for this date.</p>
-        ) : (
-          <div className="space-y-2">
-            {instances.map(instance => {
-              const isOpen = selectedInstanceId === instance.id
-              const time = instance.local_time?.slice(0, 5) ?? instance.starts_at.slice(11, 16)
-              const confirmedCount = instance.bookings.filter(b => b.attended !== false).length
-              return (
-                <div key={instance.id}>
-                  <button
-                    onClick={() => setSelectedInstanceId(isOpen ? null : instance.id)}
-                    className="w-full flex items-center justify-between bg-surface border border-border rounded-card px-4 py-3 text-left hover:border-accent transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-foreground font-medium tabular-nums">{time}</span>
-                      {instance.name && instance.name !== 'WOD' && (
-                        <span className="text-xs text-accent border border-border rounded px-1.5 py-0.5">
-                          {instance.name}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-secondary text-sm">
-                      {confirmedCount} / {instance.capacity} {isOpen ? '▲' : '▼'}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="border border-t-0 border-border rounded-b-card px-4 py-3 space-y-2">
-                      {instance.bookings.length === 0 ? (
-                        <p className="text-secondary text-sm">No confirmed bookings.</p>
-                      ) : (
-                        instance.bookings.map(booking => (
-                          <div key={booking.id} className="flex items-center justify-between">
-                            <span className="text-foreground text-sm">{booking.name}</span>
-                            <button
-                              onClick={() => handleAttendanceToggle(booking.id, booking.attended)}
-                              className={`px-3 py-1 rounded-btn text-xs font-medium border transition-colors ${
-                                booking.attended === true
-                                  ? 'bg-green-500/20 border-green-600 text-green-400'
-                                  : booking.attended === false
-                                  ? 'bg-red-500/20 border-red-700 text-red-400'
-                                  : 'bg-surface border-border text-secondary hover:text-foreground'
-                              }`}
-                            >
-                              {booking.attended === true ? 'Attended' : booking.attended === false ? 'No-show' : 'Mark'}
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+      {activeTab === 'attendance' && (
+        <div role="tabpanel" id="panel-attendance" aria-labelledby="tab-attendance">
+          <div className="flex items-center gap-3 mb-6">
+            <input
+              type="date"
+              value={attendanceDate}
+              onChange={e => setAttendanceDate(e.target.value)}
+              className="bg-surface border border-border rounded-btn px-3 py-2 text-sm text-foreground focus:outline-none focus:border-accent transition-colors"
+            />
+            <span className="text-secondary text-sm">
+              {new Date(attendanceDate + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </span>
           </div>
-        )}
-      </div>
+
+          {loadingInstances ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-14 bg-surface border border-border rounded-card animate-pulse" />
+              ))}
+            </div>
+          ) : instances.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-secondary text-sm">No classes scheduled for this date.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {instances.map(instance => {
+                const isOpen = selectedInstanceId === instance.id
+                const time = instance.local_time?.slice(0, 5) ?? instance.starts_at.slice(11, 16)
+                const confirmedCount = instance.bookings.filter(b => b.attended !== false).length
+                return (
+                  <div key={instance.id}>
+                    <button
+                      onClick={() => setSelectedInstanceId(isOpen ? null : instance.id)}
+                      className="w-full flex items-center justify-between bg-surface border border-border rounded-card px-4 py-3 text-left hover:border-accent-40 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-foreground font-semibold tabular-nums text-sm">{time}</span>
+                        {instance.name && instance.name !== 'WOD' && (
+                          <span className="text-xs text-accent border border-accent-30 bg-accent-5 rounded px-1.5 py-0.5">
+                            {instance.name}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-secondary text-xs tabular-nums">
+                          {confirmedCount} / {instance.capacity}
+                        </span>
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
+                          className={`text-secondary transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="border border-t-0 border-border rounded-b-card px-4 py-3 space-y-2 bg-background">
+                        {instance.bookings.length === 0 ? (
+                          <p className="text-secondary text-sm italic">No confirmed bookings.</p>
+                        ) : (
+                          instance.bookings.map(booking => (
+                            <div key={booking.id} className="flex items-center justify-between py-0.5">
+                              <span className="text-foreground text-sm">{booking.name}</span>
+                              <button
+                                onClick={() => handleAttendanceToggle(booking.id, booking.attended)}
+                                className={`px-3 py-1 rounded-btn text-xs font-medium border transition-colors active:scale-[0.97] ${
+                                  booking.attended === true
+                                    ? 'bg-green-500/20 border-green-600/40 text-green-400'
+                                    : booking.attended === false
+                                    ? 'bg-red-500/20 border-red-700/40 text-red-400'
+                                    : 'bg-surface border-border text-secondary hover:text-foreground'
+                                }`}
+                              >
+                                {booking.attended === true ? '✓ Attended' : booking.attended === false ? '✗ No-show' : 'Mark'}
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

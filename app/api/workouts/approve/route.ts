@@ -3,6 +3,10 @@ import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { sendWorkoutsPublishedEmail } from '@/lib/email/send'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { z } from '@/lib/validation/z'
+import { parseBody, jsonServerError } from '@/lib/api/response'
+
+const schema = z.object({ weekId: z.uuid() })
 
 export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
@@ -10,9 +14,10 @@ export async function POST(req: Request) {
 
   const { supabase, userData } = auth
   const gymId = userData.gym_id
-  const { weekId } = await req.json()
+  const parsed = await parseBody(req, schema)
+  if (parsed instanceof NextResponse) return parsed
+  const { weekId } = parsed
 
-  // Get the draft row to find its week_start
   const { data: draft } = await supabase.from('workout_weeks')
     .select('id, week_start').eq('id', weekId).eq('gym_id', gymId).eq('status', 'draft').single()
 
@@ -23,28 +28,40 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Discard any existing published week for this gym+week (prevents unique index conflict)
   await admin.from('workout_weeks')
     .update({ status: 'discarded' })
     .eq('gym_id', gymId).eq('week_start', draft.week_start).eq('status', 'published')
 
-  // Now promote the draft to published
   const { data: published, error } = await admin.from('workout_weeks')
     .update({ status: 'published', published_at: new Date().toISOString() })
     .eq('id', weekId).eq('gym_id', gymId).eq('status', 'draft')
     .select('id').single()
 
-  if (error || !published) return NextResponse.json({ error: 'Failed to publish week' }, { status: 500 })
+  if (error || !published) return jsonServerError('workouts/approve publish', error)
 
-  // Send email to all active members (fire-and-forget — email failure should not fail approval)
+  // Check notification + contact email settings. Email failure must never
+  // roll back the publish, but we do log and surface counts in the response
+  // so the operator can detect degraded email delivery.
+  let emailStats: { sent: number; failed: number } | null = null
   try {
-    const { data: members } = await supabase.from('users')
-      .select('email, name').eq('gym_id', userData.gym_id)
-      .eq('role', 'member').is('revoked_at', null)
-    if (members) await sendWorkoutsPublishedEmail(members)
-  } catch {
-    // Email failure is non-fatal — approval already succeeded
+    const { data: gymRaw } = await supabase.from('gyms')
+      .select('notify_workout_published, contact_email, name').eq('id', gymId).single()
+    const gym = gymRaw as unknown as { notify_workout_published: boolean; contact_email: string | null; name: string } | null
+
+    if (gym?.notify_workout_published !== false) {
+      const { data: members } = await supabase.from('users')
+        .select('email, name').eq('gym_id', gymId).eq('role', 'member').is('revoked_at', null)
+      if (members) {
+        emailStats = await sendWorkoutsPublishedEmail(
+          members,
+          gym?.name ?? 'Your Gym',
+          gym?.contact_email ?? null
+        )
+      }
+    }
+  } catch (err) {
+    console.error('[workouts/approve] notification failed', err)
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, emailStats })
 }

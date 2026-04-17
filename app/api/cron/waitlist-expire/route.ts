@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
+
+// Cron can be slow on large gyms; allow up to 5 minutes.
+export const maxDuration = 300
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
@@ -8,7 +11,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createClient()
+  const supabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   const now = new Date().toISOString()
 
@@ -19,42 +25,95 @@ export async function GET(req: Request) {
     .lt('confirmation_expires_at', now)
 
   if (error) {
+    console.error('[cron/waitlist-expire] fetch expired failed', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
   if (!expiredBookings || expiredBookings.length === 0) {
-    return NextResponse.json({ processed: 0 })
+    return NextResponse.json({ processed: 0, promoted: 0, skipped: 0 })
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
-  let processed = 0
+  // Batch-fetch all instance start times (fixes N+1)
+  const instanceIds = Array.from(new Set(expiredBookings.map(b => b.instance_id)))
+  const { data: instances, error: instErr } = await supabase
+    .from('class_instances')
+    .select('id, starts_at')
+    .in('id', instanceIds)
 
-  for (const booking of expiredBookings) {
-    // Cancel the expired booking
-    await supabase
-      .from('bookings')
-      .update({
-        status: 'cancelled',
-        confirmation_token: null,
-        confirmation_expires_at: null,
-        waitlist_position: null,
-      })
-      .eq('id', booking.id)
-
-    // Fetch class start time
-    const { data: instance } = await supabase
-      .from('class_instances')
-      .select('starts_at')
-      .eq('id', booking.instance_id)
-      .single()
-
-    if (instance?.starts_at) {
-      await promoteNextWaitlistMember(supabase, booking.instance_id, instance.starts_at, appUrl)
-    }
-
-    processed++
+  if (instErr) {
+    console.error('[cron/waitlist-expire] fetch instances failed', instErr)
+    return NextResponse.json({ error: instErr.message }, { status: 500 })
   }
 
-  return NextResponse.json({ processed })
+  const instanceMap = new Map<string, string>()
+  for (const inst of instances ?? []) {
+    if (inst?.id && inst?.starts_at) instanceMap.set(inst.id as string, inst.starts_at as string)
+  }
+
+  let processed = 0
+  let promoted = 0
+  let skipped = 0
+  const errors: Array<{ bookingId: string; stage: string; err: unknown }> = []
+
+  for (const booking of expiredBookings) {
+    try {
+      // Idempotent cancel: only affects the row if it's still pending_confirmation.
+      // If a concurrent cron run or manual retrigger already handled this row,
+      // rows.length === 0 and we skip promotion (otherwise we'd double-promote).
+      const { data: cancelRows, error: cancelErr } = await supabase
+        .from('bookings')
+        .update({
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          confirmation_token: null,
+          confirmation_expires_at: null,
+          waitlist_position: null,
+        })
+        .eq('id', booking.id)
+        .eq('status', 'pending_confirmation')
+        .select('id')
+
+      if (cancelErr) {
+        errors.push({ bookingId: booking.id, stage: 'cancel', err: cancelErr })
+        continue
+      }
+
+      if (!cancelRows || cancelRows.length === 0) {
+        // Already handled by someone else. Don't promote again.
+        skipped++
+        continue
+      }
+
+      const startsAt = instanceMap.get(booking.instance_id)
+      if (!startsAt) {
+        // Instance missing — can't promote, but cancel already happened.
+        processed++
+        continue
+      }
+
+      const result = await promoteNextWaitlistMember(
+        supabase,
+        booking.instance_id,
+        startsAt,
+        appUrl
+      )
+      if (result.promoted) promoted++
+      processed++
+    } catch (err) {
+      errors.push({ bookingId: booking.id, stage: 'loop', err })
+    }
+  }
+
+  if (errors.length) {
+    console.error('[cron/waitlist-expire] partial failures', errors)
+  }
+
+  return NextResponse.json({
+    processed,
+    promoted,
+    skipped,
+    errors: errors.length,
+  })
 }

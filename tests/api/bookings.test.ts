@@ -83,6 +83,71 @@ describe('cancellation cutoff', () => {
     const pastClass = new Date(Date.now() - ONE_HOUR_MS).toISOString()
     expect(canCancel(pastClass)).toBe(false)
   })
+
+  // Documents route.ts:156 logic: `Date.now() > starts_at - cutoffMs` means
+  // "we're inside the cutoff window (or past class start)" → block. The
+  // original review flagged this as inverted; it is not.
+  it('blocks cancellation at exactly class start time', () => {
+    const atStart = new Date(Date.now()).toISOString()
+    expect(canCancel(atStart)).toBe(false)
+  })
+})
+
+describe('double-book prevention', () => {
+  // Mirrors the app/api/bookings/route.ts POST guard:
+  // "Another non-cancelled booking exists at the same starts_at (different
+  //  instance)" → refuse.
+  type Booking = { status: string; instance_id: string; starts_at: string }
+  function hasConflict(existing: Booking[], newInstanceId: string, newStartsAt: string) {
+    return existing.some(
+      b =>
+        ['confirmed', 'pending_confirmation', 'waitlisted'].includes(b.status) &&
+        b.instance_id !== newInstanceId &&
+        b.starts_at === newStartsAt
+    )
+  }
+
+  it('blocks a second confirmed booking at the exact same start time', () => {
+    const starts = '2026-05-01T09:00:00.000Z'
+    const existing = [{ status: 'confirmed', instance_id: 'x', starts_at: starts }]
+    expect(hasConflict(existing, 'y', starts)).toBe(true)
+  })
+
+  it('allows booking the same instance (upsert path)', () => {
+    const starts = '2026-05-01T09:00:00.000Z'
+    const existing = [{ status: 'cancelled', instance_id: 'y', starts_at: starts }]
+    // Existing cancelled bookings don't block; handler re-activates them.
+    expect(hasConflict(existing, 'y', starts)).toBe(false)
+  })
+
+  it('allows different-time class on same day', () => {
+    const existing = [{ status: 'confirmed', instance_id: 'x', starts_at: '2026-05-01T09:00:00.000Z' }]
+    expect(hasConflict(existing, 'y', '2026-05-01T18:00:00.000Z')).toBe(false)
+  })
+
+  it('considers pending_confirmation and waitlisted as conflicts', () => {
+    const starts = '2026-05-01T09:00:00.000Z'
+    expect(
+      hasConflict(
+        [{ status: 'pending_confirmation', instance_id: 'x', starts_at: starts }],
+        'y',
+        starts
+      )
+    ).toBe(true)
+    expect(
+      hasConflict([{ status: 'waitlisted', instance_id: 'x', starts_at: starts }], 'y', starts)
+    ).toBe(true)
+  })
+})
+
+describe('invite email normalization', () => {
+  function normalize(email: string) {
+    return email.trim().toLowerCase()
+  }
+  it('collapses case variants to the same normalized email', () => {
+    expect(normalize('John@Example.com')).toBe(normalize('john@example.com'))
+    expect(normalize('  john@example.com  ')).toBe('john@example.com')
+  })
 })
 
 describe('getMondayOfCurrentWeek', () => {

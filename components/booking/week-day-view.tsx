@@ -96,15 +96,17 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
         </div>
 
         {!selectedWorkout && selectedInstances.length === 0 ? (
-          <p className="text-secondary-60 text-sm">Rest day</p>
+          <p className="text-secondary-60 text-sm italic">Rest day — no classes scheduled.</p>
         ) : (
           <div className="space-y-4">
-            {selectedWorkout && <WorkoutCard day={selectedWorkout} />}
-            {selectedInstances.length > 0 && (
-              <div>
-                {selectedWorkout && (
-                  <p className="text-secondary text-xs font-semibold uppercase tracking-wider mb-2">Classes</p>
-                )}
+            {selectedWorkout && <WorkoutCard day={selectedWorkout} isToday={isToday} />}
+            <div>
+              {selectedWorkout && (
+                <p className="text-secondary text-xs font-semibold uppercase tracking-wider mb-2">Classes</p>
+              )}
+              {selectedInstances.length === 0 ? (
+                <p className="text-secondary-60 text-xs italic">No classes scheduled for today.</p>
+              ) : (
                 <div className="space-y-2">
                   {selectedInstances.map(inst => (
                     <ClassTile
@@ -117,8 +119,8 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
                     />
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

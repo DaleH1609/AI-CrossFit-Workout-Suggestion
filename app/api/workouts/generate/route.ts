@@ -35,6 +35,12 @@ export async function POST(req: Request) {
   if (!weekStart || typeof weekStart !== 'string') {
     return NextResponse.json({ error: 'weekStart is required' }, { status: 400 })
   }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+    return NextResponse.json({ error: 'weekStart must be YYYY-MM-DD' }, { status: 400 })
+  }
+  if (new Date(weekStart + 'T12:00:00Z').getUTCDay() !== 1) {
+    return NextResponse.json({ error: 'weekStart must be a Monday' }, { status: 400 })
+  }
 
   // Get gym row (including gym_type)
   const { data: gymRow } = await supabase.from('gyms').select('gym_type').eq('id', gymId).single()
@@ -60,7 +66,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 
-  console.log('[generate] days after generation:', workouts.map((d: { day: string }) => d.day))
 
   // Auto-scaling — non-blocking: failure does not prevent saving
   try {
@@ -69,7 +74,6 @@ export async function POST(req: Request) {
     // Scaling failed — save without scaling
   }
 
-  console.log('[generate] days after scaling:', workouts.map((d: { day: string }) => d.day))
 
   // Final safety net — ensure Saturday and Sunday always have actual content
   function dayHasContent(d: { parts?: { content?: string }[] }) {
@@ -90,16 +94,14 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  console.log('[generate] saving for gymId:', gymId, 'weekStart:', weekStart, 'days:', workouts.map((d: { day: string }) => d.day))
 
   // Call atomic SQL function (SECURITY DEFINER bypasses RLS completely)
-  const { data: week, error } = await admin.rpc('save_workout_draft', {
+  const { error } = await admin.rpc('save_workout_draft', {
     p_gym_id: gymId,
     p_week_start: weekStart,
     p_workouts: workouts,
   })
 
-  console.log('[generate] rpc error:', error?.message ?? 'none', 'weekId:', (week as { id?: string } | null)?.id ?? 'none')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // Fetch the saved row so the client gets the real DB id

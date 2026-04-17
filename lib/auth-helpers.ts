@@ -47,13 +47,16 @@ export async function requireMemberAuth(): Promise<MemberAuthResult | NextRespon
 
   const { data: userData } = await supabase
     .from('users')
-    .select('gym_id, name, email')
+    .select('gym_id, name, email, revoked_at')
     .eq('id', user.id)
     .single()
 
   if (!userData) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  return { supabase, user: user as { id: string; email?: string }, userData: userData as { gym_id: string; name: string; email: string } }
+  const u = userData as { gym_id: string; name: string; email: string; revoked_at: string | null }
+  if (u.revoked_at) return NextResponse.json({ error: 'Account access has been revoked' }, { status: 403 })
+
+  return { supabase, user: user as { id: string; email?: string }, userData: u }
 }
 
 /** Type guard: narrows the union return of requireOwnerAuth / requireMemberAuth to the success shape. */

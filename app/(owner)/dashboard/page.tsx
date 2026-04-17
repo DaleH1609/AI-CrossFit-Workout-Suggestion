@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [generating, setGenerating] = useState(false)
   const [creatingManual, setCreatingManual] = useState(false)
   const [showApproveModal, setShowApproveModal] = useState(false)
+  const [publishing, setPublishing] = useState(false)
   const [editingDay, setEditingDay] = useState<WorkoutDay | null>(null)
   const [editingScalingDay, setEditingScalingDay] = useState<WorkoutDay | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -72,6 +73,8 @@ export default function DashboardPage() {
   }
 
   async function handleApprove() {
+    if (publishing) return
+    setPublishing(true)
     const res = await fetch('/api/workouts/approve', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weekId: week!.id })
@@ -82,6 +85,7 @@ export default function DashboardPage() {
       setError((data as { error?: string }).error || 'Failed to publish week')
     }
     await loadWeek()
+    setPublishing(false)
   }
 
   async function handleCreateManual() {
@@ -106,11 +110,14 @@ export default function DashboardPage() {
   }
 
   async function handleDiscard() {
+    if (publishing) return
+    setPublishing(true)
     await fetch('/api/workouts/discard', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weekId: week!.id })
     })
     await loadWeek()
+    setPublishing(false)
   }
 
   function handleDaySaved(updated: WorkoutDay) {
@@ -132,11 +139,11 @@ export default function DashboardPage() {
           {week?.status && <Badge variant={week.status as 'draft' | 'published'} label={week.status.charAt(0).toUpperCase() + week.status.slice(1)} />}
           {week?.status === 'draft' && (
             <>
-              <Button variant="danger" onClick={handleDiscard}>Discard</Button>
+              <Button variant="danger" onClick={handleDiscard} disabled={publishing}>Discard</Button>
               <Button onClick={handleGenerate} disabled={generating}>
                 {generating ? <><Spinner />Regenerating…</> : 'Regenerate'}
               </Button>
-              <Button onClick={() => setShowApproveModal(true)}>Approve &amp; Publish</Button>
+              <Button onClick={() => setShowApproveModal(true)} disabled={publishing}>{publishing ? 'Publishing…' : 'Approve & Publish'}</Button>
             </>
           )}
           {(!week || week.status === 'published') && (
@@ -144,9 +151,13 @@ export default function DashboardPage() {
               <Button variant="ghost" onClick={handleCreateManual} disabled={creatingManual}>
                 {creatingManual ? <><Spinner />Creating…</> : 'Create Manually'}
               </Button>
-              <Button onClick={handleGenerate} disabled={generating}>
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="inline-flex items-center px-4 py-2 rounded-btn text-sm font-medium bg-accent text-background hover:bg-accent/90 transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
                 {generating ? <><Spinner />Generating…</> : 'Generate This Week'}
-              </Button>
+              </button>
             </>
           )}
         </div>

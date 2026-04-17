@@ -4,11 +4,37 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { KovaLogo } from '@/components/ui/kova-logo'
 
+function PasswordStrength({ password }: { password: string }) {
+  if (password.length === 0) return null
+
+  const hasUpper = /[A-Z]/.test(password)
+  const hasSpecial = /[!@#$%^&*]/.test(password)
+  const strength = password.length < 8 ? 1
+    : password.length < 12 && !hasSpecial ? 2
+    : password.length >= 12 && hasSpecial && hasUpper ? 4
+    : 3
+
+  const labels = ['', 'Too short', 'Fair', 'Good', 'Strong']
+  const colors = ['', 'bg-danger', 'bg-yellow-500/80', 'bg-accent', 'bg-accent']
+
+  return (
+    <div>
+      <div className="flex gap-1 mb-1.5">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${i <= strength ? colors[strength] : 'bg-border'}`} />
+        ))}
+      </div>
+      <p className="text-xs text-secondary">{labels[strength]}</p>
+    </div>
+  )
+}
+
 export default function InvitePage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [sessionReady, setSessionReady] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -37,15 +63,16 @@ export default function InvitePage() {
     const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
     if (error) { setError(error.message); setLoading(false); return }
-    // Full reload required — forces server to re-read the Supabase session cookie.
-    // Using router.push here would serve a stale RSC payload from before auth.
-    window.location.href = '/this-week'
+    // Brief success moment before redirect
+    setSuccess(true)
+    setTimeout(() => { window.location.href = '/this-week' }, 400)
   }
 
   if (!sessionReady) return null
 
   return (
     <div className="min-h-screen flex">
+      {/* Left brand panel */}
       <div className="hidden lg:flex w-3/5 flex-col justify-between p-12"
         style={{ background: '#050508', position: 'relative', overflow: 'hidden' }}>
         <div style={{
@@ -55,26 +82,47 @@ export default function InvitePage() {
         <KovaLogo size="md" />
         <div className="relative">
           <p className="font-display text-4xl font-bold text-white leading-snug mb-4">
-            Your program,<br />refined by AI.
+            Your gym<br />is waiting.
           </p>
-          <p className="text-sm text-white/50">Trusted by 500+ gyms worldwide.</p>
+          <p className="text-white/40 text-sm">Set a password to get started.</p>
         </div>
       </div>
+
+      {/* Right form panel */}
       <div className="flex-1 bg-surface flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden mb-8 flex justify-center"><KovaLogo size="md" /></div>
-          <h1 className="font-display text-2xl font-bold text-foreground mb-2">Set Your Password</h1>
-          <p className="text-secondary text-sm mb-8">Welcome! Set a password to access your gym.</p>
+          <div className="lg:hidden mb-8 flex justify-center auth-field" style={{ animationDelay: '0ms' }}>
+            <KovaLogo size="md" />
+          </div>
+          <h1 className="auth-field font-display text-2xl font-bold text-foreground mb-2" style={{ animationDelay: '60ms' }}>
+            Set Your Password
+          </h1>
+          <p className="auth-field text-secondary text-sm mb-8" style={{ animationDelay: '100ms' }}>
+            Welcome! Set a password to access your gym.
+          </p>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input type="password" value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="New password" minLength={8} required
-              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
-            />
+            <div className="auth-field" style={{ animationDelay: '140ms' }}>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="New password"
+                minLength={8}
+                required
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+              />
+              <div className="mt-2">
+                <PasswordStrength password={password} />
+              </div>
+            </div>
             {error && <p className="text-danger text-sm">{error}</p>}
-            <button type="submit" disabled={loading}
-              className="w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors">
-              {loading ? 'Setting…' : 'Set Password & Enter'}
+            <button
+              type="submit"
+              disabled={loading || success}
+              className="auth-field w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] disabled:opacity-70"
+              style={{ animationDelay: '180ms' }}
+            >
+              {success ? 'Welcome to Kova →' : loading ? 'Setting…' : 'Set Password & Enter'}
             </button>
           </form>
         </div>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Walkthrough Panels — KOVA</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0f0f0f;
+  color: #e5e5e5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding: 32px 24px 48px;
+}
+h2 { font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.subtitle { color: #777; font-size: 0.85rem; margin-bottom: 32px; line-height: 1.6; max-width: 640px; }
+
+/* Layout: left steps + right panel */
+.walkthrough {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Steps sidebar */
+.steps { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
+.step {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.step.active {
+  background: #1a1a1a;
+  border-color: #2a2a2a;
+}
+.step-num {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #444;
+  margin-bottom: 3px;
+}
+.step.active .step-num { color: #b8962a; }
+.step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+}
+.step.active .step-label { color: #fff; }
+.step-desc {
+  font-size: 0.72rem;
+  color: #444;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.step.active .step-desc { color: #666; }
+.step-line {
+  width: 2px;
+  height: 16px;
+  background: #1e1e1e;
+  margin: 2px 0 2px 22px;
+}
+
+/* Panel area */
+.panel-area {
+  position: relative;
+  min-height: 420px;
+}
+.panel {
+  display: none;
+  animation: fadePanel 0.35s ease;
+}
+.panel.active { display: block; }
+@keyframes fadePanel {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ——— PANEL 1: Generate ——— */
+.gen-container {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.gen-topbar {
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gen-topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: #222; }
+.gen-topbar-title { font-size: 0.7rem; color: #444; margin-left: 6px; }
+.gen-body { padding: 20px; }
+.gen-prompt {
+  background: #0d0d0d;
+  border: 1px solid #222;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0.75rem;
+  color: #666;
+}
+.gen-prompt span { color: #b8962a; }
+.gen-status {
+  font-size: 0.65rem;
+  color: #b8962a;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.gen-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #b8962a;
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.wod-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border: 1px solid #242424;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  opacity: 0;
+  animation: rowAppear 0.4s ease forwards;
+}
+.wod-row:nth-child(1) { animation-delay: 0.2s; }
+.wod-row:nth-child(2) { animation-delay: 0.6s; }
+.wod-row:nth-child(3) { animation-delay: 1.0s; }
+.wod-row:nth-child(4) { animation-delay: 1.4s; }
+.wod-row.typing { animation-delay: 1.8s; }
+@keyframes rowAppear {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.wod-day {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #b8962a;
+  width: 28px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.wod-info { flex: 1; }
+.wod-title { font-size: 0.78rem; font-weight: 600; color: #ddd; margin-bottom: 2px; }
+.wod-sub { font-size: 0.67rem; color: #555; }
+.wod-badge {
+  font-size: 0.58rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  color: #555;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.cursor {
+  display: inline-block;
+  width: 2px; height: 12px;
+  background: #b8962a;
+  border-radius: 1px;
+  animation: blink 0.7s steps(1) infinite;
+  vertical-align: middle;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ——— PANEL 2: Review ——— */
+.review-container {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.review-topbar {
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.review-topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: #222; }
+.topbar-title { font-size: 0.7rem; color: #555; }
+.review-nav { display: flex; gap: 4px; }
+.nav-btn {
+  font-size: 0.62rem;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #555;
+  cursor: default;
+}
+.nav-btn.active-btn { background: #b8962a15; border-color: #b8962a40; color: #b8962a; }
+.review-body { padding: 16px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.wod-card {
+  background: #1a1a1a;
+  border: 1px solid #242424;
+  border-radius: 8px;
+  padding: 14px;
+}
+.wod-card.selected-card { border-color: #b8962a50; background: #1e1a0e; }
+.wod-card-day { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; color: #b8962a; text-transform: uppercase; margin-bottom: 4px; }
+.wod-card-title { font-size: 0.82rem; font-weight: 600; color: #ddd; margin-bottom: 2px; }
+.wod-card-sub { font-size: 0.65rem; color: #555; margin-bottom: 8px; }
+.scaling-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+.pill {
+  font-size: 0.58rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  color: #555;
+}
+.pill.rx { background: #b8962a12; border-color: #b8962a30; color: #b8962a; }
+.pill.scaled { background: #1a2a1a; border-color: #2a3a2a; color: #4a8a4a; }
+.pill.beginner { background: #1a1a2a; border-color: #2a2a3a; color: #5a5aaa; }
+.edit-overlay {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  font-size: 0.68rem;
+}
+.edit-overlay-label { font-size: 0.58rem; color: #b8962a; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 6px; }
+.edit-field {
+  background: #0d0d0d;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 0.68rem;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+.edit-field.focus { border-color: #b8962a60; }
+
+/* ——— PANEL 3: Publish ——— */
+.publish-container {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.publish-topbar {
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pub-title { font-size: 0.7rem; color: #555; }
+.pub-week { font-size: 0.62rem; color: #888; }
+.publish-body { padding: 16px 20px; }
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.week-cell {
+  background: #1a1a1a;
+  border: 1px solid #242424;
+  border-radius: 6px;
+  padding: 8px;
+  opacity: 0;
+  animation: cellIn 0.3s ease forwards;
+}
+.week-cell:nth-child(1) { animation-delay: 0.1s; }
+.week-cell:nth-child(2) { animation-delay: 0.25s; }
+.week-cell:nth-child(3) { animation-delay: 0.4s; }
+.week-cell:nth-child(4) { animation-delay: 0.55s; }
+.week-cell:nth-child(5) { animation-delay: 0.7s; }
+@keyframes cellIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cell-day { font-size: 0.55rem; font-weight: 700; color: #b8962a; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+.cell-wod { font-size: 0.65rem; color: #ccc; font-weight: 500; margin-bottom: 2px; }
+.cell-type { font-size: 0.58rem; color: #555; }
+.cell-tick {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #1a2a1a; border: 1px solid #2a4a2a;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 6px;
+  font-size: 0.55rem; color: #4a9a4a;
+}
+.publish-footer {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadePanel 0.4s 0.9s ease both;
+}
+.pub-stat { text-align: center; }
+.pub-stat-val { font-size: 0.85rem; font-weight: 700; color: #b8962a; }
+.pub-stat-label { font-size: 0.6rem; color: #555; margin-top: 1px; }
+.pub-cta {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 4px;
+  background: #b8962a;
+  color: #000;
+  letter-spacing: 0.05em;
+}
+
+/* Section heading above panel area */
+.section-eyebrow {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #b8962a;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.section-heading {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 28px;
+}
+.section-heading span { color: #b8962a; }
+
+.note {
+  margin-top: 28px;
+  font-size: 0.75rem;
+  color: #555;
+  max-width: 640px;
+  line-height: 1.6;
+  border-top: 1px solid #1e1e1e;
+  padding-top: 20px;
+}
+.note strong { color: #888; }
+</style>
+</head>
+<body>
+
+<h2>Here's what the 3 product panels would look like</h2>
+<p class="subtitle">Click each step to see its panel. This is what visitors see as they scroll through the section — the steps highlight and the right panel swaps. Scroll-triggered, not pinned.</p>
+
+<div class="walkthrough">
+
+  <!-- Steps sidebar -->
+  <div>
+    <div class="section-eyebrow">How it works</div>
+    <div class="section-heading">From idea to published<br /><span>in three steps.</span></div>
+
+    <div class="steps">
+      <div class="step active" onclick="setStep(0)">
+        <div class="step-num">01</div>
+        <div class="step-label">Generate</div>
+        <div class="step-desc">Tell KOVA your gym type. AI writes a full week in seconds.</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" onclick="setStep(1)">
+        <div class="step-num">02</div>
+        <div class="step-label">Review &amp; Edit</div>
+        <div class="step-desc">Every workout is editable. Swap movements, adjust loads.</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" onclick="setStep(2)">
+        <div class="step-num">03</div>
+        <div class="step-label">Publish</div>
+        <div class="step-desc">Approve and members see it instantly — Rx, Scaled &amp; Beginner.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel area -->
+  <div class="panel-area">
+
+    <!-- Panel 1: Generate -->
+    <div class="panel active" id="panel-0">
+      <div class="gen-container">
+        <div class="gen-topbar">
+          <div class="gen-topbar-dot"></div>
+          <div class="gen-topbar-dot"></div>
+          <div class="gen-topbar-dot"></div>
+          <span class="gen-topbar-title">KOVA — Generate Week</span>
+        </div>
+        <div class="gen-body">
+          <div class="gen-prompt">
+            CrossFit gym · <span>strength-focused</span> · 5 days · Rx + Scaled + Beginner
+          </div>
+          <div class="gen-status">
+            <div class="gen-dot"></div>
+            Generating your week&hellip;
+          </div>
+          <div class="wod-row">
+            <span class="wod-day">Mon</span>
+            <div class="wod-info">
+              <div class="wod-title">Back Squat 5×5 + AMRAP 15</div>
+              <div class="wod-sub">@ 80% 1RM · Pull-ups / Box Jumps / KB Swings</div>
+            </div>
+            <span class="wod-badge">Strength</span>
+          </div>
+          <div class="wod-row">
+            <span class="wod-day">Tue</span>
+            <div class="wod-info">
+              <div class="wod-title">For Time: 21-15-9</div>
+              <div class="wod-sub">Thrusters (43/29 kg) · Pull-ups</div>
+            </div>
+            <span class="wod-badge">Metcon</span>
+          </div>
+          <div class="wod-row">
+            <span class="wod-day">Wed</span>
+            <div class="wod-info">
+              <div class="wod-title">EMOM 20 — Gymnastics</div>
+              <div class="wod-sub">Handstand walk · Muscle-ups · Toes-to-bar</div>
+            </div>
+            <span class="wod-badge">Skill</span>
+          </div>
+          <div class="wod-row">
+            <span class="wod-day">Thu</span>
+            <div class="wod-info">
+              <div class="wod-title">Clean &amp; Jerk — Build to 1RM</div>
+              <div class="wod-sub">Then: 5 RFT · 5 C&amp;J / 10 Burpees</div>
+            </div>
+            <span class="wod-badge">Olympic</span>
+          </div>
+          <div class="wod-row typing">
+            <span class="wod-day">Fri</span>
+            <div class="wod-info">
+              <div class="wod-title">Hero WOD — Murph prep<span class="cursor"></span></div>
+              <div class="wod-sub">&nbsp;</div>
+            </div>
+            <span class="wod-badge">Endurance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Review -->
+    <div class="panel" id="panel-1">
+      <div class="review-container">
+        <div class="review-topbar">
+          <div class="review-topbar-left">
+            <div class="topbar-dot"></div>
+            <div class="topbar-dot"></div>
+            <div class="topbar-dot"></div>
+            <span class="topbar-title">KOVA — Review Week</span>
+          </div>
+          <div class="review-nav">
+            <div class="nav-btn active-btn">Mon</div>
+            <div class="nav-btn">Tue</div>
+            <div class="nav-btn">Wed</div>
+            <div class="nav-btn">Thu</div>
+            <div class="nav-btn">Fri</div>
+          </div>
+        </div>
+        <div class="review-body">
+          <div>
+            <div class="wod-card selected-card">
+              <div class="wod-card-day">Monday — Strength</div>
+              <div class="wod-card-title">Back Squat 5×5</div>
+              <div class="wod-card-sub">@ 80% 1RM · 3 min rest</div>
+              <div class="scaling-pills">
+                <span class="pill rx">Rx</span>
+                <span class="pill scaled">Scaled</span>
+                <span class="pill beginner">Beginner</span>
+              </div>
+            </div>
+            <div class="edit-overlay" style="margin-top:8px">
+              <div class="edit-overlay-label">Edit movement</div>
+              <div class="edit-field focus">Back Squat 5×5 @ 80% 1RM</div>
+              <div class="edit-field">3 min rest between sets</div>
+            </div>
+          </div>
+          <div>
+            <div class="wod-card">
+              <div class="wod-card-day">Monday — Metcon</div>
+              <div class="wod-card-title">AMRAP 15 MIN</div>
+              <div class="wod-card-sub">10 Pull-ups · 15 Box Jumps · 20 KB Swings</div>
+              <div class="scaling-pills">
+                <span class="pill rx">Rx</span>
+                <span class="pill scaled">Scaled</span>
+                <span class="pill beginner">Beginner</span>
+              </div>
+            </div>
+            <div style="margin-top:8px;font-size:0.65rem;color:#444;line-height:1.5;padding:0 2px">
+              Scaling auto-generated for all levels. Edit any version independently.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 3: Publish -->
+    <div class="panel" id="panel-2">
+      <div class="publish-container">
+        <div class="publish-topbar">
+          <span class="pub-title">KOVA — This Week</span>
+          <span class="pub-week">Apr 14–18, 2026</span>
+        </div>
+        <div class="publish-body">
+          <div class="week-grid">
+            <div class="week-cell">
+              <div class="cell-day">Mon</div>
+              <div class="cell-wod">Back Squat 5×5</div>
+              <div class="cell-type">Strength + Metcon</div>
+              <div class="cell-tick">✓</div>
+            </div>
+            <div class="week-cell">
+              <div class="cell-day">Tue</div>
+              <div class="cell-wod">21-15-9 Fran</div>
+              <div class="cell-type">Metcon</div>
+              <div class="cell-tick">✓</div>
+            </div>
+            <div class="week-cell">
+              <div class="cell-day">Wed</div>
+              <div class="cell-wod">EMOM 20</div>
+              <div class="cell-type">Gymnastics</div>
+              <div class="cell-tick">✓</div>
+            </div>
+            <div class="week-cell">
+              <div class="cell-day">Thu</div>
+              <div class="cell-wod">Clean &amp; Jerk</div>
+              <div class="cell-type">Olympic</div>
+              <div class="cell-tick">✓</div>
+            </div>
+            <div class="week-cell">
+              <div class="cell-day">Fri</div>
+              <div class="cell-wod">Murph Prep</div>
+              <div class="cell-type">Endurance</div>
+              <div class="cell-tick">✓</div>
+            </div>
+          </div>
+          <div class="publish-footer">
+            <div class="pub-stat">
+              <div class="pub-stat-val">5</div>
+              <div class="pub-stat-label">WODs published</div>
+            </div>
+            <div class="pub-stat">
+              <div class="pub-stat-val">15</div>
+              <div class="pub-stat-label">Scaling versions</div>
+            </div>
+            <div class="pub-stat">
+              <div class="pub-stat-val">&lt; 30s</div>
+              <div class="pub-stat-label">Total time</div>
+            </div>
+            <div class="pub-cta">Live to members ↗</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="note">
+  <strong>How it works on the real page:</strong> As the visitor scrolls, each step's description highlights on the left and the product panel on the right crossfades to the next state. No pinning/sticky needed — just scroll-triggered transitions using IntersectionObserver. The existing "How It Works" text grid gets replaced by this entirely. The fake testimonials and stats sections are removed.
+</p>
+
+<script>
+function setStep(idx) {
+  document.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  if (window.recordEvent) window.recordEvent({ type: 'click', choice: 'step-' + idx, text: 'Step ' + (idx+1) });
+}
+</script>
+</body>
+</html>

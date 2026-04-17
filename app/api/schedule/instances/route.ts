@@ -9,6 +9,9 @@ export async function GET(req: Request) {
   const url = new URL(req.url)
   const date = url.searchParams.get('date') // YYYY-MM-DD
   if (!date) return NextResponse.json({ error: 'date required' }, { status: 400 })
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return NextResponse.json({ error: 'date must be YYYY-MM-DD' }, { status: 400 })
+  }
 
   // Fetch instances for this date and gym
   const { data: instances, error } = await supabase
@@ -18,38 +21,44 @@ export async function GET(req: Request) {
     .eq('date', date)
     .order('starts_at')
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return NextResponse.json({ error: 'Failed to load instances' }, { status: 500 })
+  if (!instances?.length) return NextResponse.json({ instances: [] })
 
-  // For each instance, fetch confirmed bookings with user names
+  // Fetch all bookings for these instances in one query (avoid N+1)
+  const instanceIds = instances.map(i => i.id)
+
   type RawBooking = {
     id: string
+    instance_id: string
     user_id: string
     attended: boolean | null
     users: { name: string } | null
   }
 
-  const result = await Promise.all(
-    (instances ?? []).map(async (instance) => {
-      const { data: bookings } = await supabase
-        .from('bookings')
-        .select('id, user_id, attended, users(name)')
-        .eq('instance_id', instance.id)
-        .eq('status', 'confirmed')
-        .order('created_at')
+  const { data: allBookings } = await supabase
+    .from('bookings')
+    .select('id, instance_id, user_id, attended, users(name)')
+    .in('instance_id', instanceIds)
+    .eq('status', 'confirmed')
+    .order('created_at')
 
-      const typedBookings = (bookings ?? []) as unknown as RawBooking[]
+  const typedBookings = (allBookings ?? []) as unknown as RawBooking[]
+  const bookingsByInstance = new Map<string, RawBooking[]>()
+  for (const b of typedBookings) {
+    const list = bookingsByInstance.get(b.instance_id) ?? []
+    list.push(b)
+    bookingsByInstance.set(b.instance_id, list)
+  }
 
-      return {
-        ...instance,
-        bookings: typedBookings.map(b => ({
-          id: b.id,
-          user_id: b.user_id,
-          attended: b.attended,
-          name: b.users?.name ?? 'Unknown',
-        })),
-      }
-    })
-  )
+  const result = instances.map(instance => ({
+    ...instance,
+    bookings: (bookingsByInstance.get(instance.id) ?? []).map(b => ({
+      id: b.id,
+      user_id: b.user_id,
+      attended: b.attended,
+      name: b.users?.name ?? 'Unknown',
+    })),
+  }))
 
   return NextResponse.json({ instances: result })
 }
