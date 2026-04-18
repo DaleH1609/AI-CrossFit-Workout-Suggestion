@@ -34,13 +34,19 @@ export function MovementIntelligencePanel() {
 
   useEffect(() => {
     const controller = new AbortController()
+    type AnalysisResponse = MovementAnalysis & { insufficient_data?: boolean; error?: string | boolean }
     fetch('/api/workouts/movement-analysis', { signal: controller.signal })
-      .then(r => r.json())
-      .then((data: MovementAnalysis & { insufficient_data?: boolean; error?: boolean }) => {
-        if (data.insufficient_data || data.error) {
+      .then(async (r): Promise<AnalysisResponse | { error: true }> => {
+        if (!r.ok) return { error: true }
+        return r.json() as Promise<AnalysisResponse>
+      })
+      .then((data) => {
+        if ('insufficient_data' in data && data.insufficient_data) {
+          setState({ status: 'hidden' })
+        } else if (data.error) {
           setState({ status: 'hidden' })
         } else {
-          setState({ status: 'ready', data })
+          setState({ status: 'ready', data: data as MovementAnalysis })
         }
       })
       .catch((err: Error) => {

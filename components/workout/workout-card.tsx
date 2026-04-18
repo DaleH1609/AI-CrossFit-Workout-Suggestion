@@ -29,30 +29,29 @@ export function WorkoutCard({ day, onEditScaling, isToday }: { day: WorkoutDay; 
       </div>
       {day.scaling && (
         <div className="mt-4 pt-3 border-t border-border">
-          <button
-            type="button"
-            onClick={() => setScalingOpen(o => !o)}
-            className="w-full flex items-center justify-between py-1 text-secondary hover:text-foreground transition-colors"
-          >
-            <span className="text-xs font-semibold uppercase tracking-wider">Scaling</span>
-            <div className="flex items-center gap-2">
-              {onEditScaling && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={e => { e.stopPropagation(); onEditScaling() }}
-                  onKeyDown={e => e.key === 'Enter' && (e.stopPropagation(), onEditScaling())}
-                  className="text-xs text-accent hover:text-foreground transition-colors cursor-pointer"
-                >
-                  Edit
-                </span>
-              )}
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
+          <div className="flex items-center justify-between gap-2 text-secondary">
+            <button
+              type="button"
+              onClick={() => setScalingOpen(o => !o)}
+              aria-expanded={scalingOpen}
+              className="flex-1 flex items-center justify-between py-1 hover:text-foreground transition-colors text-left"
+            >
+              <span className="text-xs font-semibold uppercase tracking-wider">Scaling</span>
+              <svg aria-hidden="true" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
                 className={`transition-transform duration-200 ${scalingOpen ? 'rotate-180' : ''}`}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
-            </div>
-          </button>
+            </button>
+            {onEditScaling && (
+              <button
+                type="button"
+                onClick={onEditScaling}
+                className="text-xs text-accent hover:text-foreground transition-colors"
+              >
+                Edit
+              </button>
+            )}
+          </div>
           {scalingOpen && (
             <div className="mt-3 space-y-3">
               <div>

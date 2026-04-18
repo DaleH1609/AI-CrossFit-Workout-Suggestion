@@ -4,7 +4,7 @@ import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { sendWorkoutsPublishedEmail } from '@/lib/email/send'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { z } from '@/lib/validation/z'
-import { parseBody, jsonServerError } from '@/lib/api/response'
+import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 const schema = z.object({ weekId: z.uuid() })
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   const { data: draft } = await supabase.from('workout_weeks')
     .select('id, week_start').eq('id', weekId).eq('gym_id', gymId).eq('status', 'draft').single()
 
-  if (!draft) return NextResponse.json({ error: 'Draft week not found' }, { status: 404 })
+  if (!draft) return jsonError('Draft week not found', 404)
 
   const admin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,5 +63,5 @@ export async function POST(req: Request) {
     console.error('[workouts/approve] notification failed', err)
   }
 
-  return NextResponse.json({ success: true, emailStats })
+  return jsonOk({ success: true, emailStats })
 }

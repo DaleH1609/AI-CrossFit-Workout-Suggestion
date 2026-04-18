@@ -72,8 +72,8 @@ export function ClassSlotInline({ instance, confirmedCount, userBooking }: Class
           )}
           {isBooked && (
             <span className={`text-xs font-medium ${
-              status === 'confirmed' ? 'text-green-400'
-              : status === 'waitlisted' ? 'text-yellow-400'
+              status === 'confirmed' ? 'text-success'
+              : status === 'waitlisted' ? 'text-warning'
               : 'text-secondary'
             }`}>
               {status === 'confirmed' ? '✓ Booked' : status === 'waitlisted' ? 'Waitlisted' : 'Pending'}

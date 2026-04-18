@@ -1,7 +1,7 @@
 // app/api/workouts/[weekId]/extras/route.ts
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import type { WorkoutDay, WorkoutExtra } from '@/lib/types'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 export async function PATCH(
   req: Request,
@@ -11,10 +11,16 @@ export async function PATCH(
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { dayName, extras }: { dayName: string; extras: WorkoutExtra[] } = await req.json()
+  let body: { dayName?: string; extras?: WorkoutExtra[] }
+  try {
+    body = await req.json()
+  } catch {
+    return jsonError('Invalid JSON body')
+  }
+  const { dayName, extras } = body
 
-  if (!dayName || !Array.isArray(extras)) {
-    return NextResponse.json({ error: 'dayName and extras are required' }, { status: 400 })
+  if (!dayName || typeof dayName !== 'string' || !Array.isArray(extras)) {
+    return jsonError('dayName and extras are required')
   }
 
   const { data: week, error: fetchError } = await supabase
@@ -25,13 +31,13 @@ export async function PATCH(
     .single()
 
   if (fetchError || !week) {
-    return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+    return jsonError('Week not found', 404)
   }
 
   const workouts: WorkoutDay[] = week.workouts as WorkoutDay[]
   const idx = workouts.findIndex(d => d.day === dayName)
   if (idx === -1) {
-    return NextResponse.json({ error: `Day "${dayName}" not found in this week` }, { status: 404 })
+    return jsonError(`Day "${dayName}" not found in this week`, 404)
   }
 
   const updatedWorkouts = [...workouts]
@@ -45,8 +51,8 @@ export async function PATCH(
     .single()
 
   if (updateError || !saved) {
-    return NextResponse.json({ error: updateError?.message ?? 'Update failed' }, { status: 500 })
+    return jsonServerError('workouts/[weekId]/extras PATCH', updateError)
   }
 
-  return NextResponse.json({ workouts: saved.workouts })
+  return jsonOk({ workouts: saved.workouts })
 }

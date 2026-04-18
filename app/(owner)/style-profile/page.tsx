@@ -225,7 +225,7 @@ export default function StyleProfilePage() {
           <Button onClick={handleAdd} disabled={!newText.trim() || adding}>
             {adding ? (
               <span className="flex items-center gap-2">
-                <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
@@ -260,7 +260,7 @@ export default function StyleProfilePage() {
                 className="shrink-0 flex items-center gap-2 text-sm text-accent border border-border rounded-btn px-4 py-2 hover:border-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
               >
                 {generating && (
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>

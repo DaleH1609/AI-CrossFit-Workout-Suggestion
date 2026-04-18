@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { z } from '@/lib/validation/z'
+import { parseBody, jsonOk, jsonServerError } from '@/lib/api/response'
 
 const DEFAULT_WOD_COLOR = '#eab308'
+// Accept 3- or 6-digit hex colors (with optional alpha) — lenient but stops obvious garbage.
+const COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
 
 export async function GET() {
   const auth = await requireOwnerAuth()
@@ -22,80 +26,88 @@ export async function GET() {
       .insert({ gym_id: userData.gym_id, name: 'WOD', color: DEFAULT_WOD_COLOR })
       .select('id, name, color')
       .single()
-    return NextResponse.json({ classTypes: seeded ? [seeded] : [] })
+    return jsonOk({ classTypes: seeded ? [seeded] : [] })
   }
 
-  return NextResponse.json({ classTypes: types })
+  return jsonOk({ classTypes: types })
 }
+
+const postSchema = z.object({
+  name: z.string({ min: 1, max: 40, trim: true }),
+  color: z.string({ pattern: COLOR_RE }).optional(),
+})
 
 export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { name, color } = await req.json()
-
-  if (!name?.trim()) {
-    return NextResponse.json({ error: 'Name is required' }, { status: 400 })
-  }
+  const parsed = await parseBody(req, postSchema)
+  if (parsed instanceof NextResponse) return parsed
 
   const { data, error } = await supabase
     .from('class_types')
-    .insert({ gym_id: userData.gym_id, name: name.trim(), color: color || DEFAULT_WOD_COLOR })
+    .insert({ gym_id: userData.gym_id, name: parsed.name, color: parsed.color ?? DEFAULT_WOD_COLOR })
     .select('id, name, color')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ classType: data })
+  if (error) return jsonServerError('class-types POST', error)
+  return jsonOk({ classType: data })
 }
+
+const patchSchema = z.object({
+  id: z.uuid(),
+  name: z.string({ min: 1, max: 40, trim: true }).optional(),
+  color: z.string({ pattern: COLOR_RE }).optional(),
+})
 
 export async function PATCH(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { id, name, color } = await req.json()
-
-  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+  const parsed = await parseBody(req, patchSchema)
+  if (parsed instanceof NextResponse) return parsed
 
   const updates: Record<string, string> = {}
-  if (name !== undefined) updates.name = String(name).trim() || 'WOD'
-  if (color !== undefined) updates.color = color
+  if (parsed.name !== undefined) updates.name = parsed.name || 'WOD'
+  if (parsed.color !== undefined) updates.color = parsed.color
 
   const { data, error } = await supabase
     .from('class_types')
     .update(updates)
-    .eq('id', id)
+    .eq('id', parsed.id)
     .eq('gym_id', userData.gym_id)
     .select('id, name, color')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ classType: data })
+  if (error) return jsonServerError('class-types PATCH', error)
+  return jsonOk({ classType: data })
 }
+
+const deleteSchema = z.object({ id: z.uuid() })
 
 export async function DELETE(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { id } = await req.json()
-
-  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+  const parsed = await parseBody(req, deleteSchema)
+  if (parsed instanceof NextResponse) return parsed
 
   // Null out the FK on any templates using this type before deleting
   await supabase
     .from('class_slot_templates')
     .update({ class_type_id: null })
-    .eq('class_type_id', id)
+    .eq('class_type_id', parsed.id)
     .eq('gym_id', userData.gym_id)
 
   const { error } = await supabase
     .from('class_types')
     .delete()
-    .eq('id', id)
+    .eq('id', parsed.id)
     .eq('gym_id', userData.gym_id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ success: true })
+  if (error) return jsonServerError('class-types DELETE', error)
+  return jsonOk({ success: true })
 }

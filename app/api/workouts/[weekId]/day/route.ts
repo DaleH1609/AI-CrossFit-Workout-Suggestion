@@ -1,8 +1,8 @@
 // app/api/workouts/[weekId]/day/route.ts
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { generateDayScaling } from '@/lib/claude/generate-workouts'
 import type { WorkoutDay } from '@/lib/types'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 export const maxDuration = 60
 
@@ -14,10 +14,16 @@ export async function PATCH(
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { dayName, updatedDay, skipScaling }: { dayName: string; updatedDay: WorkoutDay; skipScaling?: boolean } = await req.json()
+  let body: { dayName?: string; updatedDay?: WorkoutDay; skipScaling?: boolean }
+  try {
+    body = await req.json()
+  } catch {
+    return jsonError('Invalid JSON body')
+  }
+  const { dayName, updatedDay, skipScaling } = body
 
-  if (!dayName || !updatedDay) {
-    return NextResponse.json({ error: 'dayName and updatedDay are required' }, { status: 400 })
+  if (!dayName || typeof dayName !== 'string' || !updatedDay || typeof updatedDay !== 'object') {
+    return jsonError('dayName and updatedDay are required')
   }
 
   // Fetch the week, verifying gym ownership — only draft weeks may be edited
@@ -30,14 +36,14 @@ export async function PATCH(
     .single()
 
   if (fetchError || !week) {
-    return NextResponse.json({ error: 'Week not found or is not a draft' }, { status: 404 })
+    return jsonError('Week not found or is not a draft', 404)
   }
 
   // Replace the matching day in the workouts JSONB array
   const workouts: WorkoutDay[] = week.workouts as WorkoutDay[]
   const idx = workouts.findIndex(d => d.day === dayName)
   if (idx === -1) {
-    return NextResponse.json({ error: `Day "${dayName}" not found in this week` }, { status: 404 })
+    return jsonError(`Day "${dayName}" not found in this week`, 404)
   }
 
   // Regenerate scaling unless the client provided manual scaling
@@ -61,8 +67,8 @@ export async function PATCH(
     .single()
 
   if (updateError || !saved) {
-    return NextResponse.json({ error: updateError?.message ?? 'Update failed' }, { status: 500 })
+    return jsonServerError('workouts/[weekId]/day PATCH', updateError)
   }
 
-  return NextResponse.json({ workouts: saved.workouts })
+  return jsonOk({ workouts: saved.workouts })
 }

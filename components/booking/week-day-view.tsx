@@ -43,8 +43,14 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
 
   return (
     <div>
-      {/* Day pill selector */}
-      <div className="flex gap-2 mb-8 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      {/* Day pill selector — horizontally scrollable with a fade-right affordance */}
+      <div className="relative mb-8">
+      <div
+        className="flex gap-2 overflow-x-auto pb-1"
+        style={{ scrollbarWidth: 'none' }}
+        role="tablist"
+        aria-label="Scroll horizontally for more days"
+      >
         {DAY_NAMES.map((dayName, i) => {
           const dayDate = new Date(weekStart)
           dayDate.setDate(dayDate.getDate() + i)
@@ -74,13 +80,18 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
               <span className={`text-lg font-bold tabular-nums leading-tight mt-0.5 ${
                 isSelected ? 'text-accent' : isDayToday ? 'text-foreground' : 'text-foreground-70'
               }`}>{dayDate.getDate()}</span>
-              {/* Dot: green if booked, dim if just has classes */}
-              <span className={`w-1.5 h-1.5 rounded-full mt-1 transition-colors ${
-                hasBooking ? 'bg-green-400' : hasClasses ? 'bg-accent-40' : 'bg-transparent'
+              {/* Dot: success if booked, dim if just has classes */}
+              <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full mt-1 transition-colors ${
+                hasBooking ? 'bg-success' : hasClasses ? 'bg-accent-40' : 'bg-transparent'
               }`} />
             </button>
           )
         })}
+      </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-background to-transparent"
+        />
       </div>
 
       {/* Selected day content */}

@@ -4,7 +4,7 @@ import { requireMemberAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { sendBookingConfirmed, sendBookingCancelled } from '@/lib/email/send'
 import { z } from '@/lib/validation/z'
-import { parseBody, jsonServerError } from '@/lib/api/response'
+import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 const postSchema = z.object({ instanceId: z.uuid() })
 const deleteSchema = z.object({ bookingId: z.uuid() })
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     supabase.from('gyms').select('cancellation_cutoff_hours, waitlist_enabled, booking_advance_hours, notify_booking_confirmed, contact_email').eq('id', userData.gym_id).single(),
   ])
 
-  if (!instance) return NextResponse.json({ error: 'Class not found' }, { status: 404 })
+  if (!instance) return jsonError('Class not found', 404)
 
   const gym = gymRaw as unknown as GymSettings | null
   const bookingAdvanceHours: number = gym?.booking_advance_hours ?? 0
@@ -56,10 +56,7 @@ export async function POST(req: Request) {
     const windowMs = bookingAdvanceHours * 60 * 60 * 1000
     const opensAt = new Date(new Date(instance.starts_at).getTime() - windowMs)
     if (Date.now() < opensAt.getTime()) {
-      return NextResponse.json(
-        { error: `Bookings open ${bookingAdvanceHours} hours before class`, opensAt: opensAt.toISOString() },
-        { status: 400 }
-      )
+      return jsonError(`Bookings open ${bookingAdvanceHours} hours before class`)
     }
   }
 
@@ -78,35 +75,37 @@ export async function POST(req: Request) {
     .maybeSingle()
 
   if (sameSlot) {
-    return NextResponse.json(
-      { error: 'You already have a booking at this time' },
-      { status: 409 }
-    )
+    return jsonError('You already have a booking at this time', 409)
   }
 
-  // Count confirmed bookings
-  const { count } = await supabase.from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('instance_id', instanceId).in('status', ['confirmed', 'pending_confirmation'])
+  // Count confirmed + waitlisted together in a single round-trip — we need
+  // both numbers, but two separate count queries doubled the DB hops on the
+  // hot booking path. One fetch, bucket in JS, same result.
+  const { data: statusRows } = await supabase.from('bookings')
+    .select('status')
+    .eq('instance_id', instanceId)
+    .in('status', ['confirmed', 'pending_confirmation', 'waitlisted'])
 
-  const isFull = (count ?? 0) >= instance.capacity
+  let confirmedCount = 0
+  let waitlistCount = 0
+  for (const row of (statusRows ?? []) as { status: string }[]) {
+    if (row.status === 'waitlisted') waitlistCount++
+    else confirmedCount++
+  }
+
+  const isFull = confirmedCount >= instance.capacity
 
   if (isFull && !waitlistEnabled) {
-    return NextResponse.json({ error: 'Class is full' }, { status: 400 })
+    return jsonError('Class is full')
   }
 
-  // Count waitlist size
-  const { count: waitlistCount } = await supabase.from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('instance_id', instanceId).eq('status', 'waitlisted')
-
   const maxWaitlist = 10
-  if (isFull && (waitlistCount ?? 0) >= maxWaitlist) {
-    return NextResponse.json({ error: 'Waitlist is full' }, { status: 400 })
+  if (isFull && waitlistCount >= maxWaitlist) {
+    return jsonError('Waitlist is full')
   }
 
   const status = isFull ? 'waitlisted' : 'confirmed'
-  const waitlist_position = isFull ? (waitlistCount ?? 0) + 1 : null
+  const waitlist_position = isFull ? waitlistCount + 1 : null
 
   // Check for an existing cancelled booking (unique constraint on instance_id+user_id)
   const { data: existing } = await supabase.from('bookings')
@@ -140,7 +139,7 @@ export async function POST(req: Request) {
       await supabase.from('bookings')
         .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
         .eq('id', booking.id)
-      return NextResponse.json({ error: 'Class is full' }, { status: 400 })
+      return jsonError('Class is full')
     }
   }
 
@@ -154,7 +153,7 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ booking })
+  return jsonOk({ booking })
 }
 
 export async function DELETE(req: Request) {
@@ -170,24 +169,22 @@ export async function DELETE(req: Request) {
     .select('id, class_instances(starts_at, id)')
     .eq('id', bookingId).eq('user_id', user.id).eq('gym_id', userData.gym_id).single<BookingWithInstance>()
 
-  if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+  if (!booking) return jsonError('Booking not found', 404)
 
   const instance = booking.class_instances
 
   // Check gym's cancellation cutoff + contact email
   const { data: gymRaw } = await supabase.from('gyms')
-    .select('cancellation_cutoff_hours, contact_email').eq('id', userData.gym_id).single()
-  const gymData = gymRaw as unknown as { cancellation_cutoff_hours: number; contact_email: string | null } | null
+    .select('cancellation_cutoff_hours, contact_email, timezone').eq('id', userData.gym_id).single()
+  const gymData = gymRaw as unknown as { cancellation_cutoff_hours: number; contact_email: string | null; timezone: string | null } | null
   const cutoffHours: number = gymData?.cancellation_cutoff_hours ?? 0
   const contactEmail: string | null = gymData?.contact_email ?? null
+  const timezone: string = gymData?.timezone ?? 'UTC'
 
   if (cutoffHours > 0) {
     const cutoffMs = cutoffHours * 60 * 60 * 1000
     if (Date.now() > new Date(instance.starts_at).getTime() - cutoffMs) {
-      return NextResponse.json(
-        { error: `Cancellations close ${cutoffHours} hour${cutoffHours !== 1 ? 's' : ''} before class` },
-        { status: 400 }
-      )
+      return jsonError(`Cancellations close ${cutoffHours} hour${cutoffHours !== 1 ? 's' : ''} before class`)
     }
   }
 
@@ -205,7 +202,7 @@ export async function DELETE(req: Request) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
-  await promoteNextWaitlistMember(supabase, instance.id, instance.starts_at, appUrl)
+  await promoteNextWaitlistMember(supabase, instance.id, instance.starts_at, appUrl, timezone)
 
-  return NextResponse.json({ success: true })
+  return jsonOk({ success: true })
 }

@@ -12,7 +12,7 @@ interface ClassTileProps {
 
 function CapacityBar({ count, capacity }: { count: number; capacity: number }) {
   const pct = Math.min((count / capacity) * 100, 100)
-  const barColor = pct < 60 ? 'bg-green-400' : pct < 85 ? 'bg-yellow-400' : 'bg-danger'
+  const barColor = pct < 60 ? 'bg-success' : pct < 85 ? 'bg-warning' : 'bg-danger'
   const textColor = pct >= 100 ? 'text-danger' : 'text-secondary'
 
   return (
@@ -92,8 +92,8 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
           {isBooked ? (
             <>
               <span className={`text-xs font-medium ${
-                status === 'confirmed' ? 'text-green-400'
-                : status === 'waitlisted' ? 'text-yellow-400'
+                status === 'confirmed' ? 'text-success'
+                : status === 'waitlisted' ? 'text-warning'
                 : 'text-secondary'
               }`}>
                 {status === 'confirmed' ? '✓ Booked' : status === 'waitlisted' ? 'Waitlisted' : 'Pending'}

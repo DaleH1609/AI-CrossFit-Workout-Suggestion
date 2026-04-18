@@ -11,7 +11,7 @@ const nav = [
     href: '/this-week',
     label: 'This Week',
     icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <svg aria-hidden="true" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
         <rect x="3" y="4" width="18" height="18" rx="2" />
         <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" />
       </svg>
@@ -21,7 +21,7 @@ const nav = [
     href: '/my-schedule',
     label: 'Schedule',
     icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <svg aria-hidden="true" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
         <circle cx="12" cy="12" r="9" />
         <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -31,7 +31,7 @@ const nav = [
     href: '/profile',
     label: 'Profile',
     icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <svg aria-hidden="true" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
         <circle cx="12" cy="8" r="4" />
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
       </svg>
@@ -92,7 +92,7 @@ export function MemberNav() {
             onClick={signOut}
             className="flex-1 flex flex-col items-center gap-1 py-3 text-secondary"
           >
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+            <svg aria-hidden="true" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
               <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-[10px] tracking-wide">Sign Out</span>

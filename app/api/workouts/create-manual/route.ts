@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -11,9 +11,20 @@ export async function POST(req: Request) {
   const { userData } = auth
   const gymId = userData.gym_id
 
-  const { weekStart } = await req.json()
-  if (!weekStart || typeof weekStart !== 'string') {
-    return NextResponse.json({ error: 'weekStart is required' }, { status: 400 })
+  let body: { weekStart?: unknown }
+  try {
+    body = await req.json()
+  } catch {
+    return jsonError('Invalid JSON body')
+  }
+  const { weekStart } = body
+  if (!weekStart || typeof weekStart !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+    return jsonError('weekStart must be YYYY-MM-DD')
+  }
+  // Must be a Monday
+  const weekStartDate = new Date(weekStart + 'T00:00:00Z')
+  if (Number.isNaN(weekStartDate.getTime()) || weekStartDate.getUTCDay() !== 1) {
+    return jsonError('weekStart must be a Monday')
   }
 
   const workouts = DAYS.map(day => ({
@@ -33,7 +44,7 @@ export async function POST(req: Request) {
     p_workouts: workouts,
   })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return jsonServerError('workouts/create-manual save_workout_draft', error)
 
   const { data: savedWeek } = await admin.from('workout_weeks')
     .select('id, workouts, status')
@@ -44,5 +55,5 @@ export async function POST(req: Request) {
     .limit(1)
     .maybeSingle()
 
-  return NextResponse.json({ week: savedWeek ?? { workouts, status: 'draft' } })
+  return jsonOk({ week: savedWeek ?? { workouts, status: 'draft' } })
 }

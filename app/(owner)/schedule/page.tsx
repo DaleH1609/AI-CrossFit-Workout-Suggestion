@@ -266,7 +266,7 @@ export default function SchedulePage() {
                         <span className="text-secondary text-xs tabular-nums">
                           {confirmedCount} / {instance.capacity}
                         </span>
-                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
+                        <svg aria-hidden="true" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
                           className={`text-secondary transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -281,12 +281,21 @@ export default function SchedulePage() {
                             <div key={booking.id} className="flex items-center justify-between py-0.5">
                               <span className="text-foreground text-sm">{booking.name}</span>
                               <button
+                                type="button"
                                 onClick={() => handleAttendanceToggle(booking.id, booking.attended)}
+                                aria-pressed={booking.attended === true}
+                                aria-label={`${booking.name} attendance — ${
+                                  booking.attended === true
+                                    ? 'attended'
+                                    : booking.attended === false
+                                    ? 'no-show'
+                                    : 'not marked'
+                                }`}
                                 className={`px-3 py-1 rounded-btn text-xs font-medium border transition-colors active:scale-[0.97] ${
                                   booking.attended === true
-                                    ? 'bg-green-500/20 border-green-600/40 text-green-400'
+                                    ? 'bg-success-20 border-success-40 text-success'
                                     : booking.attended === false
-                                    ? 'bg-red-500/20 border-red-700/40 text-red-400'
+                                    ? 'bg-danger-20 border-danger-40 text-danger'
                                     : 'bg-surface border-border text-secondary hover:text-foreground'
                                 }`}
                               >

@@ -1,9 +1,9 @@
 // app/api/workouts/generate/route.ts
 import { generateWorkouts, generateScaling } from '@/lib/claude/generate-workouts'
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 // Task 4: simple in-memory rate limit — max 3 requests per gym per minute
 const rateLimitMap = new Map<string, number[]>()
@@ -28,18 +28,24 @@ export async function POST(req: Request) {
   const gymId = userData.gym_id
 
   if (isRateLimited(gymId)) {
-    return NextResponse.json({ error: 'Too many requests. Please wait before generating again.' }, { status: 429 })
+    return jsonError('Too many requests. Please wait before generating again.', 429)
   }
 
-  const { weekStart } = await req.json()
+  let body: { weekStart?: unknown }
+  try {
+    body = await req.json()
+  } catch {
+    return jsonError('Invalid JSON body')
+  }
+  const { weekStart } = body
   if (!weekStart || typeof weekStart !== 'string') {
-    return NextResponse.json({ error: 'weekStart is required' }, { status: 400 })
+    return jsonError('weekStart is required')
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
-    return NextResponse.json({ error: 'weekStart must be YYYY-MM-DD' }, { status: 400 })
+    return jsonError('weekStart must be YYYY-MM-DD')
   }
   if (new Date(weekStart + 'T12:00:00Z').getUTCDay() !== 1) {
-    return NextResponse.json({ error: 'weekStart must be a Monday' }, { status: 400 })
+    return jsonError('weekStart must be a Monday')
   }
 
   // Get gym row (including gym_type)
@@ -62,8 +68,7 @@ export async function POST(req: Request) {
   try {
     workouts = await generateWorkouts(styleTexts, historyWeeks, gymType)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Generation failed'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return jsonServerError('workouts/generate generateWorkouts', err)
   }
 
 
@@ -102,7 +107,7 @@ export async function POST(req: Request) {
     p_workouts: workouts,
   })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return jsonServerError('workouts/generate save_workout_draft', error)
 
   // Fetch the saved row so the client gets the real DB id
   const { data: savedWeek } = await admin.from('workout_weeks')
@@ -114,5 +119,5 @@ export async function POST(req: Request) {
     .limit(1)
     .maybeSingle()
 
-  return NextResponse.json({ week: savedWeek ?? { workouts, status: 'draft' } })
+  return jsonOk({ week: savedWeek ?? { workouts, status: 'draft' } })
 }

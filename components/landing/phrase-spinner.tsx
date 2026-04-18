@@ -156,7 +156,7 @@ export function PhraseSpinner() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[9px] tracking-[0.18em] uppercase text-secondary/40 flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
           style={{ transition: 'opacity 0.5s' }}
         >
-          <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+          <svg aria-hidden="true" width="10" height="12" viewBox="0 0 10 12" fill="none">
             <path d="M5 1v8M5 9l-3-3M5 9l3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Keep scrolling

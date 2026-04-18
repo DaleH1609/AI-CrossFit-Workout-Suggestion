@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 // Cron can be slow on large gyms; allow up to 5 minutes.
 export const maxDuration = 300
@@ -8,7 +8,7 @@ export const maxDuration = 300
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return jsonError('Unauthorized', 401)
   }
 
   const supabase = createAdminClient(
@@ -24,32 +24,36 @@ export async function GET(req: Request) {
     .eq('status', 'pending_confirmation')
     .lt('confirmation_expires_at', now)
 
-  if (error) {
-    console.error('[cron/waitlist-expire] fetch expired failed', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+  if (error) return jsonServerError('cron/waitlist-expire fetch expired', error)
 
   if (!expiredBookings || expiredBookings.length === 0) {
-    return NextResponse.json({ processed: 0, promoted: 0, skipped: 0 })
+    return jsonOk({ processed: 0, promoted: 0, skipped: 0 })
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
-  // Batch-fetch all instance start times (fixes N+1)
+  // Batch-fetch all instance start times + gym timezone (fixes N+1)
   const instanceIds = Array.from(new Set(expiredBookings.map(b => b.instance_id)))
   const { data: instances, error: instErr } = await supabase
     .from('class_instances')
-    .select('id, starts_at')
+    .select('id, starts_at, gyms(timezone)')
     .in('id', instanceIds)
 
-  if (instErr) {
-    console.error('[cron/waitlist-expire] fetch instances failed', instErr)
-    return NextResponse.json({ error: instErr.message }, { status: 500 })
-  }
+  if (instErr) return jsonServerError('cron/waitlist-expire fetch instances', instErr)
 
-  const instanceMap = new Map<string, string>()
-  for (const inst of instances ?? []) {
-    if (inst?.id && inst?.starts_at) instanceMap.set(inst.id as string, inst.starts_at as string)
+  interface InstanceRow {
+    id?: string
+    starts_at?: string
+    gyms?: { timezone?: string } | { timezone?: string }[] | null
+  }
+  const instanceMap = new Map<string, { startsAt: string; timezone: string }>()
+  for (const inst of (instances ?? []) as InstanceRow[]) {
+    if (!inst?.id || !inst?.starts_at) continue
+    const gymRel = Array.isArray(inst.gyms) ? inst.gyms[0] : inst.gyms
+    instanceMap.set(inst.id, {
+      startsAt: inst.starts_at,
+      timezone: gymRel?.timezone ?? 'UTC',
+    })
   }
 
   let processed = 0
@@ -86,8 +90,8 @@ export async function GET(req: Request) {
         continue
       }
 
-      const startsAt = instanceMap.get(booking.instance_id)
-      if (!startsAt) {
+      const instInfo = instanceMap.get(booking.instance_id)
+      if (!instInfo) {
         // Instance missing — can't promote, but cancel already happened.
         processed++
         continue
@@ -96,8 +100,9 @@ export async function GET(req: Request) {
       const result = await promoteNextWaitlistMember(
         supabase,
         booking.instance_id,
-        startsAt,
-        appUrl
+        instInfo.startsAt,
+        appUrl,
+        instInfo.timezone,
       )
       if (result.promoted) promoted++
       processed++
@@ -110,7 +115,7 @@ export async function GET(req: Request) {
     console.error('[cron/waitlist-expire] partial failures', errors)
   }
 
-  return NextResponse.json({
+  return jsonOk({
     processed,
     promoted,
     skipped,

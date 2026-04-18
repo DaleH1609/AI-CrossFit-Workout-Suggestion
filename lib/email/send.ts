@@ -26,7 +26,14 @@ function getResend(): Resend {
 }
 
 function getFrom() {
-  return process.env.RESEND_FROM_EMAIL ?? 'noreply@yourgym.com'
+  const addr = process.env.RESEND_FROM_EMAIL
+  if (!addr) {
+    // Fail loud rather than sending from a placeholder domain that Resend
+    // will reject anyway. Every environment that sends email must configure
+    // RESEND_FROM_EMAIL to a verified sender on their Resend account.
+    throw new Error('RESEND_FROM_EMAIL is not configured')
+  }
+  return addr
 }
 
 function withReplyTo(contactEmail: string | null | undefined): Record<string, string> {

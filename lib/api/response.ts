@@ -7,9 +7,17 @@
 import { NextResponse } from 'next/server'
 import type { Validator, Result } from '@/lib/validation/z'
 
-/** Success envelope: `{ data }`. */
+/**
+ * Success response.
+ *
+ * Passes the caller's shape through unchanged (no envelope wrapping). We kept
+ * the pre-existing per-route response shapes (`{ booking }`, `{ templates }`,
+ * `{ instances }`, etc.) so that every frontend caller continues to work.
+ * Going through this helper instead of `NextResponse.json` directly gives us a
+ * single seam for adding headers, logging, or an envelope migration later.
+ */
 export function jsonOk<T>(data: T, init?: ResponseInit) {
-  return NextResponse.json({ data }, init)
+  return NextResponse.json(data, init)
 }
 
 /** User-facing error: `{ error: string }` with a status code. */

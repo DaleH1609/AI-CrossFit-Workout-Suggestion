@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { jsonOk, jsonServerError } from '@/lib/api/response'
 
 function monthStartUTC(year: number, month: number, tz: string): string {
   // Use sv-SE locale trick: format a reference date (2nd of month, noon UTC) in the target TZ
@@ -36,7 +36,7 @@ export async function GET() {
     .single()
 
   if (gymError) {
-    return NextResponse.json({ error: 'Failed to fetch gym' }, { status: 500 })
+    return jsonServerError('members/attendance gyms', gymError)
   }
 
   const tz = gymData?.timezone ?? 'UTC'
@@ -69,7 +69,7 @@ export async function GET() {
     .lt('class_instances.starts_at', monthEnd)
 
   if (bookingsError) {
-    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 })
+    return jsonServerError('members/attendance bookings', bookingsError)
   }
 
   // 4. Fetch active members (role = 'member', revoked_at IS NULL)
@@ -81,7 +81,7 @@ export async function GET() {
     .is('revoked_at', null)
 
   if (membersError) {
-    return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 })
+    return jsonServerError('members/attendance members', membersError)
   }
 
   const activeMemberSet = new Set<string>(
@@ -98,5 +98,5 @@ export async function GET() {
   }
 
   // 6. Return the map
-  return NextResponse.json({ attendance })
+  return jsonOk({ attendance })
 }

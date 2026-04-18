@@ -1,7 +1,8 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import type { WorkoutDay, WorkoutPart } from '@/lib/types'
+import { useWorkoutEditForm } from '@/lib/hooks/use-workout-edit-form'
 
 const PART_TYPES: WorkoutPart['type'][] = [
   'strength', 'interval', 'amrap', 'fortime', 'partner', 'emom', 'rest',
@@ -14,57 +15,26 @@ interface WorkoutEditModalProps {
   onClose: () => void
 }
 
-function structuredToFreeText(day: WorkoutDay): string {
-  const lines: string[] = []
-  if (day.descriptor) lines.push(day.descriptor, '')
-  for (const part of day.parts) {
-    const label = part.label ? `${part.label}: ` : ''
-    lines.push(`${label}${part.content}`)
-    lines.push('')
-  }
-  return lines.join('\n').trimEnd()
-}
-
-function freeTextToDay(text: string, original: WorkoutDay): WorkoutDay {
-  const blocks = text.split(/\n{2,}/).map(b => b.trim()).filter(Boolean)
-  let descriptor = original.descriptor ?? ''
-  let startIndex = 0
-
-  // Heuristic: if first block has no colon and no newline, treat as descriptor
-  if (blocks.length > 0 && !blocks[0].includes('\n') && !blocks[0].includes(':')) {
-    descriptor = blocks[0]
-    startIndex = 1
-  }
-
-  const parts: WorkoutPart[] = blocks.slice(startIndex).map(block => {
-    const colonIdx = block.indexOf(':')
-    if (colonIdx !== -1) {
-      return {
-        label: block.slice(0, colonIdx).trim() || null,
-        type: 'strength' as WorkoutPart['type'],
-        content: block.slice(colonIdx + 1).trim(),
-      }
-    }
-    return { label: null, type: 'strength' as WorkoutPart['type'], content: block }
-  })
-
-  return {
-    day: original.day,
-    descriptor,
-    parts: parts.length > 0 ? parts : [{ label: null, type: 'strength', content: '' }],
-  }
-}
-
 export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditModalProps) {
-  const [mode, setMode] = useState<'structured' | 'freetext'>('structured')
-  const [descriptor, setDescriptor] = useState(day.descriptor ?? '')
-  const [parts, setParts] = useState<WorkoutPart[]>(
-    day.parts.map(p => ({ ...p }))
-  )
-  const [freeText, setFreeText] = useState('')
-  const [warnSwitch, setWarnSwitch] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    mode,
+    descriptor,
+    setDescriptor,
+    parts,
+    freeText,
+    setFreeText,
+    warnSwitch,
+    setWarnSwitch,
+    saving,
+    error,
+    switchToFreeText,
+    switchToStructured,
+    addPart,
+    removePart,
+    movePart,
+    updatePart,
+    save,
+  } = useWorkoutEditForm({ day, weekId, onSave, onClose })
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -76,78 +46,6 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
     }
   }, [onClose, saving])
 
-  function switchToFreeText() {
-    const current: WorkoutDay = { day: day.day, descriptor, parts }
-    setFreeText(structuredToFreeText(current))
-    setMode('freetext')
-    setWarnSwitch(false)
-  }
-
-  function switchToStructured() {
-    if (!warnSwitch) {
-      setWarnSwitch(true)
-      return
-    }
-    const parsed = freeTextToDay(freeText, { day: day.day, descriptor, parts })
-    setDescriptor(parsed.descriptor ?? '')
-    setParts(parsed.parts)
-    setMode('structured')
-    setWarnSwitch(false)
-  }
-
-  function addPart() {
-    setParts(prev => [...prev, { label: null, type: 'strength', content: '' }])
-  }
-
-  function removePart(idx: number) {
-    if (parts.length <= 1) return
-    setParts(prev => prev.filter((_, i) => i !== idx))
-  }
-
-  function movePart(idx: number, dir: -1 | 1) {
-    const next = idx + dir
-    if (next < 0 || next >= parts.length) return
-    setParts(prev => {
-      const arr = [...prev]
-      ;[arr[idx], arr[next]] = [arr[next], arr[idx]]
-      return arr
-    })
-  }
-
-  function updatePart(idx: number, patch: Partial<WorkoutPart>) {
-    setParts(prev => prev.map((p, i) => i === idx ? { ...p, ...patch } : p))
-  }
-
-  async function handleSave() {
-    setSaving(true)
-    setError(null)
-
-    let updatedDay: WorkoutDay
-    if (mode === 'structured') {
-      updatedDay = { day: day.day, descriptor, parts }
-    } else {
-      updatedDay = freeTextToDay(freeText, { day: day.day, descriptor, parts })
-    }
-
-    const res = await fetch(`/api/workouts/${weekId}/day`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dayName: day.day, updatedDay }),
-    })
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      setError(data.error || 'Save failed')
-      setSaving(false)
-      return
-    }
-
-    const data = await res.json() as { workouts: WorkoutDay[] }
-    const savedDay = data.workouts?.find(d => d.day === updatedDay.day) ?? updatedDay
-    onSave(savedDay)
-    onClose()
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
@@ -158,6 +56,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
           <div className="flex items-center gap-3">
             {mode === 'structured' ? (
               <button
+                type="button"
                 className="text-sm text-secondary hover:text-foreground transition-colors"
                 onClick={switchToFreeText}
               >
@@ -165,13 +64,14 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
               </button>
             ) : (
               <button
+                type="button"
                 className="text-sm text-secondary hover:text-foreground transition-colors"
                 onClick={switchToStructured}
               >
                 Switch to structured
               </button>
             )}
-            <button className="text-secondary hover:text-foreground transition-colors text-lg leading-none" onClick={onClose}>
+            <button type="button" className="text-secondary hover:text-foreground transition-colors text-lg leading-none" onClick={onClose} aria-label="Close">
               ✕
             </button>
           </div>
@@ -182,7 +82,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
           <div className="px-6 pt-4 flex-shrink-0">
             <div className="bg-accent-10 border border-accent-40 rounded-btn px-4 py-3 flex items-center justify-between gap-4">
               <p className="text-accent text-sm">Switching back to structured may lose formatting. Click again to confirm.</p>
-              <button className="text-accent hover:text-foreground text-xs flex-shrink-0" onClick={() => setWarnSwitch(false)}>
+              <button type="button" className="text-accent hover:text-foreground text-xs flex-shrink-0" onClick={() => setWarnSwitch(false)}>
                 Dismiss
               </button>
             </div>
@@ -212,22 +112,27 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                     <span className="text-xs text-secondary uppercase tracking-wider">Part {idx + 1}</span>
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
                         className="text-secondary hover:text-foreground text-xs px-1 disabled:opacity-30"
                         onClick={() => movePart(idx, -1)}
                         disabled={idx === 0}
                         title="Move up"
+                        aria-label="Move part up"
                       >
                         ↑
                       </button>
                       <button
+                        type="button"
                         className="text-secondary hover:text-foreground text-xs px-1 disabled:opacity-30"
                         onClick={() => movePart(idx, 1)}
                         disabled={idx === parts.length - 1}
                         title="Move down"
+                        aria-label="Move part down"
                       >
                         ↓
                       </button>
                       <button
+                        type="button"
                         className="text-danger hover:text-foreground text-xs px-2 py-1 rounded border border-danger disabled:opacity-30 transition-colors"
                         onClick={() => removePart(idx)}
                         disabled={parts.length <= 1}
@@ -276,6 +181,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
               ))}
 
               <button
+                type="button"
                 className="w-full border border-dashed border-border rounded-btn py-2 text-secondary hover:text-foreground hover:border-accent text-sm transition-colors"
                 onClick={addPart}
               >
@@ -303,7 +209,7 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
           </div>
           <div className="flex gap-3">
             <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={save} disabled={saving}>
               {saving ? 'Saving…' : 'Save Changes'}
             </Button>
           </div>

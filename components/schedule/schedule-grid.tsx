@@ -618,7 +618,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                       </div>
                       {/* Actions */}
                       <div className="flex items-center gap-2 ml-auto pb-0.5">
-                        {editState.saved && <span className="text-[10px] text-green-400">✓ Saved</span>}
+                        {editState.saved && <span className="text-[10px] text-success">✓ Saved</span>}
                         {editState.error && <span className="text-[10px] text-danger">{editState.error}</span>}
                         <button
                           onClick={() => callDelete(editState.templateId)}

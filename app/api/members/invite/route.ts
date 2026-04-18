@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   const rawEmail = body?.email
 
   if (typeof rawEmail !== 'string' || !EMAIL_RE.test(rawEmail.trim())) {
-    return NextResponse.json({ error: 'A valid email address is required' }, { status: 400 })
+    return jsonError('A valid email address is required')
   }
 
   // Normalize to lowercase so 'John@x.com' and 'john@x.com' are the same member.
@@ -36,17 +36,15 @@ export async function POST(req: Request) {
     .maybeSingle()
 
   if (existingByEmail && existingByEmail.gym_id !== userData.gym_id) {
-    return NextResponse.json(
-      { error: 'This email is already registered at another gym' },
-      { status: 409 }
-    )
+    return jsonError('This email is already registered at another gym', 409)
   }
 
   // Supabase sends its own invite email with the magic link.
   const { data: inviteData, error } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${process.env.NEXT_PUBLIC_APP_URL?.trim()}/invite`,
   })
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+  // Don't leak Supabase error details (could reveal whether an email already exists).
+  if (error) return jsonError('Unable to send invite. Please try again.')
 
   // Create user row (upsert in case they were previously deleted from users but
   // Auth account persists). Re-assert gym_id here so a rejoin clears any prior
@@ -56,7 +54,7 @@ export async function POST(req: Request) {
     { onConflict: 'id' }
   )
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+  if (insertError) return jsonServerError('members/invite users.upsert', insertError)
 
-  return NextResponse.json({ success: true })
+  return jsonOk({ success: true })
 }

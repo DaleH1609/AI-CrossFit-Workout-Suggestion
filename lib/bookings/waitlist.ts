@@ -1,5 +1,6 @@
 // lib/bookings/waitlist.ts
 import { sendWaitlistPromotion } from '@/lib/email/send'
+import { signToken } from '@/lib/crypto/token'
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000
 
@@ -64,7 +65,9 @@ export async function promoteNextWaitlistMember(
   supabase: unknown,
   instanceId: string,
   startsAt: string,
-  appUrl: string
+  appUrl: string,
+  /** IANA timezone for formatting date/time in the email (defaults to UTC). */
+  timezone?: string
 ): Promise<PromotionResult> {
   if (shouldSkipPromotion(startsAt)) {
     return { promoted: false, reason: 'too-close' }
@@ -85,8 +88,20 @@ export async function promoteNextWaitlistMember(
   if (!next) return { promoted: false, reason: 'no-waitlist' }
 
   const windowMs = getConfirmationWindow(startsAt)
-  const expiresAt = new Date(Date.now() + windowMs).toISOString()
-  const token = crypto.randomUUID()
+  const expiresAtMs = Date.now() + windowMs
+  const expiresAt = new Date(expiresAtMs).toISOString()
+  // HMAC-signed token: lets us verify integrity on the confirm endpoint without
+  // a plain equality lookup. If the signing secret isn't configured we fall
+  // back to a random UUID so the app doesn't break on first deploy — but the
+  // secret should always be set in production.
+  const token = (() => {
+    try {
+      return signToken(next.id, expiresAtMs)
+    } catch (err) {
+      console.error('[waitlist] signToken failed, falling back to UUID', err)
+      return crypto.randomUUID()
+    }
+  })()
 
   // Atomic claim: only promote if still 'waitlisted'. If a concurrent caller
   // already flipped it, rows.length === 0 and we bail out cleanly.
@@ -119,8 +134,24 @@ export async function promoteNextWaitlistMember(
 
   const confirmUrl = `${appUrl}/api/bookings/confirm/${token}`
   const expiresIn = windowMs >= TWO_HOURS_MS ? '2 hours' : 'before the class starts'
-  const classDate = new Date(startsAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-  const classTime = new Date(startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  // Format the class time in the gym's timezone. Falls back to UTC if the
+  // caller didn't pass one or if the IANA zone is rejected by the runtime.
+  const tz = timezone || 'UTC'
+  const safeFormat = (opts: Intl.DateTimeFormatOptions, fallback: () => string) => {
+    try {
+      return new Intl.DateTimeFormat('en-US', { timeZone: tz, ...opts }).format(new Date(startsAt))
+    } catch {
+      return fallback()
+    }
+  }
+  const classDate = safeFormat(
+    { weekday: 'long', month: 'long', day: 'numeric' },
+    () => new Date(startsAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+  )
+  const classTime = safeFormat(
+    { hour: 'numeric', minute: '2-digit' },
+    () => new Date(startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+  )
 
   try {
     await sendWaitlistPromotion(user.email, user.name, classDate, classTime, confirmUrl, expiresIn)

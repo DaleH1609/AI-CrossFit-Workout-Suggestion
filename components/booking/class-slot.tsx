@@ -76,10 +76,10 @@ export function ClassSlot({ instance, confirmedCount, userBooking }: ClassSlotPr
       {isBooked && (
         <div className={`text-xs font-medium px-2 py-1 rounded text-center ${
           status === 'confirmed'
-            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+            ? 'bg-success-10 text-success border border-success-20'
             : status === 'waitlisted'
-            ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-            : 'bg-zinc-500/10 text-secondary border border-zinc-500/20'
+            ? 'bg-warning-10 text-warning border border-warning-20'
+            : 'bg-surface text-secondary border border-border'
         }`}>
           {status === 'confirmed' ? 'Confirmed' : status === 'waitlisted' ? 'Waitlisted' : 'Pending'}
         </div>

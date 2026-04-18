@@ -15,7 +15,7 @@ function PasswordStrength({ password }: { password: string }) {
     : 3
 
   const labels = ['', 'Too short', 'Fair', 'Good', 'Strong']
-  const colors = ['', 'bg-danger', 'bg-yellow-500/80', 'bg-accent', 'bg-accent']
+  const colors = ['', 'bg-danger', 'bg-warning', 'bg-accent', 'bg-accent']
 
   return (
     <div>

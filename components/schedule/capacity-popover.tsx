@@ -1,6 +1,7 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { ClassType, ScheduleDefaults } from '@/lib/types'
+import { useCapacityForm } from '@/lib/hooks/use-capacity-form'
 
 interface Props {
   templateId: string
@@ -29,14 +30,32 @@ export function CapacityPopover({
   onRemove,
   onClose,
 }: Props) {
-  const [capacity, setCapacity] = useState(
-    currentCapacity !== null ? String(currentCapacity) : String(effectiveCapacity)
-  )
-  const [overriding, setOverriding] = useState(currentCapacity !== null)
-  const [classTypeId, setClassTypeId] = useState<string | null>(currentClassTypeId)
-  const [notes, setNotes] = useState(currentNotes ?? '')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  const {
+    capacity,
+    setCapacity,
+    overriding,
+    setOverriding,
+    classTypeId,
+    setClassTypeId,
+    notes,
+    setNotes,
+    saving,
+    error,
+    setError,
+    save,
+    remove,
+  } = useCapacityForm({
+    templateId,
+    currentCapacity,
+    effectiveCapacity,
+    currentClassTypeId,
+    currentNotes,
+    classTypes,
+    onSave,
+    onRemove,
+    onClose,
+  })
+
   const ref = useRef<HTMLDivElement>(null)
   const hasDayDefault = defaults.dayDefaults[String(dayOfWeek)] !== undefined
   const defaultLabel = hasDayDefault ? 'day default' : 'global'
@@ -57,45 +76,6 @@ export function CapacityPopover({
   }, [onClose])
 
   const selectedType = classTypes.find(t => t.id === classTypeId) ?? classTypes[0] ?? null
-
-  async function handleSave() {
-    const cap = overriding ? parseInt(capacity) : null
-    if (overriding && (isNaN(cap!) || cap! < 1 || cap! > 200)) {
-      setError('Capacity must be 1–200')
-      return
-    }
-    setSaving(true)
-    const resolvedTypeId = classTypeId ?? classTypes[0]?.id ?? null
-    const resolvedName = classTypes.find(t => t.id === resolvedTypeId)?.name ?? 'WOD'
-    const res = await fetch('/api/schedule/templates', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: templateId,
-        capacity: overriding ? cap : null,
-        name: resolvedName,
-        workout_notes: notes.trim() || null,
-        class_type_id: resolvedTypeId,
-      }),
-    })
-    setSaving(false)
-    if (!res.ok) { setError('Failed to save'); return }
-    onSave(overriding ? cap! : null, resolvedTypeId, notes.trim() || null)
-    onClose()
-  }
-
-  async function handleRemove() {
-    setSaving(true)
-    const res = await fetch('/api/schedule/templates', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: templateId }),
-    })
-    setSaving(false)
-    if (!res.ok) { setError('Failed to remove'); return }
-    onRemove()
-    onClose()
-  }
 
   return (
     <div
@@ -124,10 +104,11 @@ export function CapacityPopover({
                 <span
                   className="w-3 h-3 rounded-full shrink-0"
                   style={{ backgroundColor: type.color }}
+                  aria-hidden="true"
                 />
                 {type.name}
                 {(classTypeId ?? classTypes[0]?.id) === type.id && (
-                  <span className="ml-auto text-xs text-accent">✓</span>
+                  <span className="ml-auto text-xs text-accent" aria-hidden="true">✓</span>
                 )}
               </button>
             ))}
@@ -190,7 +171,8 @@ export function CapacityPopover({
       {error && <p className="text-xs text-danger mb-2">{error}</p>}
 
       <button
-        onClick={handleSave}
+        type="button"
+        onClick={save}
         disabled={saving}
         className="w-full bg-accent hover:bg-accent-90 text-foreground text-xs font-semibold rounded-btn py-1.5 mb-2 disabled:opacity-50 transition-colors"
         style={selectedType ? { backgroundColor: selectedType.color } : undefined}
@@ -200,7 +182,8 @@ export function CapacityPopover({
 
       <div className="border-t border-border pt-2">
         <button
-          onClick={handleRemove}
+          type="button"
+          onClick={remove}
           disabled={saving}
           className="w-full text-danger hover:text-foreground text-xs py-1 disabled:opacity-50 transition-colors"
         >

@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, requireMemberAuth, isNextResponse } from '@/lib/auth-helpers'
+import { z } from '@/lib/validation/z'
+import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 export async function GET() {
   const auth = await requireMemberAuth()
@@ -13,15 +15,21 @@ export async function GET() {
   const { data: gymRow } = await supabase.from('gyms').select('gym_type').eq('id', userData.gym_id).single()
   const gymType: 'crossfit' | 'hyrox' = gymRow?.gym_type === 'hyrox' ? 'hyrox' : 'crossfit'
 
-  return NextResponse.json({ examples, gymType })
+  return jsonOk({ examples, gymType })
 }
+
+const postSchema = z.object({
+  rawText: z.string({ min: 10, max: 20000, trim: true }),
+})
 
 export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { rawText } = await req.json()
+  const parsed = await parseBody(req, postSchema)
+  if (parsed instanceof NextResponse) return parsed
+  const { rawText } = parsed
 
   const { data: gymRow } = await supabase.from('gyms').select('gym_type').eq('id', userData.gym_id).single()
   const gymType: 'crossfit' | 'hyrox' = gymRow?.gym_type === 'hyrox' ? 'hyrox' : 'crossfit'
@@ -41,22 +49,23 @@ export async function POST(req: Request) {
   }
 
   if (validationText === 'NO') {
-    return NextResponse.json(
-      { error: `This doesn't look like a ${gymLabel} workout. Please paste a real ${gymLabel} training session.` },
-      { status: 400 }
-    )
+    return jsonError(`This doesn't look like a ${gymLabel} workout. Please paste a real ${gymLabel} training session.`)
   }
 
-  const { data } = await supabase.from('style_examples').insert({ gym_id: userData.gym_id, raw_text: rawText }).select().single()
-  return NextResponse.json({ example: data })
+  const { data, error } = await supabase.from('style_examples').insert({ gym_id: userData.gym_id, raw_text: rawText }).select().single()
+  if (error) return jsonServerError('style POST', error)
+  return jsonOk({ example: data })
 }
+
+const deleteSchema = z.object({ id: z.uuid() })
 
 export async function DELETE(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { id } = await req.json()
-  await supabase.from('style_examples').delete().eq('id', id).eq('gym_id', userData.gym_id)
-  return NextResponse.json({ success: true })
+  const parsed = await parseBody(req, deleteSchema)
+  if (parsed instanceof NextResponse) return parsed
+  await supabase.from('style_examples').delete().eq('id', parsed.id).eq('gym_id', userData.gym_id)
+  return jsonOk({ success: true })
 }

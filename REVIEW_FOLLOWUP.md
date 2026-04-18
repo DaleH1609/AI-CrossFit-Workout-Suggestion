@@ -156,12 +156,45 @@ Same as the last pass:
 
 Check each batch off as you finish it:
 
-- [ ] Batch 7 — API envelope unification
-- [ ] Batch 8 — A11y cleanup
-- [ ] Batch 9 — Security hardening
-- [ ] Batch 10 — Performance tuning
-- [ ] Batch 11 — Architecture cleanup
-- [ ] Batch 12 — Dependency audit
-- [ ] Batch 13 — Final verification
+- [x] Batch 7 — API envelope unification
+- [x] Batch 8 — A11y cleanup
+- [x] Batch 9 — Security hardening *(Deno stubs still need local `rm -rf`, see below)*
+- [x] Batch 10 — Performance tuning
+- [x] Batch 11 — Architecture cleanup
+- [x] Batch 12 — Dependency audit *(code-side changes done; run npm prune + audit locally)*
+- [ ] Batch 13 — Final verification *(must run locally — sandbox can't do `npm install` / `next build`)*
+
+## Local-only follow-ups
+
+The sandbox overlay filesystem and missing network allowlist block a few steps.
+These must be run on a normal machine before merging:
+
+1. **Delete deprecated Supabase edge functions:**
+   ```
+   rm -rf supabase/functions/{process-waitlist-expiry,generate-class-instances,_shared}
+   ```
+   (Keep `supabase/functions/README.md` if you want a tombstone.)
+2. **Clean install + prune:**
+   ```
+   rm -rf node_modules package-lock.json && npm install
+   npm prune
+   ```
+3. **Audit + fix:**
+   ```
+   npm audit --omit=dev
+   ```
+   Address anything HIGH/CRITICAL before merging.
+4. **Verify pipeline:**
+   ```
+   npm run lint
+   ./node_modules/.bin/tsc --noEmit
+   npm test
+   npm run build
+   ```
+5. **Set production secrets** (see `docs/security.md`):
+   - `BOOKING_TOKEN_SECRET` = `openssl rand -base64 32`
+   - `CRON_SECRET` = `openssl rand -base64 32`
+   - `RESEND_FROM_EMAIL` = the verified Resend sender (the app now throws loud if unset)
+6. **Apply migration `016_review_fixes.sql`** against staging → smoke test → prod.
 
 Notes for whoever picks this up (future-you or a fresh Claude session): the batches are intentionally independent. Batches 7, 8, 10, and 12 are low-risk; Batches 9 and 11 touch more files and should get their own PR each.

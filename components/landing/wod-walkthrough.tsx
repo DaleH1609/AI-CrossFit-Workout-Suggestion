@@ -113,7 +113,7 @@ function PanelPublish() {
             <div className="text-xs font-bold text-accent mb-2">{day}</div>
             <div className="h-2 bg-accent-10 rounded mb-1.5" />
             <div className="h-2 bg-surface-raised rounded" />
-            <span className="absolute top-2 right-2 text-xs text-green-400">✓</span>
+            <span aria-hidden="true" className="absolute top-2 right-2 text-xs text-success">✓</span>
           </div>
         ))}
       </div>

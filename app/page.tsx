@@ -154,7 +154,7 @@ export default function HomePage() {
           {/* Scroll indicator */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 pointer-events-none">
             <span className="text-[10px] font-semibold tracking-widest uppercase text-secondary/50">Scroll</span>
-            <svg className="scroll-bounce text-secondary/50" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <svg aria-hidden="true" className="scroll-bounce text-secondary/50" width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>

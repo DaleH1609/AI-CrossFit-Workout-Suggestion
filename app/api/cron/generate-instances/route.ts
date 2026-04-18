@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { localToUTC } from '@/lib/utils/local-to-utc'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 // Generates class instances from templates for the next 4 weeks for all gyms.
 // Runs daily via cron; skips instances that already exist.
@@ -17,7 +17,7 @@ export const maxDuration = 300
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return jsonError('Unauthorized', 401)
   }
 
   const supabase = createAdminClient(
@@ -26,11 +26,8 @@ export async function GET(req: Request) {
   )
 
   const { data: gyms, error: gymsErr } = await supabase.from('gyms').select('id, timezone')
-  if (gymsErr) {
-    console.error('[cron/generate-instances] gyms fetch failed', gymsErr)
-    return NextResponse.json({ error: gymsErr.message }, { status: 500 })
-  }
-  if (!gyms?.length) return NextResponse.json({ created: 0, errors: [] })
+  if (gymsErr) return jsonServerError('cron/generate-instances gyms.select', gymsErr)
+  if (!gyms?.length) return jsonOk({ created: 0, errors: [] })
 
   let created = 0
   const errors: Array<{ gymId: string; templateId?: string; date?: string; err: unknown }> = []
@@ -125,5 +122,5 @@ export async function GET(req: Request) {
     console.error('[cron/generate-instances] partial failures', { count: errors.length, sample: errors.slice(0, 5) })
   }
 
-  return NextResponse.json({ created, errors: errors.length })
+  return jsonOk({ created, errors: errors.length })
 }

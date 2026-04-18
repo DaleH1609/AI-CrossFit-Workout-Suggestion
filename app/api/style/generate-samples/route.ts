@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { jsonOk, jsonServerError } from '@/lib/api/response'
 
 const CROSSFIT_PROMPT = `Generate 3 realistic CrossFit gym workout examples. Each should look like a real whiteboard post — include day, parts (strength + conditioning), movements, sets/reps or time domains, and any time caps. Use plain text with line breaks, the way a coach would write it on a whiteboard. Separate each example with exactly "\n---\n". Return only the workout text, no extra commentary.`
 
@@ -34,8 +34,7 @@ export async function POST() {
     })
     text = message.content[0].type === 'text' ? message.content[0].text : ''
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Generation failed'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return jsonServerError('style/generate-samples', err)
   }
 
   const samples = text
@@ -44,8 +43,8 @@ export async function POST() {
     .filter(Boolean)
 
   if (samples.length === 0) {
-    return NextResponse.json({ error: 'Failed to generate samples' }, { status: 500 })
+    return jsonServerError('style/generate-samples', new Error('No samples produced'))
   }
 
-  return NextResponse.json({ samples })
+  return jsonOk({ samples })
 }

@@ -5,9 +5,9 @@ type BadgeVariant = 'draft' | 'published' | 'confirmed' | 'waitlisted' | 'pendin
 const variants: Record<BadgeVariant, string> = {
   draft:                'bg-foreground-10 text-secondary',
   published:            'bg-accent-20 text-accent',
-  confirmed:            'bg-green-500/20 text-green-400',
+  confirmed:            'bg-success-20 text-success',
   waitlisted:           'bg-foreground-10 text-secondary',
-  pending_confirmation: 'bg-yellow-500/20 text-yellow-400',
+  pending_confirmation: 'bg-warning-20 text-warning',
 }
 
 export function Badge({ variant, label }: { variant: BadgeVariant; label: string }) {

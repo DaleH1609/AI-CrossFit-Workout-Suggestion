@@ -1,36 +1,44 @@
 import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 export async function POST(req: Request) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
-  const { email, password, gymName, timezone, gymType } = await req.json()
+  let body: { email?: unknown; password?: unknown; gymName?: unknown; timezone?: unknown; gymType?: unknown }
+  try {
+    body = await req.json()
+  } catch {
+    return jsonError('Invalid JSON body')
+  }
+  const { email, password, gymName, timezone, gymType } = body as {
+    email?: string; password?: string; gymName?: string; timezone?: string; gymType?: string
+  }
 
   // Input validation
   if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
-    return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+    return jsonError('Invalid email address')
   }
   const trimmedGymName = typeof gymName === 'string' ? gymName.trim() : ''
   if (trimmedGymName.length < 2 || trimmedGymName.length > 50) {
-    return NextResponse.json({ error: 'Gym name must be between 2 and 50 characters' }, { status: 400 })
+    return jsonError('Gym name must be between 2 and 50 characters')
   }
   if (!password || password.length < 8) {
-    return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
+    return jsonError('Password must be at least 8 characters')
   }
   if (gymType !== 'crossfit' && gymType !== 'hyrox') {
-    return NextResponse.json({ error: 'Gym type must be crossfit or hyrox' }, { status: 400 })
+    return jsonError('Gym type must be crossfit or hyrox')
   }
 
   // Validate timezone is a real IANA identifier
   if (!timezone || typeof timezone !== 'string' || timezone.length > 50) {
-    return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 })
+    return jsonError('Invalid timezone')
   }
   try {
     Intl.DateTimeFormat(undefined, { timeZone: timezone })
   } catch {
-    return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 })
+    return jsonError('Invalid timezone')
   }
 
   const resolvedGymType = gymType === 'hyrox' ? 'hyrox' : 'crossfit'
@@ -40,23 +48,23 @@ export async function POST(req: Request) {
     email, password, email_confirm: true
   })
   // Don't leak Supabase error details (e.g. "email already in use") to avoid enumeration
-  if (authError) return NextResponse.json({ error: 'Unable to create account. Check your details and try again.' }, { status: 400 })
+  if (authError) return jsonError('Unable to create account. Check your details and try again.')
 
   const userId = authData.user.id
 
   // 2. Create gym (no owner_id yet to avoid circular FK)
   const { data: gym, error: gymError } = await supabase
-    .from('gyms').insert({ name: gymName, timezone, gym_type: resolvedGymType }).select().single()
-  if (gymError) return NextResponse.json({ error: gymError.message }, { status: 400 })
+    .from('gyms').insert({ name: trimmedGymName, timezone, gym_type: resolvedGymType }).select().single()
+  if (gymError) return jsonServerError('auth/signup gyms.insert', gymError)
 
   // 3. Create user row
   const { error: userError } = await supabase.from('users').insert({
     id: userId, gym_id: gym.id, email, role: 'owner'
   })
-  if (userError) return NextResponse.json({ error: userError.message }, { status: 400 })
+  if (userError) return jsonServerError('auth/signup users.insert', userError)
 
   // 4. Set owner_id on gym
   await supabase.from('gyms').update({ owner_id: userId }).eq('id', gym.id)
 
-  return NextResponse.json({ success: true })
+  return jsonOk({ success: true })
 }

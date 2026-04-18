@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, requireMemberAuth, isNextResponse } from '@/lib/auth-helpers'
 import { z } from '@/lib/validation/z'
-import { parseBody, jsonError, jsonServerError } from '@/lib/api/response'
+import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import type { GymScheduleDefault } from '@/lib/types'
 
 export async function GET() {
@@ -28,7 +28,7 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ templates: templates ?? [], globalDefault, dayDefaults })
+  return jsonOk({ templates: templates ?? [], globalDefault, dayDefaults })
 }
 
 const postSchema = z.object({
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     .select().single()
 
   if (insertError || !data) return jsonServerError('schedule/templates POST', insertError)
-  return NextResponse.json({ template: data })
+  return jsonOk({ template: data })
 }
 
 const patchSchema = z.object({
@@ -127,7 +127,7 @@ export async function PATCH(req: Request) {
     .select().single()
 
   if (error) return jsonServerError('schedule/templates PATCH', error)
-  return NextResponse.json({ template: data })
+  return jsonOk({ template: data })
 }
 
 const deleteSchema = z.object({ id: z.uuid() })
@@ -147,5 +147,5 @@ export async function DELETE(req: Request) {
     .eq('gym_id', userData.gym_id)
 
   if (deleteError) return jsonServerError('schedule/templates DELETE', deleteError)
-  return NextResponse.json({ success: true })
+  return jsonOk({ success: true })
 }

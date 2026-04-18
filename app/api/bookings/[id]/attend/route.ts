@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 export async function PATCH(
   req: Request,
@@ -9,10 +9,16 @@ export async function PATCH(
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { attended } = await req.json()
+  let body: { attended?: unknown }
+  try {
+    body = await req.json()
+  } catch {
+    return jsonError('Invalid JSON body')
+  }
+  const { attended } = body
 
   if (attended !== true && attended !== false && attended !== null) {
-    return NextResponse.json({ error: 'attended must be true, false, or null' }, { status: 400 })
+    return jsonError('attended must be true, false, or null')
   }
 
   const { data: booking } = await supabase
@@ -22,15 +28,15 @@ export async function PATCH(
     .single()
 
   if (!booking) {
-    return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+    return jsonError('Booking not found', 404)
   }
 
   if (booking.gym_id !== userData.gym_id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return jsonError('Forbidden', 403)
   }
 
   if (booking.status !== 'confirmed') {
-    return NextResponse.json({ error: 'Can only mark attendance on confirmed bookings' }, { status: 400 })
+    return jsonError('Can only mark attendance on confirmed bookings')
   }
 
   const { error: updateError } = await supabase
@@ -39,8 +45,8 @@ export async function PATCH(
     .eq('id', params.id)
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 })
+    return jsonServerError('bookings/[id]/attend PATCH', updateError)
   }
 
-  return NextResponse.json({ success: true })
+  return jsonOk({ success: true })
 }

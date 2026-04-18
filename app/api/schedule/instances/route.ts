@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 export async function GET(req: Request) {
   const auth = await requireOwnerAuth()
@@ -8,9 +8,9 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url)
   const date = url.searchParams.get('date') // YYYY-MM-DD
-  if (!date) return NextResponse.json({ error: 'date required' }, { status: 400 })
+  if (!date) return jsonError('date required')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return NextResponse.json({ error: 'date must be YYYY-MM-DD' }, { status: 400 })
+    return jsonError('date must be YYYY-MM-DD')
   }
 
   // Fetch instances for this date and gym
@@ -21,8 +21,8 @@ export async function GET(req: Request) {
     .eq('date', date)
     .order('starts_at')
 
-  if (error) return NextResponse.json({ error: 'Failed to load instances' }, { status: 500 })
-  if (!instances?.length) return NextResponse.json({ instances: [] })
+  if (error) return jsonServerError('schedule/instances GET', error)
+  if (!instances?.length) return jsonOk({ instances: [] })
 
   // Fetch all bookings for these instances in one query (avoid N+1)
   const instanceIds = instances.map(i => i.id)
@@ -60,5 +60,5 @@ export async function GET(req: Request) {
     })),
   }))
 
-  return NextResponse.json({ instances: result })
+  return jsonOk({ instances: result })
 }

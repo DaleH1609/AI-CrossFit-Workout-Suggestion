@@ -2,29 +2,59 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
+import { verifyToken } from '@/lib/crypto/token'
 
+interface InstanceRel {
+  starts_at: string
+  capacity: number
+  gyms?: { timezone?: string } | { timezone?: string }[] | null
+}
 interface BookingRow {
   id: string
   instance_id: string
+  confirmation_token: string | null
   confirmation_expires_at: string | null
-  class_instances: { starts_at: string; capacity: number } | { starts_at: string; capacity: number }[] | null
+  status: string
+  class_instances: InstanceRel | InstanceRel[] | null
 }
 
-function getInstance(b: BookingRow): { starts_at: string; capacity: number } | null {
+function getInstance(b: BookingRow): InstanceRel | null {
   if (!b.class_instances) return null
   if (Array.isArray(b.class_instances)) return b.class_instances[0] ?? null
   return b.class_instances
+}
+
+function getTimezone(inst: InstanceRel): string {
+  const gymRel = Array.isArray(inst.gyms) ? inst.gyms[0] : inst.gyms
+  return gymRel?.timezone ?? 'UTC'
 }
 
 export async function GET(_req: Request, { params }: { params: { token: string } }) {
   const supabase = createClient()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
-  const { data: booking } = await supabase.from('bookings')
-    .select('id, instance_id, confirmation_expires_at, class_instances(starts_at, capacity)')
-    .eq('confirmation_token', params.token)
-    .eq('status', 'pending_confirmation')
-    .maybeSingle<BookingRow>()
+  // First try to verify as a signed token. If that works, look up the booking
+  // by id (not by token equality) — the stored `confirmation_token` is retained
+  // for audit but no longer trusted as the authority.
+  const verified = verifyToken(params.token)
+
+  const query = verified
+    ? supabase.from('bookings')
+        .select('id, instance_id, confirmation_token, confirmation_expires_at, status, class_instances(starts_at, capacity, gyms(timezone))')
+        .eq('id', verified.bookingId)
+        .eq('status', 'pending_confirmation')
+        .maybeSingle<BookingRow>()
+    // Legacy fallback: UUID-style tokens from before the signing rollout.
+    // Once all in-flight tokens have expired (≤2 hours post-deploy), this
+    // branch can be removed. Until then we keep it so existing confirmation
+    // emails don't all break at once.
+    : supabase.from('bookings')
+        .select('id, instance_id, confirmation_token, confirmation_expires_at, status, class_instances(starts_at, capacity, gyms(timezone))')
+        .eq('confirmation_token', params.token)
+        .eq('status', 'pending_confirmation')
+        .maybeSingle<BookingRow>()
+
+  const { data: booking } = await query
 
   if (!booking) {
     return NextResponse.redirect(`${appUrl}/my-schedule?error=invalid-token`)
@@ -57,7 +87,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
 
     // Only promote if we actually cancelled it (otherwise someone else did)
     if (cancelRows && cancelRows.length > 0) {
-      await promoteNextWaitlistMember(supabase, booking.instance_id, instance.starts_at, appUrl)
+      await promoteNextWaitlistMember(supabase, booking.instance_id, instance.starts_at, appUrl, getTimezone(instance))
     }
     return NextResponse.redirect(`${appUrl}/my-schedule?error=confirmation-expired`)
   }

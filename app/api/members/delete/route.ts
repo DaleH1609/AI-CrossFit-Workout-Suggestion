@@ -2,10 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
+import type { BookingWithInstance } from '@/lib/bookings/types'
 import { z } from '@/lib/validation/z'
-import { parseBody } from '@/lib/api/response'
-
-interface BookingWithInstance { id: string; instance_id: string; status: string; class_instances: { starts_at: string } }
+import { parseBody, jsonOk, jsonError } from '@/lib/api/response'
 
 const schema = z.object({ memberId: z.uuid() })
 
@@ -20,10 +19,13 @@ export async function POST(req: Request) {
   const now = new Date().toISOString()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
-  // Verify member belongs to this gym
-  const { data: member } = await supabase.from('users')
-    .select('id').eq('id', memberId).eq('gym_id', userData.gym_id).single()
-  if (!member) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+  // Verify member belongs to this gym + fetch gym timezone for email formatting
+  const [{ data: member }, { data: gymRow }] = await Promise.all([
+    supabase.from('users').select('id').eq('id', memberId).eq('gym_id', userData.gym_id).single(),
+    supabase.from('gyms').select('timezone').eq('id', userData.gym_id).single(),
+  ])
+  if (!member) return jsonError('Member not found', 404)
+  const timezone: string = (gymRow as { timezone?: string } | null)?.timezone ?? 'UTC'
 
   // Cancel all future bookings
   const { data: rawBookings } = await supabase.from('bookings')
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
       const startsAt = instanceStartsAt.get(instanceId)
       if (!startsAt) return
       try {
-        await promoteNextWaitlistMember(supabase, instanceId, startsAt, appUrl)
+        await promoteNextWaitlistMember(supabase, instanceId, startsAt, appUrl, timezone)
       } catch (err) {
         console.error('[members/delete] promote failed', { instanceId, err })
       }
@@ -84,5 +86,5 @@ export async function POST(req: Request) {
   )
   await adminSupabase.auth.admin.deleteUser(memberId)
 
-  return NextResponse.json({ success: true })
+  return jsonOk({ success: true })
 }
