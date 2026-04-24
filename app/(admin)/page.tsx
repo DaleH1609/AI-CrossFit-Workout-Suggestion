@@ -39,20 +39,14 @@ async function getRecentGyms() {
   if (!gyms?.length) return []
 
   const ownerIds = gyms.map(g => g.owner_id).filter(Boolean) as string[]
-  const { data: owners } = await db
-    .from('users')
-    .select('id, email')
-    .in('id', ownerIds)
+  const gymIds = gyms.map(g => g.id)
+
+  const [{ data: owners }, { data: members }] = await Promise.all([
+    db.from('users').select('id, email').in('id', ownerIds),
+    db.from('users').select('gym_id').in('gym_id', gymIds).eq('role', 'member'),
+  ])
 
   const ownerMap = Object.fromEntries((owners ?? []).map(o => [o.id, o.email]))
-
-  // Member counts per gym
-  const gymIds = gyms.map(g => g.id)
-  const { data: members } = await db
-    .from('users')
-    .select('gym_id')
-    .in('gym_id', gymIds)
-    .eq('role', 'member')
 
   const memberCounts = (members ?? []).reduce<Record<string, number>>((acc, m) => {
     acc[m.gym_id] = (acc[m.gym_id] ?? 0) + 1
