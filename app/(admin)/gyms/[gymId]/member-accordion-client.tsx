@@ -1,7 +1,6 @@
 // app/(admin)/gyms/[gymId]/member-accordion-client.tsx
 'use client'
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
 
 type Booking = {
   id: string

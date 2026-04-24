@@ -14,19 +14,20 @@ export function DangerZoneClient({
 }) {
   const [suspendChecked, setSuspendChecked] = useState(false)
   const [deleteInput, setDeleteInput] = useState('')
-  const [isPending, startTransition] = useTransition()
+  const [isSuspendPending, startSuspendTransition] = useTransition()
+  const [isDeletePending, startDeleteTransition] = useTransition()
 
   // Server Actions return Promises — must use async callback so NEXT_REDIRECT
   // and thrown errors propagate correctly instead of being silently dropped.
   function handleSuspend() {
-    startTransition(async () => { await suspendGym(gymId, gymName) })
+    startSuspendTransition(async () => { await suspendGym(gymId, gymName) })
   }
   function handleUnsuspend() {
-    startTransition(async () => { await unsuspendGym(gymId, gymName) })
+    startSuspendTransition(async () => { await unsuspendGym(gymId, gymName) })
   }
   function handleDelete() {
     if (deleteInput !== gymName) return
-    startTransition(async () => { await deleteGym(gymId, gymName) })
+    startDeleteTransition(async () => { await deleteGym(gymId, gymName) })
   }
 
   return (
@@ -47,22 +48,22 @@ export function DangerZoneClient({
               I understand this will prevent the gym owner from using their dashboard
             </label>
             <button
-              disabled={!suspendChecked || isPending}
+              disabled={!suspendChecked || isSuspendPending}
               onClick={handleSuspend}
               className="px-4 py-2 text-sm rounded-md bg-red-600 text-white disabled:opacity-40 hover:bg-red-700 transition-colors"
             >
-              {isPending ? 'Suspending…' : 'Suspend Gym'}
+              {isSuspendPending ? 'Suspending…' : 'Suspend Gym'}
             </button>
           </>
         ) : (
           <div className="space-y-2">
             <p className="text-sm text-red-700 font-medium">⚠ This gym is currently suspended</p>
             <button
-              disabled={isPending}
+              disabled={isSuspendPending}
               onClick={handleUnsuspend}
               className="px-4 py-2 text-sm rounded-md border border-red-400 bg-white text-red-700 hover:bg-red-50 transition-colors disabled:opacity-40"
             >
-              {isPending ? 'Unsuspending…' : 'Unsuspend Gym'}
+              {isSuspendPending ? 'Unsuspending…' : 'Unsuspend Gym'}
             </button>
           </div>
         )}
@@ -81,11 +82,11 @@ export function DangerZoneClient({
           className="w-full max-w-sm px-3 py-2 text-sm rounded-md border border-red-300 bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-red-400"
         />
         <button
-          disabled={deleteInput !== gymName || isPending}
+          disabled={deleteInput !== gymName || isDeletePending}
           onClick={handleDelete}
           className="px-4 py-2 text-sm rounded-md border border-red-600 text-red-700 bg-white hover:bg-red-50 transition-colors disabled:opacity-40"
         >
-          {isPending ? 'Deleting…' : 'Delete Gym Permanently'}
+          {isDeletePending ? 'Deleting…' : 'Delete Gym Permanently'}
         </button>
       </div>
     </div>

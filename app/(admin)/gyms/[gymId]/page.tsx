@@ -72,15 +72,24 @@ async function getGymDetail(gymId: string) {
   // Member booking histories (last 5 per member)
   const memberIds = (allMembers ?? []).map(m => m.id)
   type BookingRow = { id: string; user_id: string; status: string; created_at: string; instance_id: string; class_instances: { date: string; name: string } | null }
-  const { data: recentBookings } = memberIds.length > 0
-    ? await db
-        .from('bookings')
-        .select('id, user_id, status, created_at, instance_id, class_instances(date, name)')
-        .in('user_id', memberIds)
-        .eq('gym_id', gymId)
-        .order('created_at', { ascending: false })
-        .limit(memberIds.length * 5)
-    : { data: [] as BookingRow[] }
+
+  // Upcoming instance IDs needed for parallel fetch below
+  const upcomingIds = (upcomingInstances ?? []).map(i => i.id)
+
+  const [{ data: recentBookings }, { data: upcomingBookings }] = await Promise.all([
+    memberIds.length > 0
+      ? db
+          .from('bookings')
+          .select('id, user_id, status, created_at, instance_id, class_instances(date, name)')
+          .in('user_id', memberIds)
+          .eq('gym_id', gymId)
+          .order('created_at', { ascending: false })
+          .limit(memberIds.length * 5)
+      : Promise.resolve({ data: [] as BookingRow[] }),
+    upcomingIds.length > 0
+      ? db.from('bookings').select('instance_id').in('instance_id', upcomingIds).eq('status', 'confirmed')
+      : Promise.resolve({ data: [] as { instance_id: string }[] }),
+  ])
 
   // Group bookings by member (last 5 per member)
   const bookingsByMember: Record<string, BookingRow[]> = {}
@@ -103,10 +112,6 @@ async function getGymDetail(gymId: string) {
     : null
 
   // Upcoming instances with confirmed booking counts
-  const upcomingIds = (upcomingInstances ?? []).map(i => i.id)
-  const { data: upcomingBookings } = upcomingIds.length > 0
-    ? await db.from('bookings').select('instance_id').in('instance_id', upcomingIds).eq('status', 'confirmed')
-    : { data: [] }
   const upcomingConfirmedCounts = (upcomingBookings ?? []).reduce<Record<string, number>>((acc, b) => {
     acc[b.instance_id] = (acc[b.instance_id] ?? 0) + 1
     return acc
