@@ -1,6 +1,7 @@
 // lib/auth-helpers.ts
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { redirect } from 'next/navigation'
 
 export interface OwnerAuthResult {
   supabase: ReturnType<typeof createClient>
@@ -62,4 +63,23 @@ export async function requireMemberAuth(): Promise<MemberAuthResult | NextRespon
 /** Type guard: narrows the union return of requireOwnerAuth / requireMemberAuth to the success shape. */
 export function isNextResponse(val: unknown): val is NextResponse {
   return val instanceof NextResponse
+}
+
+export interface AdminAuthResult {
+  user: { id: string; email: string }
+}
+
+/**
+ * requireAdminAuth — use in admin Server Components, layouts, and Server Actions.
+ * Reads ADMIN_EMAILS env var at call-time (fail-closed: blocks all if missing/empty).
+ * Calls redirect('/login') if unauthorized — works in Server Components and Server Actions.
+ * No DB query — identity lives entirely in the env var.
+ */
+export async function requireAdminAuth(): Promise<AdminAuthResult> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) redirect('/login')
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
+  if (adminEmails.length === 0 || !adminEmails.includes(user.email)) redirect('/login')
+  return { user: { id: user.id, email: user.email } }
 }
