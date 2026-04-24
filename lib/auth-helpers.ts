@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 export interface OwnerAuthResult {
   supabase: ReturnType<typeof createClient>
@@ -32,6 +33,20 @@ export async function requireOwnerAuth(): Promise<OwnerAuthResult | NextResponse
 
   if (userData?.role !== 'owner') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  // Suspension check — blocks owner from all API mutations. Members are NOT affected.
+  const { data: gymData } = await supabase
+    .from('gyms')
+    .select('suspended_at')
+    .eq('id', userData.gym_id)
+    .single()
+
+  if (gymData?.suspended_at) {
+    const headersList = headers()
+    const host = headersList.get('host') ?? 'localhost:3000'
+    const proto = host.startsWith('localhost') ? 'http' : 'https'
+    return NextResponse.redirect(new URL('/suspended', `${proto}://${host}`))
   }
 
   return { supabase, user: user as { id: string; email?: string }, userData: userData as { gym_id: string; role: string } }
