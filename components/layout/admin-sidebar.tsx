@@ -42,6 +42,15 @@ function IconArrowLeft() {
     </svg>
   )
 }
+function IconSignOut() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" strokeLinejoin="round"/>
+      <polyline points="16 17 21 12 16 7" strokeLinecap="round" strokeLinejoin="round"/>
+      <line x1="21" y1="12" x2="9" y2="12" strokeLinecap="round"/>
+    </svg>
+  )
+}
 
 const nav = [
   { href: '/admin',        label: 'Overview',     Icon: IconOverview },
@@ -197,6 +206,7 @@ export function AdminSidebar() {
               expanded ? 'px-3' : 'justify-center px-0'
             )}
           >
+            <span className="shrink-0"><IconSignOut /></span>
             {expanded && <span className="text-sm">Sign out</span>}
           </button>
         </div>
