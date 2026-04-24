@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   if (path.startsWith('/admin')) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
     const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
-    if (adminEmails.length === 0 || !adminEmails.includes(user.email ?? '')) {
+    if (!user.email || adminEmails.length === 0 || !adminEmails.includes(user.email)) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     return response // admin verified — skip role-based routing below
