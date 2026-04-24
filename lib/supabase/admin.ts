@@ -8,12 +8,17 @@
 // Use this ONLY on the server — anything running in the browser would leak the
 // service-role key. Route handlers and cron endpoints are the intended callers.
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from './types'
 
-export function createAdminClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url) throw new Error('NEXT_PUBLIC_SUPABASE_URL is not configured')
-  if (!serviceKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured')
-  return createClient(url, serviceKey)
+/**
+ * Service-role Supabase client — bypasses RLS.
+ * Only use in Server Components, Server Actions, and Route Handlers.
+ * Never import in client components.
+ */
+export function createAdminClient() {
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 }
