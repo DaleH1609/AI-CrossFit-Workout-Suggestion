@@ -18,6 +18,7 @@ export type Database = {
       class_slot_templates: AnyTable
       class_instances: AnyTable
       bookings: AnyTable
+      admin_audit_log: AnyTable
     }
     Views: Record<string, never>
     Functions: Record<string, never>
