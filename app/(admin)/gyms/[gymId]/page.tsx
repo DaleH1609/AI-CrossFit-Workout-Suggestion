@@ -66,7 +66,7 @@ async function getGymDetail(gymId: string) {
     weekInstanceIds.length > 0
       ? db.from('bookings').select('instance_id, status').in('instance_id', weekInstanceIds)
       : Promise.resolve({ data: [] }),
-    db.from('class_instances').select('id, date, local_time, capacity, name').eq('gym_id', gymId).gte('date', new Date().toISOString().split('T')[0]).order('date').order('local_time').limit(20),
+    db.from('class_instances').select('id, date, local_time, capacity, name').eq('gym_id', gymId).gte('date', new Date().toISOString().split('T')[0]).lte('date', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]).order('date').order('local_time').limit(20),
   ])
 
   // Member booking histories (last 5 per member)
