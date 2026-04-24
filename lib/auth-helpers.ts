@@ -43,7 +43,10 @@ export async function requireOwnerAuth(): Promise<OwnerAuthResult | NextResponse
     .single()
 
   if (gymError || !gymData) {
-    redirect('/login')
+    const headersList = headers()
+    const host = headersList.get('host') ?? 'localhost:3000'
+    const proto = host.startsWith('localhost') ? 'http' : 'https'
+    return NextResponse.redirect(new URL('/login', `${proto}://${host}`))
   }
 
   if (gymData.suspended_at) {
