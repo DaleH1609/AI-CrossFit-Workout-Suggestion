@@ -36,13 +36,17 @@ export async function requireOwnerAuth(): Promise<OwnerAuthResult | NextResponse
   }
 
   // Suspension check — blocks owner from all API mutations. Members are NOT affected.
-  const { data: gymData } = await supabase
+  const { data: gymData, error: gymError } = await supabase
     .from('gyms')
     .select('suspended_at')
     .eq('id', userData.gym_id)
     .single()
 
-  if (gymData?.suspended_at) {
+  if (gymError || !gymData) {
+    redirect('/login')
+  }
+
+  if (gymData.suspended_at) {
     const headersList = headers()
     const host = headersList.get('host') ?? 'localhost:3000'
     const proto = host.startsWith('localhost') ? 'http' : 'https'
