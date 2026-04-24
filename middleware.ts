@@ -22,8 +22,28 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
-  // Redirect unauthenticated users to login (but allow landing page)
-  if (!user && path !== '/' && !path.startsWith('/login') && !path.startsWith('/signup') && !path.startsWith('/invite') && !path.startsWith('/auth/callback')) {
+  // ── Admin branch — checked before all other routing ──────────────────────
+  // /admin/* requires valid session + email in ADMIN_EMAILS (fail-closed)
+  if (path.startsWith('/admin')) {
+    if (!user) return NextResponse.redirect(new URL('/login', request.url))
+    const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
+    if (adminEmails.length === 0 || !adminEmails.includes(user.email ?? '')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    return response // admin verified — skip role-based routing below
+  }
+
+  // ── General unauthenticated redirect ─────────────────────────────────────
+  // /suspended is public (owner may not be able to complete auth while suspended)
+  if (
+    !user &&
+    path !== '/' &&
+    !path.startsWith('/login') &&
+    !path.startsWith('/signup') &&
+    !path.startsWith('/invite') &&
+    !path.startsWith('/auth/callback') &&
+    path !== '/suspended'
+  ) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
