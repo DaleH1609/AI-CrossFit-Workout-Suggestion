@@ -2,6 +2,12 @@
   "functions": {
     "app/api/workouts/generate/route.ts": {
       "maxDuration": 300
+    },
+    "app/api/workouts/movement-analysis/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/style/generate-samples/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
