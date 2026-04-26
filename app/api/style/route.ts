@@ -3,6 +3,7 @@ import { requireOwnerAuth, requireMemberAuth, isNextResponse } from '@/lib/auth-
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { getAnthropicClient } from '@/lib/claude/client'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function GET() {
   const auth = await requireMemberAuth()
@@ -27,6 +28,10 @@ export async function POST(req: Request) {
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
+
+  const { limited } = await rateLimit(userData.gym_id, 'ai')
+  if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
+
   const parsed = await parseBody(req, postSchema)
   if (parsed instanceof NextResponse) return parsed
   const { rawText } = parsed

@@ -4,32 +4,7 @@ import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
-
-// Per-instance rate limit — max 3 AI generation requests per gym per minute.
-// Note: this is process-local and resets on deploy. For persistent rate limiting
-// across all instances, add Upstash Redis. This still reduces abuse on single instances.
-const rateLimitMap = new Map<string, number[]>()
-const RATE_LIMIT_MAX = 3
-const RATE_LIMIT_WINDOW_MS = 60 * 1000
-
-function isRateLimited(gymId: string): boolean {
-  const now = Date.now()
-  const windowStart = now - RATE_LIMIT_WINDOW_MS
-  const timestamps = (rateLimitMap.get(gymId) ?? []).filter(t => t > windowStart)
-  if (timestamps.length >= RATE_LIMIT_MAX) return true
-  timestamps.push(now)
-  rateLimitMap.set(gymId, timestamps)
-  // Prune empty entries to prevent unbounded Map growth
-  if (timestamps.length === 1) {
-    setTimeout(() => {
-      const current = rateLimitMap.get(gymId) ?? []
-      if (current.every(t => t <= Date.now() - RATE_LIMIT_WINDOW_MS)) {
-        rateLimitMap.delete(gymId)
-      }
-    }, RATE_LIMIT_WINDOW_MS + 100)
-  }
-  return false
-}
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
@@ -38,9 +13,8 @@ export async function POST(req: Request) {
   const { supabase, userData } = auth
   const gymId = userData.gym_id
 
-  if (isRateLimited(gymId)) {
-    return jsonError('Too many requests. Please wait before generating again.', 429)
-  }
+  const { limited } = await rateLimit(gymId, 'ai')
+  if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
 
   let body: { weekStart?: unknown }
   try {

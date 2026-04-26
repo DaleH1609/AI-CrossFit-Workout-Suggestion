@@ -1,7 +1,12 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  const { limited } = await rateLimit(ip, 'signup')
+  if (limited) return jsonError('Too many requests. Please try again later.', 429)
+
   const supabase = createAdminClient()
   let body: { email?: unknown; password?: unknown; gymName?: unknown; timezone?: unknown; gymType?: unknown }
   try {

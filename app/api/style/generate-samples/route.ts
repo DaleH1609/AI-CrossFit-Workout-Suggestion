@@ -1,6 +1,7 @@
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
-import { jsonOk, jsonServerError } from '@/lib/api/response'
+import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { getAnthropicClient } from '@/lib/claude/client'
+import { rateLimit } from '@/lib/rate-limit'
 
 const CROSSFIT_PROMPT = `Generate 3 realistic CrossFit gym workout examples. Each should look like a real whiteboard post — include day, parts (strength + conditioning), movements, sets/reps or time domains, and any time caps. Use plain text with line breaks, the way a coach would write it on a whiteboard. Separate each example with exactly "\n---\n". Return only the workout text, no extra commentary.`
 
@@ -11,6 +12,9 @@ export async function POST() {
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
+
+  const { limited } = await rateLimit(userData.gym_id, 'ai')
+  if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
 
   const { data: gymRow } = await supabase
     .from('gyms')
