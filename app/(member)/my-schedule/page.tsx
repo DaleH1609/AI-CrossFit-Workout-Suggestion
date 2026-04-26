@@ -12,7 +12,7 @@ interface BookingRow {
 }
 
 export default async function MySchedulePage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 

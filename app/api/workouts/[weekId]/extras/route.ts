@@ -3,10 +3,8 @@ import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import type { WorkoutDay, WorkoutExtra } from '@/lib/types'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { weekId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ weekId: string }> }) {
+  const params = await props.params;
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 

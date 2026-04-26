@@ -2,15 +2,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { redirect } from 'next/navigation'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/supabase/types'
 
 export interface OwnerAuthResult {
-  supabase: ReturnType<typeof createClient>
+  supabase: SupabaseClient<Database>
   user: { id: string; email?: string }
   userData: { gym_id: string; role: string }
 }
 
 export interface MemberAuthResult {
-  supabase: ReturnType<typeof createClient>
+  supabase: SupabaseClient<Database>
   user: { id: string; email?: string }
   userData: { gym_id: string; name: string; email: string }
 }
@@ -20,7 +22,7 @@ export interface MemberAuthResult {
  * Returns { supabase, user, userData } or throws a NextResponse with 401/403.
  */
 export async function requireOwnerAuth(): Promise<OwnerAuthResult | NextResponse> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -59,7 +61,7 @@ export async function requireOwnerAuth(): Promise<OwnerAuthResult | NextResponse
  * Returns { supabase, user, userData } or throws a NextResponse with 401.
  */
 export async function requireMemberAuth(): Promise<MemberAuthResult | NextResponse> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -93,7 +95,7 @@ export interface AdminAuthResult {
  * No DB query — identity lives entirely in the env var.
  */
 export async function requireAdminAuth(): Promise<AdminAuthResult> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) redirect('/login')
   const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
@@ -107,7 +109,7 @@ export async function requireAdminAuth(): Promise<AdminAuthResult> {
  * Uses redirect() from next/navigation (works in Server Components/layouts).
  */
 export async function requireOwnerServerAuth(): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -134,7 +136,7 @@ export async function requireOwnerServerAuth(): Promise<void> {
  * Uses redirect() from next/navigation (works in Server Components/layouts).
  */
 export async function requireMemberServerAuth(): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

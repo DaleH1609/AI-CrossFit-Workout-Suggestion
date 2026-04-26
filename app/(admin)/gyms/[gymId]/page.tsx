@@ -161,7 +161,8 @@ async function getGymDetail(gymId: string) {
   }
 }
 
-export default async function GymDetailPage({ params }: { params: { gymId: string } }) {
+export default async function GymDetailPage(props: { params: Promise<{ gymId: string }> }) {
+  const params = await props.params;
   const data = await getGymDetail(params.gymId)
   if (!data) notFound()
 

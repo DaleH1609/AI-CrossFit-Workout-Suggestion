@@ -17,7 +17,7 @@ function getMondayOfCurrentWeek() {
 }
 
 export default async function ThisWeekPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 

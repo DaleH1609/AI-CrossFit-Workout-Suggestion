@@ -29,8 +29,9 @@ function getTimezone(inst: InstanceRel): string {
   return gymRel?.timezone ?? 'UTC'
 }
 
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
-  const supabase = createClient()
+export async function GET(_req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   // First try to verify as a signed token. If that works, look up the booking

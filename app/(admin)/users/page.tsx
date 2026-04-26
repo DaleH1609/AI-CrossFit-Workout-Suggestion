@@ -73,11 +73,12 @@ async function searchUsers(q: string) {
 
 // Note: Next.js 14 — searchParams is sync. Next.js 15+ — searchParams is a Promise; if upgrading,
 // change to: `searchParams: Promise<{ q?: string }>` and add `const { q: qParam } = await searchParams`.
-export default async function AdminUsersPage({
-  searchParams,
-}: {
-  searchParams: { q?: string }
-}) {
+export default async function AdminUsersPage(
+  props: {
+    searchParams: Promise<{ q?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
   const q = searchParams.q?.trim() ?? ''
   const users = await searchUsers(q)
 
