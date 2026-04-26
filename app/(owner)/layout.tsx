@@ -1,8 +1,10 @@
 export const dynamic = 'force-dynamic'
+import { requireOwnerServerAuth } from '@/lib/auth-helpers'
 import { OwnerSidebar } from '@/components/layout/owner-sidebar'
 import { ToastProvider } from '@/components/ui/toast'
 
-export default function OwnerLayout({ children }: { children: React.ReactNode }) {
+export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
+  await requireOwnerServerAuth()
   return (
     <ToastProvider>
       <div className="min-h-screen bg-background">

@@ -1,7 +1,9 @@
 export const dynamic = 'force-dynamic'
+import { requireMemberServerAuth } from '@/lib/auth-helpers'
 import { MemberNav } from '@/components/layout/member-nav'
 
-export default function MemberLayout({ children }: { children: React.ReactNode }) {
+export default async function MemberLayout({ children }: { children: React.ReactNode }) {
+  await requireMemberServerAuth()
   return (
     <div className="min-h-screen bg-background">
       <MemberNav />

@@ -105,3 +105,50 @@ export async function requireAdminAuth(): Promise<AdminAuthResult> {
   if (adminEmails.length === 0 || !adminEmails.includes(user.email)) redirect('/login')
   return { user: { id: user.id, email: user.email } }
 }
+
+/**
+ * requireOwnerServerAuth — use in Server Component layouts for (owner) routes.
+ * Defence-in-depth: verifies session + owner role + not suspended.
+ * Uses redirect() from next/navigation (works in Server Components/layouts).
+ */
+export async function requireOwnerServerAuth(): Promise<void> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('gym_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (userData?.role !== 'owner') redirect('/login')
+
+  const { data: gymData } = await supabase
+    .from('gyms')
+    .select('suspended_at')
+    .eq('id', userData.gym_id)
+    .single()
+
+  if (gymData?.suspended_at) redirect('/suspended')
+}
+
+/**
+ * requireMemberServerAuth — use in Server Component layouts for (member) routes.
+ * Defence-in-depth: verifies session + member exists + not revoked.
+ * Uses redirect() from next/navigation (works in Server Components/layouts).
+ */
+export async function requireMemberServerAuth(): Promise<void> {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('gym_id, revoked_at')
+    .eq('id', user.id)
+    .single()
+
+  if (!userData) redirect('/login')
+  if ((userData as { revoked_at: string | null }).revoked_at) redirect('/login')
+}
