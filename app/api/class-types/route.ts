@@ -19,17 +19,7 @@ export async function GET() {
     .eq('gym_id', userData.gym_id)
     .order('created_at')
 
-  // Seed a default WOD type if the gym has none yet
-  if (!types || types.length === 0) {
-    const { data: seeded } = await supabase
-      .from('class_types')
-      .insert({ gym_id: userData.gym_id, name: 'WOD', color: DEFAULT_WOD_COLOR })
-      .select('id, name, color')
-      .single()
-    return jsonOk({ classTypes: seeded ? [seeded] : [] })
-  }
-
-  return jsonOk({ classTypes: types })
+  return jsonOk({ classTypes: types ?? [] })
 }
 
 const postSchema = z.object({

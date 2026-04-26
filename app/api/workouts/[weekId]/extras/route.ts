@@ -34,6 +34,10 @@ export async function PATCH(
     return jsonError('Week not found', 404)
   }
 
+  if (week.status !== 'draft') {
+    return jsonError('Only draft weeks can be edited', 409)
+  }
+
   const workouts: WorkoutDay[] = week.workouts as WorkoutDay[]
   const idx = workouts.findIndex(d => d.day === dayName)
   if (idx === -1) {

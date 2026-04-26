@@ -5,7 +5,9 @@ import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
-// Task 4: simple in-memory rate limit — max 3 requests per gym per minute
+// Per-instance rate limit — max 3 AI generation requests per gym per minute.
+// Note: this is process-local and resets on deploy. For persistent rate limiting
+// across all instances, add Upstash Redis. This still reduces abuse on single instances.
 const rateLimitMap = new Map<string, number[]>()
 const RATE_LIMIT_MAX = 3
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
@@ -17,6 +19,15 @@ function isRateLimited(gymId: string): boolean {
   if (timestamps.length >= RATE_LIMIT_MAX) return true
   timestamps.push(now)
   rateLimitMap.set(gymId, timestamps)
+  // Prune empty entries to prevent unbounded Map growth
+  if (timestamps.length === 1) {
+    setTimeout(() => {
+      const current = rateLimitMap.get(gymId) ?? []
+      if (current.every(t => t <= Date.now() - RATE_LIMIT_WINDOW_MS)) {
+        rateLimitMap.delete(gymId)
+      }
+    }, RATE_LIMIT_WINDOW_MS + 100)
+  }
   return false
 }
 
@@ -75,8 +86,8 @@ export async function POST(req: Request) {
   // Auto-scaling — non-blocking: failure does not prevent saving
   try {
     workouts = await generateScaling(workouts)
-  } catch {
-    // Scaling failed — save without scaling
+  } catch (scalingErr) {
+    console.warn('[workouts/generate] scaling failed, saving without scaling', scalingErr)
   }
 
 
