@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
   // Fetch instance + gym settings in parallel
   const [{ data: instance }, { data: gymRaw }] = await Promise.all([
-    supabase.from('class_instances').select('id, starts_at, capacity').eq('id', instanceId).single<ClassInstance>(),
+    supabase.from('class_instances').select('id, starts_at, capacity').eq('id', instanceId).eq('gym_id', userData.gym_id).single<ClassInstance>(),
     supabase.from('gyms').select('cancellation_cutoff_hours, waitlist_enabled, booking_advance_hours, notify_booking_confirmed, contact_email').eq('id', userData.gym_id).single(),
   ])
 
