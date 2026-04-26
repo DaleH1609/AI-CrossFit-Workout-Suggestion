@@ -4,8 +4,14 @@ import { redirect } from 'next/navigation'
 import { requireAdminAuth } from '@/lib/auth-helpers'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function isUuid(v: string): boolean {
+  return UUID_RE.test(v)
+}
+
 export async function suspendGym(gymId: string, gymName: string) {
   const { user } = await requireAdminAuth()
+  if (!isUuid(gymId)) throw new Error('Invalid gym ID')
   const db = createAdminClient()
 
   const { error } = await db
@@ -28,6 +34,7 @@ export async function suspendGym(gymId: string, gymName: string) {
 
 export async function unsuspendGym(gymId: string, gymName: string) {
   const { user } = await requireAdminAuth()
+  if (!isUuid(gymId)) throw new Error('Invalid gym ID')
   const db = createAdminClient()
 
   const { error } = await db
@@ -50,6 +57,7 @@ export async function unsuspendGym(gymId: string, gymName: string) {
 
 export async function deleteGym(gymId: string, gymName: string) {
   const { user } = await requireAdminAuth()
+  if (!isUuid(gymId)) throw new Error('Invalid gym ID')
   const db = createAdminClient()
 
   // Server-side confirmation: verify gymName matches the actual DB record

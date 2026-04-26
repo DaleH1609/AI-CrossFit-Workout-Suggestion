@@ -5,6 +5,11 @@ import { MemberAccordionClient } from './member-accordion-client'
 import { DangerZoneClient } from './danger-zone-client'
 import Link from 'next/link'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+function isUuid(v: string): boolean {
+  return UUID_RE.test(v)
+}
+
 function getWeekRange(timezone: string): { start: string; end: string } {
   const tz = timezone || 'UTC'
   // Get today's date string in the gym's timezone
@@ -23,6 +28,8 @@ function getWeekRange(timezone: string): { start: string; end: string } {
 }
 
 async function getGymDetail(gymId: string) {
+  if (!isUuid(gymId)) return null
+
   const db = createAdminClient()
 
   const { data: gym } = await db
