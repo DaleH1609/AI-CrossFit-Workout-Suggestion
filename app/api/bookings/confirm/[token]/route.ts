@@ -38,21 +38,15 @@ export async function GET(_req: Request, { params }: { params: { token: string }
   // for audit but no longer trusted as the authority.
   const verified = verifyToken(params.token)
 
-  const query = verified
-    ? supabase.from('bookings')
-        .select('id, instance_id, confirmation_token, confirmation_expires_at, status, class_instances(starts_at, capacity, gyms(timezone))')
-        .eq('id', verified.bookingId)
-        .eq('status', 'pending_confirmation')
-        .maybeSingle<BookingRow>()
-    // Legacy fallback: UUID-style tokens from before the signing rollout.
-    // Once all in-flight tokens have expired (≤2 hours post-deploy), this
-    // branch can be removed. Until then we keep it so existing confirmation
-    // emails don't all break at once.
-    : supabase.from('bookings')
-        .select('id, instance_id, confirmation_token, confirmation_expires_at, status, class_instances(starts_at, capacity, gyms(timezone))')
-        .eq('confirmation_token', params.token)
-        .eq('status', 'pending_confirmation')
-        .maybeSingle<BookingRow>()
+  if (!verified) {
+    return NextResponse.redirect(`${appUrl}/my-schedule?error=invalid-token`)
+  }
+
+  const query = supabase.from('bookings')
+      .select('id, instance_id, confirmation_token, confirmation_expires_at, status, class_instances(starts_at, capacity, gyms(timezone))')
+      .eq('id', verified.bookingId)
+      .eq('status', 'pending_confirmation')
+      .maybeSingle<BookingRow>()
 
   const { data: booking } = await query
 

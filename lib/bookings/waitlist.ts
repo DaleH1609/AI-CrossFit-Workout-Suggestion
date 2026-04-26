@@ -91,17 +91,8 @@ export async function promoteNextWaitlistMember(
   const expiresAtMs = Date.now() + windowMs
   const expiresAt = new Date(expiresAtMs).toISOString()
   // HMAC-signed token: lets us verify integrity on the confirm endpoint without
-  // a plain equality lookup. If the signing secret isn't configured we fall
-  // back to a random UUID so the app doesn't break on first deploy — but the
-  // secret should always be set in production.
-  const token = (() => {
-    try {
-      return signToken(next.id, expiresAtMs)
-    } catch (err) {
-      console.error('[waitlist] signToken failed, falling back to UUID', err)
-      return crypto.randomUUID()
-    }
-  })()
+  // a plain equality lookup.
+  const token = signToken(next.id, expiresAtMs)
 
   // Atomic claim: only promote if still 'waitlisted'. If a concurrent caller
   // already flipped it, rows.length === 0 and we bail out cleanly.

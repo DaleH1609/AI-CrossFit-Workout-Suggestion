@@ -95,6 +95,7 @@ describe('promoteNextWaitlistMember', () => {
   const farFuture = () => new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString()
 
   beforeEach(() => {
+    process.env.BOOKING_TOKEN_SECRET = 'test-secret-at-least-16-chars'
     sendWaitlistPromotion.mockReset()
     sendWaitlistPromotion.mockResolvedValue(undefined)
   })
