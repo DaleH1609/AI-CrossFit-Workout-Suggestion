@@ -1,6 +1,7 @@
-import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { localToUTC } from '@/lib/utils/local-to-utc'
-import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { jsonOk, jsonServerError } from '@/lib/api/response'
+import { assertCronAuth } from '@/lib/api/cron-auth'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Generates class instances from templates for the next 4 weeks for all gyms.
 // Runs daily via cron; skips instances that already exist.
@@ -15,15 +16,10 @@ import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 export const maxDuration = 300
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return jsonError('Unauthorized', 401)
-  }
+  const reject = assertCronAuth(req)
+  if (reject) return reject
 
-  const supabase = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabase = createAdminClient()
 
   const { data: gyms, error: gymsErr } = await supabase.from('gyms').select('id, timezone')
   if (gymsErr) return jsonServerError('cron/generate-instances gyms.select', gymsErr)

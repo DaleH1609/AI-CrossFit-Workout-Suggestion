@@ -1,5 +1,5 @@
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -33,10 +33,7 @@ export async function POST(req: Request) {
     parts: [{ label: null, type: 'strength', content: '' }],
   }))
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const admin = createAdminClient()
 
   const { error } = await admin.rpc('save_workout_draft', {
     p_gym_id: gymId,

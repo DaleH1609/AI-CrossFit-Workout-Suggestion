@@ -1,8 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, requireMemberAuth, isNextResponse } from '@/lib/auth-helpers'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { getAnthropicClient } from '@/lib/claude/client'
 
 export async function GET() {
   const auth = await requireMemberAuth()
@@ -35,9 +35,9 @@ export async function POST(req: Request) {
   const gymType: 'crossfit' | 'hyrox' = gymRow?.gym_type === 'hyrox' ? 'hyrox' : 'crossfit'
   const gymLabel = gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   let validationText = ''
   try {
+    const client = getAnthropicClient()
     const msg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 10,

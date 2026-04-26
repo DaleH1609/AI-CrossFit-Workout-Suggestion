@@ -195,6 +195,31 @@ These must be run on a normal machine before merging:
    - `BOOKING_TOKEN_SECRET` = `openssl rand -base64 32`
    - `CRON_SECRET` = `openssl rand -base64 32`
    - `RESEND_FROM_EMAIL` = the verified Resend sender (the app now throws loud if unset)
-6. **Apply migration `016_review_fixes.sql`** against staging → smoke test → prod.
+6. **Apply migrations in order** against staging → smoke test → prod:
+   - `016_review_fixes.sql`
+   - `017_confirmation_token_text.sql` — **critical**: widens `bookings.confirmation_token` from `uuid` to `text` so the HMAC-signed tokens introduced in Batch 9 actually round-trip through the DB. Without this migration, the first waitlist promotion after deploy fails with `invalid input syntax for type uuid`.
 
 Notes for whoever picks this up (future-you or a fresh Claude session): the batches are intentionally independent. Batches 7, 8, 10, and 12 are low-risk; Batches 9 and 11 touch more files and should get their own PR each.
+
+---
+
+## Post-Batch final sweep (April 17, 2026)
+
+After the 13 batches were committed, a final sanity sweep surfaced a handful
+of remaining issues. All were fixed in-tree; notes here so the next reviewer
+knows what to expect.
+
+- **Migration 017** (`017_confirmation_token_text.sql`) — **critical**: the
+  Batch 9 token-signing rollout wrote `v1.{b64}.{b64}` strings into a column
+  still typed as `uuid`. Added migration to widen it to `text` and rebuild
+  the partial unique index.
+- **Shared admin-client factory** (`lib/supabase/admin.ts`): the seven routes
+  that used the service-role key were each building their own client with
+  `process.env.NEXT_PUBLIC_SUPABASE_URL!` / `SUPABASE_SERVICE_ROLE_KEY!`.
+  Replaced with a single `createAdminClient()` that throws a clear error if
+  either env var is missing (instead of a cryptic TypeError inside the SDK).
+- **Shared Anthropic-client factory** (`lib/claude/client.ts`): two style
+  routes constructed `new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })`
+  inline — silently passing `undefined` to the SDK when misconfigured. Now
+  they all call `getAnthropicClient()`, which matches the same fail-fast
+  pattern used in `lib/claude/generate-workouts.ts`.

@@ -1,10 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import type { BookingWithInstance } from '@/lib/bookings/types'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError } from '@/lib/api/response'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const schema = z.object({ memberId: z.uuid() })
 
@@ -80,10 +80,7 @@ export async function POST(req: Request) {
   await supabase.from('users').delete().eq('id', memberId).eq('gym_id', userData.gym_id)
 
   // Delete from Supabase Auth
-  const adminSupabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const adminSupabase = createAdminClient()
   await adminSupabase.auth.admin.deleteUser(memberId)
 
   return jsonOk({ success: true })

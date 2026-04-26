@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -22,10 +22,7 @@ export async function POST(req: Request) {
   // app boundary prevents the "two accounts, one inbox" duplicate.
   const email = rawEmail.trim().toLowerCase()
 
-  const adminSupabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const adminSupabase = createAdminClient()
 
   // Guard: if this email is already a member of a DIFFERENT gym, an upsert on
   // id would silently overwrite their gym_id, moving them between gyms. Refuse.

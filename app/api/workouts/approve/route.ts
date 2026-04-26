@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { sendWorkoutsPublishedEmail } from '@/lib/email/send'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
@@ -23,10 +23,7 @@ export async function POST(req: Request) {
 
   if (!draft) return jsonError('Draft week not found', 404)
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const admin = createAdminClient()
 
   await admin.from('workout_weeks')
     .update({ status: 'discarded' })

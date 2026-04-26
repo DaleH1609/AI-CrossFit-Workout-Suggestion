@@ -1,6 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { jsonOk, jsonServerError } from '@/lib/api/response'
+import { getAnthropicClient } from '@/lib/claude/client'
 
 const CROSSFIT_PROMPT = `Generate 3 realistic CrossFit gym workout examples. Each should look like a real whiteboard post — include day, parts (strength + conditioning), movements, sets/reps or time domains, and any time caps. Use plain text with line breaks, the way a coach would write it on a whiteboard. Separate each example with exactly "\n---\n". Return only the workout text, no extra commentary.`
 
@@ -23,10 +23,9 @@ export async function POST() {
 
   const prompt = gymType === 'hyrox' ? HYROX_PROMPT : CROSSFIT_PROMPT
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
   let text: string
   try {
+    const client = getAnthropicClient()
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 2048,

@@ -2,7 +2,7 @@
 import { generateWorkouts, generateScaling } from '@/lib/claude/generate-workouts'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 // Task 4: simple in-memory rate limit — max 3 requests per gym per minute
@@ -94,10 +94,7 @@ export async function POST(req: Request) {
   }
 
   // Use admin client to bypass RLS — auth already verified above
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const admin = createAdminClient()
 
 
   // Call atomic SQL function (SECURITY DEFINER bypasses RLS completely)
