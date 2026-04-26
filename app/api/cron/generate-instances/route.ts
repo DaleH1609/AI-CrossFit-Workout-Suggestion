@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 
     const [{ data: templates }, { data: defaults }] = await Promise.all([
       supabase.from('class_slot_templates').select('*').eq('gym_id', gym.id).eq('active', true),
-      supabase.from('gym_schedule_defaults').select('*').eq('gym_id', gym.id),
+      supabase.from('gym_schedule_defaults').select('day_of_week, default_capacity').eq('gym_id', gym.id).returns<{ day_of_week: number | null; default_capacity: number }[]>(),
     ])
 
     if (!templates?.length) continue

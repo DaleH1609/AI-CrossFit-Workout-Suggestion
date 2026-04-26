@@ -109,11 +109,11 @@ export async function POST(req: Request) {
 
 
   // Call atomic SQL function (SECURITY DEFINER bypasses RLS completely)
-  const { error } = await admin.rpc('save_workout_draft', {
+  const { error } = await admin.rpc('save_workout_draft' as never, {
     p_gym_id: gymId,
     p_week_start: weekStart,
     p_workouts: workouts,
-  })
+  } as never)
 
   if (error) return jsonServerError('workouts/generate save_workout_draft', error)
 
