@@ -5,12 +5,14 @@ import { UserAccordionClient } from './user-accordion-client'
 async function searchUsers(q: string) {
   if (!q.trim()) return []
 
+  const safeQ = q.replace(/%/g, '\\%').replace(/_/g, '\\_')
+
   const db = createAdminClient()
 
   const { data: users } = await db
     .from('users')
     .select('id, name, email, role, gym_id, created_at, revoked_at')
-    .ilike('email', `%${q}%`)
+    .ilike('email', `%${safeQ}%`)
     .order('created_at', { ascending: false })
     .limit(50)
 
