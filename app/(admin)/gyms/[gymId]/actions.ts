@@ -13,14 +13,15 @@ export async function suspendGym(gymId: string, gymName: string) {
     .update({ suspended_at: new Date().toISOString() })
     .eq('id', gymId)
 
-  if (error) throw new Error(`Failed to suspend gym: ${error.message}`)
+  if (error) throw new Error('Failed to suspend gym')
 
-  await db.from('admin_audit_log').insert({
+  const { error: auditError } = await db.from('admin_audit_log').insert({
     admin_email: user.email,
     action: 'suspend_gym',
     target_id: gymId,
     target_name: gymName,
   })
+  if (auditError) console.error('[admin] audit log insert failed (suspend_gym)', auditError)
 
   redirect(`/admin/gyms/${gymId}`)
 }
@@ -34,14 +35,15 @@ export async function unsuspendGym(gymId: string, gymName: string) {
     .update({ suspended_at: null })
     .eq('id', gymId)
 
-  if (error) throw new Error(`Failed to unsuspend gym: ${error.message}`)
+  if (error) throw new Error('Failed to unsuspend gym')
 
-  await db.from('admin_audit_log').insert({
+  const { error: auditError } = await db.from('admin_audit_log').insert({
     admin_email: user.email,
     action: 'unsuspend_gym',
     target_id: gymId,
     target_name: gymName,
   })
+  if (auditError) console.error('[admin] audit log insert failed (unsuspend_gym)', auditError)
 
   redirect(`/admin/gyms/${gymId}`)
 }
@@ -67,12 +69,13 @@ export async function deleteGym(gymId: string, gymName: string) {
 
   if (error) throw new Error('Failed to delete gym')
 
-  await db.from('admin_audit_log').insert({
+  const { error: auditError } = await db.from('admin_audit_log').insert({
     admin_email: user.email,
     action: 'delete_gym',
     target_id: gymId,
     target_name: gymName,
   })
+  if (auditError) console.error('[admin] audit log insert failed (delete_gym)', auditError)
 
   redirect('/admin/gyms')
 }
