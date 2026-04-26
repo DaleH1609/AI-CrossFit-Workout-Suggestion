@@ -3,9 +3,16 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-anon-key',
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
@@ -70,6 +77,18 @@ export async function middleware(request: NextRequest) {
       )
     }
   }
+
+  const csp = [
+    "default-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-eval' blob:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "img-src 'self' data:",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+  ].join('; ')
+  response.headers.set('Content-Security-Policy', csp)
+  response.headers.set('X-Frame-Options', 'DENY')
 
   return response
 }
