@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
   const { error } = await supabase.from('workout_weeks')
     .update({ status: 'discarded' })
-    .eq('id', parsed.weekId).eq('gym_id', userData.gym_id)
+    .eq('id', parsed.weekId).eq('gym_id', userData.gym_id).eq('status', 'draft')
 
   if (error) return jsonServerError('workouts/discard', error)
   return jsonOk({ success: true })

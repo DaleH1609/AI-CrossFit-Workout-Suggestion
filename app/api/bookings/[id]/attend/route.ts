@@ -1,8 +1,12 @@
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
+  if (!UUID_RE.test(params.id)) return jsonError('Invalid booking id', 400)
+
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 

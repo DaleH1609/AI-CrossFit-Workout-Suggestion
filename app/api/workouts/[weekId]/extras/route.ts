@@ -3,8 +3,12 @@ import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import type { WorkoutDay, WorkoutExtra } from '@/lib/types'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function PATCH(req: Request, props: { params: Promise<{ weekId: string }> }) {
   const params = await props.params;
+  if (!UUID_RE.test(params.weekId)) return jsonError('Invalid week id', 400)
+
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
