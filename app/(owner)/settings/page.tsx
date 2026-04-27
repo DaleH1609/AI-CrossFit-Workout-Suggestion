@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Dropdown } from '@/components/ui/dropdown'
-
-const TIMEZONES = ['America/New_York','America/Chicago','America/Denver','America/Los_Angeles','Europe/London','Australia/Sydney']
+import { TIMEZONE_OPTIONS } from '@/lib/timezones'
 
 const GYM_TYPES = [
   { value: 'crossfit' as const, label: 'CrossFit', description: 'Classic WODs, strength work, and functional fitness' },
@@ -179,7 +178,7 @@ export default function SettingsPage() {
                 <Dropdown
                   value={gym.timezone}
                   onChange={tz => setGym(g => g ? {...g, timezone: tz} : g)}
-                  options={TIMEZONES.map(tz => ({ value: tz, label: tz }))}
+                  options={TIMEZONE_OPTIONS}
                 />
               </div>
               <div>

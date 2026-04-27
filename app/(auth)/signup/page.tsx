@@ -5,15 +5,7 @@ import { KovaLogo } from '@/components/ui/kova-logo'
 import { AuthBrandPanel } from '@/components/auth/brand-panel'
 import { Dropdown } from '@/components/ui/dropdown'
 import Link from 'next/link'
-
-const TIMEZONE_OPTIONS = [
-  { value: 'America/New_York',   label: 'Eastern Time (ET)' },
-  { value: 'America/Chicago',    label: 'Central Time (CT)' },
-  { value: 'America/Denver',     label: 'Mountain Time (MT)' },
-  { value: 'America/Los_Angeles',label: 'Pacific Time (PT)' },
-  { value: 'Europe/London',      label: 'London (GMT/BST)' },
-  { value: 'Australia/Sydney',   label: 'Sydney (AEST)' },
-]
+import { TIMEZONE_OPTIONS } from '@/lib/timezones'
 
 const GYM_TYPES = [
   { value: 'crossfit', label: 'CrossFit', description: 'Classic WODs, strength work, and functional fitness' },
