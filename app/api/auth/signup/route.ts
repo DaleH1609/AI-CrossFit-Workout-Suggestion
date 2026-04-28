@@ -2,8 +2,23 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { rateLimit } from '@/lib/rate-limit'
 
+function getClientIp(req: Request): string {
+  // x-real-ip is set by Vercel and cannot be spoofed
+  const realIp = req.headers.get('x-real-ip')
+  if (realIp) return realIp
+
+  // Last IP in X-Forwarded-For is appended by Vercel's CDN (not client-controlled)
+  const forwarded = req.headers.get('x-forwarded-for')
+  if (forwarded) {
+    const ips = forwarded.split(',').map(s => s.trim()).filter(Boolean)
+    if (ips.length > 0) return ips[ips.length - 1]
+  }
+
+  return 'unknown'
+}
+
 export async function POST(req: Request) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  const ip = getClientIp(req)
   const { limited } = await rateLimit(ip, 'signup')
   if (limited) return jsonError('Too many requests. Please try again later.', 429)
 

@@ -412,7 +412,7 @@ export default function HomePage() {
       {/* ── FOOTER ──────────────────────────────────────────────────── */}
       <footer className="bg-[#0A0A0A] border-t border-white/5">
         <div className="max-w-6xl mx-auto px-8 pt-14 pb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
             <div className="col-span-2">
               <KovaLogo size="sm" />
               <p className="text-xs text-secondary mt-4 max-w-xs leading-relaxed">
@@ -433,6 +433,16 @@ export default function HomePage() {
               <p className="text-[10px] font-bold tracking-widest uppercase text-white/25 mb-5">Account</p>
               <ul className="space-y-3">
                 {[['Sign In', '/login'], ['Create Gym', '/signup']].map(([label, href]) => (
+                  <li key={label}>
+                    <a href={href} className="text-sm text-secondary hover:text-white transition-colors">{label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold tracking-widest uppercase text-white/25 mb-5">Legal</p>
+              <ul className="space-y-3">
+                {[['Terms of Service', '/terms'], ['Privacy Policy', '/privacy']].map(([label, href]) => (
                   <li key={label}>
                     <a href={href} className="text-sm text-secondary hover:text-white transition-colors">{label}</a>
                   </li>

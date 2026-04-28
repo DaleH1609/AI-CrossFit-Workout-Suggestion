@@ -445,7 +445,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                           return (
                             <div
                               key={template.id}
-                              className={`group relative w-full h-[60px] rounded px-2 py-1.5 cursor-pointer transition-all flex flex-col justify-between ${
+                              className={`group relative w-full h-[80px] rounded px-2 py-1.5 cursor-pointer transition-all flex flex-col justify-between ${
                                 isEditing
                                   ? 'ring-2 ring-white/40 ring-offset-1 ring-offset-background scale-[1.03] z-10 shadow-lg shadow-black/40'
                                   : 'hover:scale-[1.04] hover:z-10 hover:shadow-xl hover:shadow-black/50'
@@ -516,7 +516,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                           <button
                             type="button"
                             onClick={() => callPost(day, time)}
-                            className="w-full h-[60px] rounded border border-dashed border-border hover:border-accent text-secondary text-lg transition-colors"
+                            className="w-full h-[80px] rounded border border-dashed border-border hover:border-accent text-secondary text-lg transition-colors"
                           >
                             +
                           </button>

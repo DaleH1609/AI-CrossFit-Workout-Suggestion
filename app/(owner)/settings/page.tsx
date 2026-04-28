@@ -13,6 +13,7 @@ const SECTIONS = [
   { id: 'gym-info', label: 'Gym Info' },
   { id: 'gym-type', label: 'Gym Type' },
   { id: 'booking', label: 'Booking' },
+  { id: 'danger', label: 'Danger Zone' },
   { id: 'members', label: 'Members' },
   { id: 'notifications', label: 'Notifications' },
 ]
@@ -60,7 +61,22 @@ export default function SettingsPage() {
   const [bookingSaved, setBookingSaved] = useState(false)
   const [membersSaved, setMembersSaved] = useState(false)
   const [notifySaved, setNotifySaved] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const supabase = createClient()
+
+  async function handleDeleteAccount() {
+    setDeleting(true)
+    const res = await fetch('/api/auth/delete-account', { method: 'DELETE' })
+    if (res.ok) {
+      await supabase.auth.signOut()
+      window.location.href = '/'
+    } else {
+      setDeleting(false)
+      setDeleteConfirm(false)
+      alert('Something went wrong. Please try again or contact support.')
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -366,6 +382,46 @@ export default function SettingsPage() {
                   }}
                 />
               </div>
+            </div>
+          </section>
+
+          <div className="border-t border-border" />
+
+          {/* Danger Zone */}
+          <section id="danger">
+            <h2 className="text-sm font-semibold text-foreground mb-5">Danger Zone</h2>
+            <div className="rounded-lg border border-danger/30 bg-danger/5 p-5">
+              <p className="text-sm text-foreground font-medium mb-1">Delete gym account</p>
+              <p className="text-xs text-secondary mb-4">
+                Permanently deletes your gym, all members, workouts, bookings, and schedule. This cannot be undone.
+              </p>
+              {!deleteConfirm ? (
+                <button
+                  onClick={() => setDeleteConfirm(true)}
+                  className="px-3 py-1.5 text-xs font-medium text-danger border border-danger/40 rounded-btn hover:bg-danger/10 transition-colors"
+                >
+                  Delete account
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-xs text-danger font-medium">Are you absolutely sure? This will delete everything.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleting}
+                      className="px-3 py-1.5 text-xs font-medium bg-danger text-background rounded-btn hover:bg-danger/90 transition-colors disabled:opacity-50"
+                    >
+                      {deleting ? 'Deleting…' : 'Yes, delete everything'}
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(false)}
+                      className="px-3 py-1.5 text-xs font-medium text-secondary border border-border rounded-btn hover:text-foreground transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 

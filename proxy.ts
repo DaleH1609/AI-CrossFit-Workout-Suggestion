@@ -78,10 +78,14 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  const scriptSrc = process.env.NODE_ENV === 'development'
+    ? "script-src 'self' 'unsafe-eval' blob:"
+    : "script-src 'self' blob:"
+
   const csp = [
     "default-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "script-src 'self' 'unsafe-eval' blob:",
+    scriptSrc,
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
     "img-src 'self' data:",
     "frame-ancestors 'none'",
@@ -89,6 +93,10 @@ export async function proxy(request: NextRequest) {
   ].join('; ')
   response.headers.set('Content-Security-Policy', csp)
   response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
 
   return response
 }

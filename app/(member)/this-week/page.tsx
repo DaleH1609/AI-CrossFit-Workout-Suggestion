@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { WeekDayView } from '@/components/booking/week-day-view'
-import type { WorkoutDay } from '@/lib/types'
+import type { WorkoutDay, SpecialtyProgram, ProgramDay } from '@/lib/types'
 
 interface UserRow { gym_id: string; id: string }
 interface WeekData { workouts: WorkoutDay[] }
@@ -39,7 +39,7 @@ export default async function ThisWeekPage() {
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekEnd.getDate() + 6)
 
-  const [{ data: weekData }, { data: instancesRaw }, { data: gymRaw }] = await Promise.all([
+  const [{ data: weekData }, { data: instancesRaw }, { data: gymRaw }, { data: programsRaw }] = await Promise.all([
     supabase.from('workout_weeks').select('workouts')
       .eq('gym_id', userData.gym_id).eq('status', 'published').is('archived_at', null)
       .eq('week_start', weekStart).maybeSingle(),
@@ -48,12 +48,18 @@ export default async function ThisWeekPage() {
       .gte('date', weekStart).lte('date', weekEnd.toISOString().split('T')[0])
       .order('date').order('local_time'),
     supabase.from('gyms').select('show_member_names, waitlist_enabled').eq('id', userData.gym_id).single(),
+    supabase.from('specialty_programs').select('id, gym_id, name, week_start, days, status, created_at, updated_at')
+      .eq('gym_id', userData.gym_id)
+      .eq('week_start', weekStart)
+      .eq('status', 'published')
+      .order('name', { ascending: true }),
   ])
 
   const workouts: WorkoutDay[] = (weekData as unknown as WeekData | null)?.workouts ?? []
   const gym = gymRaw as unknown as { show_member_names: boolean; waitlist_enabled: boolean } | null
   const showMemberNames = gym?.show_member_names ?? false
   const waitlistEnabled = gym?.waitlist_enabled ?? true
+  const programs = (programsRaw ?? []) as unknown as SpecialtyProgram[]
 
   const now = new Date()
   const instances = ((instancesRaw ?? []) as unknown as ClassInstance[])
@@ -117,6 +123,52 @@ export default async function ThisWeekPage() {
           waitlistEnabled={waitlistEnabled}
         />
       )}
+      <OtherPrograms programs={programs} />
+    </div>
+  )
+}
+
+function OtherPrograms({ programs }: { programs: SpecialtyProgram[] }) {
+  if (programs.length === 0) return null
+  return (
+    <section className="mt-10">
+      <h2 className="font-display text-xl text-foreground mb-4">Other Programs</h2>
+      <div className="space-y-4">
+        {programs.map(program => (
+          <ProgramCard key={program.id} program={program} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function ProgramCard({ program }: { program: SpecialtyProgram }) {
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const days = DAYS.map(dayName => {
+    const existing = program.days.find((d: ProgramDay) => d.day === dayName)
+    return existing ?? { day: dayName, content: '' }
+  })
+  return (
+    <div className="bg-surface border border-border rounded-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="font-semibold text-foreground text-sm">{program.name}</h3>
+      </div>
+      <div className="divide-y divide-border">
+        {days.map(({ day, content }) => (
+          <details key={day} className="group">
+            <summary className="flex items-center justify-between px-4 py-2.5 cursor-pointer list-none hover:bg-surface-raised transition-colors">
+              <span className="text-xs font-semibold text-accent uppercase tracking-wider">{day}</span>
+              <svg aria-hidden="true" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
+                className="text-secondary group-open:rotate-180 transition-transform duration-200">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div className="px-4 py-3 text-sm text-secondary whitespace-pre-wrap">
+              {content.trim() ? content : <span className="italic">Rest</span>}
+            </div>
+          </details>
+        ))}
+      </div>
     </div>
   )
 }
