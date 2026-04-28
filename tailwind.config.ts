@@ -44,8 +44,8 @@ const config: Config = {
         'secondary-60':   'var(--color-secondary-60)',
       },
       fontFamily: {
-        display: ['var(--font-playfair)', 'serif'],
-        body:    ['var(--font-inter)', 'sans-serif'],
+        display: ['var(--font-bebas)', 'sans-serif'],
+        body:    ['var(--font-dm-sans)', 'sans-serif'],
       },
       borderRadius: {
         card: '8px',

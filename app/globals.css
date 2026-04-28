@@ -93,6 +93,11 @@ body {
   background: var(--color-background);
 }
 
+/* Bebas Neue is all-caps by design — add tracking to display headings */
+.font-display {
+  letter-spacing: 0.02em;
+}
+
 @layer utilities {
   .text-balance { text-wrap: balance; }
 }
