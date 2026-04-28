@@ -131,29 +131,37 @@ const PANELS = [<PanelGenerate key="generate" />, <PanelReview key="review" />, 
 
 export function WodWalkthrough() {
   const [active, setActive] = useState(0)
-  const sectionRef = useRef<HTMLDivElement>(null)
+  const sent1 = useRef<HTMLDivElement>(null)
+  const sent2 = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return
-      const rect = sectionRef.current.getBoundingClientRect()
-      const sectionH = sectionRef.current.offsetHeight
-      const vh = window.innerHeight
-      const progress = Math.max(0, Math.min(1, -rect.top / (sectionH - vh)))
-      setActive(Math.min(2, Math.floor(progress * 3)))
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
+    // Sentinel 1: crossing into step 2
+    const obs1 = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) setActive(1)
+      else if (e.boundingClientRect.top > 0) setActive(0)  // exited from bottom = scrolled back up
+    }, { threshold: 0 })
+
+    // Sentinel 2: crossing into step 3
+    const obs2 = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) setActive(2)
+      else if (e.boundingClientRect.top > 0) setActive(1)  // exited from bottom = scrolled back up
+    }, { threshold: 0 })
+
+    if (sent1.current) obs1.observe(sent1.current)
+    if (sent2.current) obs2.observe(sent2.current)
+    return () => { obs1.disconnect(); obs2.disconnect() }
   }, [])
 
   return (
     <section
-      ref={sectionRef}
       id="how-it-works"
       className="relative scroll-mt-16"
       style={{ height: '550vh' }}
     >
+      {/* Sentinel divs — absolute siblings of the sticky div, not inside it */}
+      <div ref={sent1} style={{ position: 'absolute', top: '30%', height: '1px', width: '100%', pointerEvents: 'none' }} />
+      <div ref={sent2} style={{ position: 'absolute', top: '60%', height: '1px', width: '100%', pointerEvents: 'none' }} />
+
       <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
         <div className="max-w-6xl mx-auto w-full px-8 py-12">
           <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-4">How It Works</p>
