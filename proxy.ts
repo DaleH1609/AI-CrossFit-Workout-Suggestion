@@ -78,14 +78,10 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const scriptSrc = process.env.NODE_ENV === 'development'
-    ? "script-src 'self' 'unsafe-eval' blob:"
-    : "script-src 'self' blob:"
-
   const csp = [
     "default-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    scriptSrc,
+    "script-src 'self' 'unsafe-eval' blob:",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
     "img-src 'self' data:",
     "frame-ancestors 'none'",
