@@ -70,10 +70,12 @@ export async function proxy(request: NextRequest) {
     if (role === 'member' && path.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL('/this-week', request.url))
     }
-    // Redirect root to role home
+    // Redirect root to role home.
+    // Default to /dashboard when role is unknown (DB query failed) so that
+    // unauthenticated-loop doesn't bounce owner→/this-week→member-layout→/login.
     if (path === '/') {
       return NextResponse.redirect(
-        new URL(role === 'owner' ? '/dashboard' : '/this-week', request.url)
+        new URL(role === 'member' ? '/this-week' : '/dashboard', request.url)
       )
     }
   }

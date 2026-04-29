@@ -112,19 +112,31 @@ export async function requireOwnerServerAuth(): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: userData } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from('users')
     .select('gym_id, role')
     .eq('id', user.id)
     .single()
 
+  if (userError) {
+    // DB error (not simply "no rows") — log and redirect to login rather than
+    // silently looping. This exposes the root cause in Vercel function logs.
+    console.error('[requireOwnerServerAuth] users query failed for', user.id, userError)
+    redirect('/login')
+  }
+
   if (userData?.role !== 'owner') redirect('/login')
 
-  const { data: gymData } = await supabase
+  const { data: gymData, error: gymError } = await supabase
     .from('gyms')
     .select('suspended_at')
     .eq('id', userData.gym_id)
     .single()
+
+  if (gymError) {
+    console.error('[requireOwnerServerAuth] gyms query failed for gym', userData.gym_id, gymError)
+    redirect('/login')
+  }
 
   if (gymData?.suspended_at) redirect('/suspended')
 }
@@ -139,11 +151,16 @@ export async function requireMemberServerAuth(): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: userData } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from('users')
     .select('gym_id, revoked_at')
     .eq('id', user.id)
     .single()
+
+  if (userError) {
+    console.error('[requireMemberServerAuth] users query failed for', user.id, userError)
+    redirect('/login')
+  }
 
   if (!userData) redirect('/login')
   if ((userData as { revoked_at: string | null }).revoked_at) redirect('/login')
