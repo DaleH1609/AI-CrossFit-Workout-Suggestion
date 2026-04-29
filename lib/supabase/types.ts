@@ -19,7 +19,6 @@ export type Database = {
       class_instances: AnyTable
       bookings: AnyTable
       admin_audit_log: AnyTable
-      specialty_programs: AnyTable
     }
     Views: Record<string, never>
     Functions: Record<string, never>

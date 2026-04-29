@@ -10,7 +10,7 @@ export async function GET() {
   if (isNextResponse(auth)) return auth
 
   const { supabase, userData } = auth
-  const { data: examples } = await supabase.from('style_examples').select('id, gym_id, raw_text, created_at, updated_at')
+  const { data: examples } = await supabase.from('style_examples').select('*')
     .eq('gym_id', userData.gym_id).is('archived_at', null).order('created_at')
 
   const { data: gymRow } = await supabase.from('gyms').select('gym_type').eq('id', userData.gym_id).single()

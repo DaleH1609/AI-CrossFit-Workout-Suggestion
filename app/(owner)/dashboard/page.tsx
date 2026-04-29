@@ -8,44 +8,7 @@ import { MovementIntelligencePanel } from '@/components/workout/MovementIntellig
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
-import Link from 'next/link'
 import type { WorkoutDay, WorkoutWeek } from '@/lib/types'
-
-const ONBOARDING_STEPS = [
-  { label: 'Set your gym style', desc: 'Upload sample workouts so the AI learns your programming style.', href: '/style-profile' },
-  { label: 'Set up your schedule', desc: 'Add recurring class slots and set capacities.', href: '/schedule' },
-  { label: 'Invite members', desc: 'Send invite links so your athletes can book classes.', href: '/members' },
-]
-
-function OnboardingPanel({ onGenerate, generating }: { onGenerate: () => void; generating: boolean }) {
-  return (
-    <div className="mt-8 rounded-lg border border-border bg-surface p-8 max-w-2xl">
-      <h2 className="font-display text-xl font-semibold text-foreground mb-1">Welcome to KOVA</h2>
-      <p className="text-sm text-secondary mb-8">Three things to do before you generate your first week:</p>
-      <ol className="space-y-5 mb-10">
-        {ONBOARDING_STEPS.map((step, i) => (
-          <li key={step.href} className="flex gap-4 items-start">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full border border-border flex items-center justify-center text-xs text-secondary font-medium">{i + 1}</span>
-            <div>
-              <Link href={step.href} className="text-sm font-medium text-foreground hover:text-accent transition-colors">
-                {step.label} →
-              </Link>
-              <p className="text-xs text-secondary mt-0.5">{step.desc}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-      <p className="text-xs text-secondary mb-4">Or skip straight to generating — the AI will use built-in defaults.</p>
-      <button
-        onClick={onGenerate}
-        disabled={generating}
-        className="inline-flex items-center px-4 py-2 rounded-btn text-sm font-medium bg-accent text-background hover:bg-accent/90 transition-all disabled:opacity-50"
-      >
-        {generating ? <><Spinner />Generating…</> : 'Generate This Week'}
-      </button>
-    </div>
-  )
-}
 
 function Spinner() {
   return (
@@ -208,18 +171,13 @@ export default function DashboardPage() {
         </div>
       )}
       {error && <p className="text-danger mb-4">{error}</p>}
-
-      {!loading && !week && !generating ? (
-        <OnboardingPanel onGenerate={handleGenerate} generating={generating} />
-      ) : (
-        <WorkoutWeekGrid
-          week={week?.workouts ?? null}
-          loading={loading || generating}
-          isDraft={week?.status === 'draft'}
-          onEdit={setEditingDay}
-          onEditScaling={setEditingScalingDay}
-        />
-      )}
+      <WorkoutWeekGrid
+        week={week?.workouts ?? null}
+        loading={loading || generating}
+        isDraft={week?.status === 'draft'}
+        onEdit={setEditingDay}
+        onEditScaling={setEditingScalingDay}
+      />
 
       <Modal
         open={showApproveModal}

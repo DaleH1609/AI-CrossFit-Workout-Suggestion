@@ -161,7 +161,7 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="max-w-5xl">
       <div className="mb-6">
         <h1 className="font-display text-3xl text-foreground">Class Schedule</h1>
         <p className="text-secondary text-sm mt-1">Weekly recurring schedule and attendance tracking.</p>

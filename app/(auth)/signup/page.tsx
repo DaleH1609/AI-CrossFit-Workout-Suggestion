@@ -101,12 +101,6 @@ export default function SignupPage() {
           <p className="mt-6 text-secondary text-sm text-center">
             Already have an account? <Link href="/login" className="text-accent hover:underline">Sign in</Link>
           </p>
-          <p className="mt-4 text-xs text-secondary text-center">
-            By signing up you agree to our{' '}
-            <Link href="/terms" className="hover:text-foreground underline">Terms of Service</Link>
-            {' '}and{' '}
-            <Link href="/privacy" className="hover:text-foreground underline">Privacy Policy</Link>.
-          </p>
         </div>
       </div>
     </div>

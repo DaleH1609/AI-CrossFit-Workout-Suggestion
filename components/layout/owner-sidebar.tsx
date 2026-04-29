@@ -55,23 +55,12 @@ function IconSignOut() {
     </svg>
   )
 }
-function IconGrid() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="3" width="7" height="7" rx="1"/>
-      <rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="3" y="14" width="7" height="7" rx="1"/>
-      <rect x="14" y="14" width="7" height="7" rx="1"/>
-    </svg>
-  )
-}
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 const nav = [
   { href: '/dashboard',     label: 'Weekly Program', Icon: IconCalendar },
   { href: '/style-profile', label: 'Style Profile',  Icon: IconSparkle  },
   { href: '/schedule',      label: 'Class Schedule', Icon: IconClock    },
-  { href: '/programs',      label: 'Programs',       Icon: IconGrid     },
   { href: '/members',       label: 'Members',        Icon: IconUsers    },
   { href: '/settings',      label: 'Settings',       Icon: IconSettings },
 ]

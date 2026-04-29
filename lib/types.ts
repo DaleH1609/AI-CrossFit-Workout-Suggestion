@@ -66,19 +66,3 @@ export interface MovementAnalysis {
   intensityDistribution: { heavy_strength: number; conditioning: number; skill: number }
   weeksAnalysed: number
 }
-
-export interface ProgramDay {
-  day: string
-  content: string
-}
-
-export interface SpecialtyProgram {
-  id: string
-  gym_id: string
-  name: string
-  week_start: string
-  days: ProgramDay[]
-  status: 'draft' | 'published'
-  created_at: string
-  updated_at: string
-}
