@@ -119,10 +119,10 @@ export async function requireOwnerServerAuth(): Promise<void> {
     .single()
 
   if (userError) {
-    // DB error (not simply "no rows") — log and redirect to login rather than
-    // silently looping. This exposes the root cause in Vercel function logs.
+    // Real DB error (not "no rows") — throw so the Next.js root error boundary
+    // catches it and shows an error page instead of looping /dashboard→/login.
     console.error('[requireOwnerServerAuth] users query failed for', user.id, userError)
-    redirect('/login')
+    throw new Error(`Could not load user profile (${userError.code ?? userError.message})`)
   }
 
   if (userData?.role !== 'owner') redirect('/login')
@@ -135,7 +135,7 @@ export async function requireOwnerServerAuth(): Promise<void> {
 
   if (gymError) {
     console.error('[requireOwnerServerAuth] gyms query failed for gym', userData.gym_id, gymError)
-    redirect('/login')
+    throw new Error(`Could not load gym profile (${gymError.code ?? gymError.message})`)
   }
 
   if (gymData?.suspended_at) redirect('/suspended')
@@ -159,7 +159,7 @@ export async function requireMemberServerAuth(): Promise<void> {
 
   if (userError) {
     console.error('[requireMemberServerAuth] users query failed for', user.id, userError)
-    redirect('/login')
+    throw new Error(`Could not load user profile (${userError.code ?? userError.message})`)
   }
 
   if (!userData) redirect('/login')
