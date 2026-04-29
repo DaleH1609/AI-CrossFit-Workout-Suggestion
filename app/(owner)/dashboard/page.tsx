@@ -44,11 +44,17 @@ export default function DashboardPage() {
 
   async function loadWeek() {
     setLoading(true)
-    const { data } = await supabase.from('workout_weeks')
-      .select('id, workouts, status').eq('week_start', weekStart)
-      .in('status', ['draft', 'published']).order('created_at', { ascending: false }).limit(1).maybeSingle()
-    setWeek(data as { id: string; workouts: WorkoutWeek; status: string } | null)
-    setLoading(false)
+    try {
+      const { data } = await supabase.from('workout_weeks')
+        .select('id, workouts, status').eq('week_start', weekStart)
+        .in('status', ['draft', 'published']).order('created_at', { ascending: false }).limit(1).maybeSingle()
+      setWeek(data as { id: string; workouts: WorkoutWeek; status: string } | null)
+    } catch (err) {
+      console.error('[dashboard] loadWeek failed', err)
+      setError('Failed to load workout data. Please refresh.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleGenerate() {

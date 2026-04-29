@@ -54,6 +54,7 @@ export default function MembersPage() {
   }, [members])
 
   async function loadMembers() {
+    try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { data: userData } = await supabase.from('users').select('gym_id').eq('id', user.id).single()
@@ -61,6 +62,9 @@ export default function MembersPage() {
     const { data } = await supabase.from('users').select('id, email, name, created_at, revoked_at')
       .eq('gym_id', gymUser!.gym_id).eq('role', 'member').order('created_at')
     setMembers((data ?? []) as unknown as MemberRow[])
+    } catch (err) {
+      console.error('[members] loadMembers failed', err)
+    }
   }
 
   async function handleInvite(e: React.FormEvent) {

@@ -90,7 +90,10 @@ export default function SettingsPage() {
         })
       }
     }
-    load()
+    load().catch(err => {
+      console.error('[settings] load error', err)
+      setLoadError('Failed to load settings. Please refresh.')
+    })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function patch(body: Record<string, unknown>, setSaved: (v: boolean) => void) {

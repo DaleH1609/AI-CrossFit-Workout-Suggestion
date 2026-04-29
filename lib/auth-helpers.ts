@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/types'
+import { jsonServerError } from '@/lib/api/response'
 
 export interface OwnerAuthResult {
   supabase: SupabaseClient<Database>
@@ -44,13 +45,11 @@ export async function requireOwnerAuth(): Promise<OwnerAuthResult | NextResponse
     .single()
 
   if (gymError || !gymData) {
-    const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-    return NextResponse.redirect(new URL('/login', base))
+    return jsonServerError('requireOwnerAuth gym lookup', gymError)
   }
 
   if (gymData.suspended_at) {
-    const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-    return NextResponse.redirect(new URL('/suspended', base))
+    return NextResponse.json({ error: 'Account suspended' }, { status: 403 })
   }
 
   return { supabase, user: user as { id: string; email?: string }, userData: userData as { gym_id: string; role: string } }
