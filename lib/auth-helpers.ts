@@ -119,24 +119,17 @@ export async function requireOwnerServerAuth(): Promise<void> {
     .single()
 
   if (userError) {
-    // Real DB error (not "no rows") — throw so the Next.js root error boundary
-    // catches it and shows an error page instead of looping /dashboard→/login.
     console.error('[requireOwnerServerAuth] users query failed for', user.id, userError)
-    throw new Error(`Could not load user profile (${userError.code ?? userError.message})`)
+    redirect('/login')
   }
 
   if (userData?.role !== 'owner') redirect('/login')
 
-  const { data: gymData, error: gymError } = await supabase
+  const { data: gymData } = await supabase
     .from('gyms')
     .select('suspended_at')
     .eq('id', userData.gym_id)
     .single()
-
-  if (gymError) {
-    console.error('[requireOwnerServerAuth] gyms query failed for gym', userData.gym_id, gymError)
-    throw new Error(`Could not load gym profile (${gymError.code ?? gymError.message})`)
-  }
 
   if (gymData?.suspended_at) redirect('/suspended')
 }
@@ -159,7 +152,7 @@ export async function requireMemberServerAuth(): Promise<void> {
 
   if (userError) {
     console.error('[requireMemberServerAuth] users query failed for', user.id, userError)
-    throw new Error(`Could not load user profile (${userError.code ?? userError.message})`)
+    redirect('/login')
   }
 
   if (!userData) redirect('/login')
