@@ -67,7 +67,12 @@ export async function rateLimit(
   const limiter = getLimiter(preset, requests, window)
 
   if (!limiter) {
-    // Redis not configured — fail open so dev/preview envs work without Redis
+    // In production a missing Redis config is a misconfiguration, not intentional.
+    // Throw so the deployment surfaces it rather than silently disabling all limits.
+    if (process.env.VERCEL_ENV === 'production') {
+      throw new Error('[rate-limit] Upstash Redis not configured in production — refusing to fail open')
+    }
+    // Dev/preview: fail open so local development works without Redis
     return { limited: false }
   }
 

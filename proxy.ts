@@ -33,8 +33,8 @@ export async function proxy(request: NextRequest) {
   // /admin/* requires valid session + email in ADMIN_EMAILS (fail-closed)
   if (path.startsWith('/admin')) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
-    const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
-    if (!user.email || adminEmails.length === 0 || !adminEmails.includes(user.email)) {
+    const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+    if (!user.email || adminEmails.length === 0 || !adminEmails.includes(user.email.toLowerCase())) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     return response // admin verified — skip role-based routing below

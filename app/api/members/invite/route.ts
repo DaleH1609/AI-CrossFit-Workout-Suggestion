@@ -33,7 +33,8 @@ export async function POST(req: Request) {
     .maybeSingle()
 
   if (existingByEmail && existingByEmail.gym_id !== userData.gym_id) {
-    return jsonError('This email is already registered at another gym', 409)
+    // Don't reveal that this email exists at another gym — that leaks cross-gym membership.
+    return jsonError('Unable to send invite. Please try again.')
   }
 
   // Supabase sends its own invite email with the magic link.

@@ -3,7 +3,11 @@ import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+  // Use Vercel's platform-attested IP. x-real-ip is set by Vercel to the true
+  // client IP. x-forwarded-for[0] is attacker-controlled and must not be trusted.
+  const ip = req.headers.get('x-real-ip')
+    ?? req.headers.get('x-forwarded-for')?.split(',').at(-1)?.trim()
+    ?? 'unknown'
   const { limited } = await rateLimit(ip, 'signup')
   if (limited) return jsonError('Too many requests. Please try again later.', 429)
 
