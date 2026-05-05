@@ -24,6 +24,10 @@ export async function PATCH(req: Request, props: { params: Promise<{ weekId: str
   if (!dayName || typeof dayName !== 'string' || !Array.isArray(extras)) {
     return jsonError('dayName and extras are required')
   }
+  // Cap JSONB write size to prevent storage abuse
+  if (JSON.stringify(extras).length > 50_000) {
+    return jsonError('Extras data exceeds maximum allowed size')
+  }
 
   const { data: week, error: fetchError } = await supabase
     .from('workout_weeks')

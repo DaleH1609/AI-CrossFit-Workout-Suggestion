@@ -34,7 +34,8 @@ export async function POST(req: Request) {
 
   const parsed = await parseBody(req, postSchema)
   if (parsed instanceof NextResponse) return parsed
-  const { rawText } = parsed
+  // Strip ASCII control chars — raw_text is plain text only, never rendered as HTML.
+  const rawText = parsed.rawText.replace(/[\x00-\x08\x0E-\x1F]/g, '')
 
   const { data: gymRow } = await supabase.from('gyms').select('gym_type').eq('id', userData.gym_id).single()
   const gymType: 'crossfit' | 'hyrox' = gymRow?.gym_type === 'hyrox' ? 'hyrox' : 'crossfit'

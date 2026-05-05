@@ -26,10 +26,14 @@ export async function POST(req: Request) {
 
   // Guard: if this email is already a member of a DIFFERENT gym, an upsert on
   // id would silently overwrite their gym_id, moving them between gyms. Refuse.
+  // limit(1) prevents a 500 if the same email somehow appears in two rows
+  // (unique constraint is per gym_id, not global) — maybeSingle() would throw
+  // on multiple rows without the limit.
   const { data: existingByEmail } = await adminSupabase
     .from('users')
     .select('id, gym_id, revoked_at')
     .eq('email', email)
+    .limit(1)
     .maybeSingle()
 
   if (existingByEmail && existingByEmail.gym_id !== userData.gym_id) {

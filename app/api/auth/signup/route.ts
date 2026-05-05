@@ -26,7 +26,10 @@ export async function POST(req: Request) {
   if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
     return jsonError('Invalid email address')
   }
-  const trimmedGymName = typeof gymName === 'string' ? gymName.trim() : ''
+  // Strip HTML angle brackets and ASCII control chars — gym name is plain text only.
+  const trimmedGymName = typeof gymName === 'string'
+    ? gymName.trim().replace(/[<>]/g, '').replace(/[\x00-\x08\x0E-\x1F]/g, '')
+    : ''
   if (trimmedGymName.length < 2 || trimmedGymName.length > 50) {
     return jsonError('Gym name must be between 2 and 50 characters')
   }

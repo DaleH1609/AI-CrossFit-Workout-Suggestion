@@ -14,6 +14,16 @@ export async function PATCH(req: Request) {
     return jsonError('Invalid JSON body')
   }
 
+  // Reject unknown keys so the endpoint can never be tricked into writing
+  // arbitrary columns — even if future code changes the update pattern.
+  const ALLOWED_KEYS = new Set([
+    'gymType', 'cancellationCutoffHours', 'defaultCapacity', 'waitlistEnabled',
+    'bookingAdvanceHours', 'showMemberNames', 'notifyWorkoutPublished',
+    'notifyBookingConfirmed', 'contactEmail',
+  ])
+  const unknownKeys = Object.keys(body).filter(k => !ALLOWED_KEYS.has(k))
+  if (unknownKeys.length > 0) return jsonError(`Unknown field(s): ${unknownKeys.join(', ')}`)
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updates: Record<string, any> = {}
 

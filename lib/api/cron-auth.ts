@@ -28,10 +28,13 @@ export function assertCronAuth(req: Request): NextResponse | null {
   }
   const authHeader = req.headers.get('authorization') ?? ''
   const expected = `Bearer ${secret}`
-  // timingSafeEqual requires same-length buffers
-  const a = Buffer.from(authHeader)
-  const b = Buffer.from(expected)
-  const match = a.length === b.length && crypto.timingSafeEqual(a, b)
+  // HMAC both values with the secret as key so outputs are always 32 bytes —
+  // makes the comparison constant-time regardless of input length, preventing
+  // the 1-bit timing leak from the length short-circuit.
+  const key = Buffer.from(secret)
+  const ha = crypto.createHmac('sha256', key).update(authHeader).digest()
+  const hb = crypto.createHmac('sha256', key).update(expected).digest()
+  const match = crypto.timingSafeEqual(ha, hb)
   if (!match) {
     return jsonError('Unauthorized', 401)
   }
