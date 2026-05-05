@@ -6,10 +6,19 @@
 // endpoint calls checkAiLimit() before the call and incrementAiCalls() after
 // a successful response. The month is tracked lazily — no cron required;
 // the counter resets automatically when a new YYYY-MM is detected.
+//
+// Both functions accept the caller's user-scoped Supabase client so they
+// operate under RLS (owner can read/update their own gym row). The admin
+// client is not needed here — auth is already verified by the route handler.
 
-import { createAdminClient } from '@/lib/supabase/admin'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/supabase/types'
 
-const LIMIT = parseInt(process.env.AI_MONTHLY_LIMIT ?? '50', 10)
+// Validate env var strictly: reject non-finite or non-positive values rather
+// than silently treating NaN as "no limit" (NaN >= anything is always false).
+const raw = process.env.AI_MONTHLY_LIMIT ?? '50'
+const parsed = Number(raw)
+const LIMIT = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 50
 
 function currentMonth(): string {
   return new Date().toISOString().slice(0, 7) // YYYY-MM
@@ -18,16 +27,23 @@ function currentMonth(): string {
 /**
  * Returns { limited: true } if this gym has reached its monthly AI call cap.
  * Must be called before the AI request is made.
+ * Fails closed: if the gym row cannot be found, blocks the call rather than
+ * silently allowing unbounded AI usage.
  */
-export async function checkAiLimit(gymId: string): Promise<{ limited: boolean }> {
-  const admin = createAdminClient()
-  const { data } = await admin
+export async function checkAiLimit(
+  gymId: string,
+  supabase: SupabaseClient<Database>
+): Promise<{ limited: boolean }> {
+  const { data } = await supabase
     .from('gyms')
     .select('ai_calls_this_month, ai_month')
     .eq('id', gymId)
     .single()
 
-  if (!data) return { limited: false } // fail open if gym row missing
+  if (!data) {
+    console.error('[ai/spend-limit] gym row not found for', gymId, '— blocking AI call')
+    return { limited: true } // fail closed
+  }
 
   const month = currentMonth()
   const count = data.ai_month === month ? (data.ai_calls_this_month ?? 0) : 0
@@ -35,18 +51,18 @@ export async function checkAiLimit(gymId: string): Promise<{ limited: boolean }>
 }
 
 /**
- * Atomically increments the AI call counter for this gym.
- * Resets to 1 if the month has rolled over.
+ * Increments the AI call counter for this gym, resetting if the month rolled over.
+ * A slight read-modify-write race is acceptable — the rate-limit already caps
+ * concurrent calls, and a single over-count at the boundary is harmless.
  * Call only after a successful AI response.
  */
-export async function incrementAiCalls(gymId: string): Promise<void> {
-  const admin = createAdminClient()
+export async function incrementAiCalls(
+  gymId: string,
+  supabase: SupabaseClient<Database>
+): Promise<void> {
   const month = currentMonth()
 
-  // Read current state to decide whether to reset or increment.
-  // A slight race condition here is acceptable — the rate-limit already caps
-  // concurrent calls, and a single over-count at the boundary is harmless.
-  const { data } = await admin
+  const { data } = await supabase
     .from('gyms')
     .select('ai_calls_this_month, ai_month')
     .eq('id', gymId)
@@ -55,12 +71,12 @@ export async function incrementAiCalls(gymId: string): Promise<void> {
   if (!data) return
 
   if (data.ai_month === month) {
-    await admin
+    await supabase
       .from('gyms')
       .update({ ai_calls_this_month: (data.ai_calls_this_month ?? 0) + 1 })
       .eq('id', gymId)
   } else {
-    await admin
+    await supabase
       .from('gyms')
       .update({ ai_calls_this_month: 1, ai_month: month })
       .eq('id', gymId)

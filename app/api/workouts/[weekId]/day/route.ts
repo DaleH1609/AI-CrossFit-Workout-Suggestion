@@ -55,11 +55,11 @@ export async function PATCH(req: Request, props: { params: Promise<{ weekId: str
   // Regenerate scaling unless the client provided manual scaling
   let dayToSave = updatedDay
   if (!skipScaling) {
-    const { limited: atLimit } = await checkAiLimit(userData.gym_id)
+    const { limited: atLimit } = await checkAiLimit(userData.gym_id, supabase)
     if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
     try {
       dayToSave = await generateDayScaling(updatedDay)
-      incrementAiCalls(userData.gym_id).catch(err => console.error('[day/route] incrementAiCalls failed', err))
+      incrementAiCalls(userData.gym_id, supabase).catch(err => console.error('[day/route] incrementAiCalls failed', err))
     } catch {
       // Scaling failed — save without it
     }

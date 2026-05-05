@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   const { limited } = await rateLimit(userData.gym_id, 'ai')
   if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
 
-  const { limited: atLimit } = await checkAiLimit(userData.gym_id)
+  const { limited: atLimit } = await checkAiLimit(userData.gym_id, supabase)
   if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
 
   const parsed = await parseBody(req, postSchema)
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
   const { data, error } = await supabase.from('style_examples').insert({ gym_id: userData.gym_id, raw_text: rawText }).select().single()
   if (error) return jsonServerError('style POST', error)
-  incrementAiCalls(userData.gym_id).catch(err => console.error('[style] incrementAiCalls failed', err))
+  incrementAiCalls(userData.gym_id, supabase).catch(err => console.error('[style] incrementAiCalls failed', err))
   return jsonOk({ example: data })
 }
 

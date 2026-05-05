@@ -16,7 +16,7 @@ export async function GET() {
   const { limited } = await rateLimit(gymId, 'ai')
   if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
 
-  const { limited: atLimit } = await checkAiLimit(gymId)
+  const { limited: atLimit } = await checkAiLimit(gymId, supabase)
   if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
 
   const recentWeeks = await getRecentWeeks(supabase, gymId)
@@ -30,6 +30,6 @@ export async function GET() {
     return jsonError('Movement analysis unavailable', 503)
   }
 
-  incrementAiCalls(gymId).catch(err => console.error('[movement-analysis] incrementAiCalls failed', err))
+  incrementAiCalls(gymId, supabase).catch(err => console.error('[movement-analysis] incrementAiCalls failed', err))
   return jsonOk(analysis)
 }

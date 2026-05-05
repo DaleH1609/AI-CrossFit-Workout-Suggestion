@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const { limited } = await rateLimit(gymId, 'ai')
   if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
 
-  const { limited: atLimit } = await checkAiLimit(gymId)
+  const { limited: atLimit } = await checkAiLimit(gymId, supabase)
   if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
 
   let body: { weekStart?: unknown }
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   }
 
   // Count one generation against the monthly ceiling (fire-and-forget)
-  incrementAiCalls(gymId).catch(err => console.error('[workouts/generate] incrementAiCalls failed', err))
+  incrementAiCalls(gymId, supabase).catch(err => console.error('[workouts/generate] incrementAiCalls failed', err))
 
   // Final safety net — ensure Saturday and Sunday always have actual content
   function dayHasContent(d: { parts?: { content?: string }[] }) {

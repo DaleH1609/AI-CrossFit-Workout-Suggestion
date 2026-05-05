@@ -17,7 +17,7 @@ export async function POST() {
   const { limited } = await rateLimit(userData.gym_id, 'ai')
   if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
 
-  const { limited: atLimit } = await checkAiLimit(userData.gym_id)
+  const { limited: atLimit } = await checkAiLimit(userData.gym_id, supabase)
   if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
 
   const { data: gymRow } = await supabase
@@ -53,6 +53,6 @@ export async function POST() {
     return jsonServerError('style/generate-samples', new Error('No samples produced'))
   }
 
-  incrementAiCalls(userData.gym_id).catch(err => console.error('[style/generate-samples] incrementAiCalls failed', err))
+  incrementAiCalls(userData.gym_id, supabase).catch(err => console.error('[style/generate-samples] incrementAiCalls failed', err))
   return jsonOk({ samples })
 }
