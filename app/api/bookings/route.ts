@@ -92,7 +92,6 @@ export async function POST(req: Request) {
       p_gym_id:           userData.gym_id,
       p_instance_id:      instanceId,
       p_user_id:          user.id,
-      p_capacity:         instance.capacity,
       p_waitlist_enabled: waitlistEnabled,
       p_max_waitlist:     10,
       p_existing_id:      existing?.id ?? null,
@@ -167,7 +166,9 @@ export async function DELETE(req: Request) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
-  await promoteNextWaitlistMember(supabase, instance.id, instance.starts_at, appUrl, timezone)
+  // Use admin client: the promotion UPDATE targets another member's row and
+  // the member's narrow RLS (migration 022) would silently no-op on it.
+  await promoteNextWaitlistMember(createAdminClient(), instance.id, instance.starts_at, appUrl, timezone)
 
   return jsonOk({ success: true })
 }

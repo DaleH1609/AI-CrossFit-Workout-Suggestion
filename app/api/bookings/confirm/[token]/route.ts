@@ -1,6 +1,6 @@
 // app/api/bookings/confirm/[token]/route.ts
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { verifyToken } from '@/lib/crypto/token'
 import { randomBytes } from 'crypto'
@@ -87,7 +87,7 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
     <h1>Confirm your spot?</h1>
     <p>Click the button below to confirm your booking. Your spot is held until you confirm.</p>
     <form method="POST">
-      <input type="hidden" name="_csrf" value="${csrf}" />
+      <input type="hidden" name="_kova_confirm_csrf" value="${csrf}" />
       <button type="submit">Confirm my spot →</button>
     </form>
   </div>
@@ -101,7 +101,10 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
         // SameSite=Strict: browser sends the cookie only on same-site navigations,
         // so a cross-site form submit won't include it — but the hidden field still
         // won't match because the attacker never saw the GET response.
-        'Set-Cookie': `_csrf=${csrf}; HttpOnly; SameSite=Strict; Path=/api/bookings/confirm; Max-Age=900`,
+        // Secure: enforce HTTPS-only delivery regardless of where the app runs.
+        // Scoped to this specific token path so multiple pending confirmations
+        // don't overwrite each other's cookies (R5).
+        'Set-Cookie': `_kova_confirm_csrf=${csrf}; HttpOnly; Secure; SameSite=Strict; Path=/api/bookings/confirm/${token}; Max-Age=900`,
       },
     }
   )
@@ -114,16 +117,21 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
  */
 export async function POST(req: Request, props: { params: Promise<{ token: string }> }) {
   const { token } = await props.params
-  const supabase = await createClient()
+  // All DB operations in this route use the admin client. Security is provided
+  // by HMAC token verification + CSRF double-submit cookie; we must not rely on
+  // the user being logged in (they clicked from email). The narrowed member RLS
+  // (migration 022) only permits flip-to-cancelled, which would block the
+  // confirmed status update if we used the cookie-bound client.
+  const supabase = createAdminClient()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   // CSRF double-submit cookie check: the hidden _csrf field in the form must
   // match the _csrf cookie set on the GET response. Automated bots that follow
   // the form action without first rendering the GET page will fail this check.
   const cookieHeader = req.headers.get('cookie') ?? ''
-  const cookieCsrf = cookieHeader.match(/(?:^|;\s*)_csrf=([^;]+)/)?.[1] ?? ''
+  const cookieCsrf = cookieHeader.match(/(?:^|;\s*)_kova_confirm_csrf=([^;]+)/)?.[1] ?? ''
   const formData = await req.formData().catch(() => null)
-  const formCsrf = formData?.get('_csrf')?.toString() ?? ''
+  const formCsrf = formData?.get('_kova_confirm_csrf')?.toString() ?? ''
   if (!cookieCsrf || !formCsrf || cookieCsrf !== formCsrf) {
     return NextResponse.redirect(`${appUrl}/my-schedule?error=invalid-token`)
   }
@@ -167,7 +175,7 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
     }
 
     if (cancelRows && cancelRows.length > 0) {
-      await promoteNextWaitlistMember(supabase, booking.instance_id, instance.starts_at, appUrl, getTimezone(instance))
+      await promoteNextWaitlistMember(createAdminClient(), booking.instance_id, instance.starts_at, appUrl, getTimezone(instance))
     }
     return NextResponse.redirect(`${appUrl}/my-schedule?error=confirmation-expired`)
   }

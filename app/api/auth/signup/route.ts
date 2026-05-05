@@ -63,15 +63,22 @@ export async function POST(req: Request) {
 
   const userId = authData.user.id
 
-  // Helper: rolls back the just-created auth user on any post-createUser failure.
-  // Without this, a failed gyms.insert or users.insert leaves an orphan auth
-  // user — the email appears "already registered" and the person can never sign
-  // up again (password reset sends to a non-existent user row).
-  async function rollbackAuthUser() {
+  // Helper: rolls back the just-created auth user (and optionally the gym row)
+  // on any post-createUser failure. Without this, a failed gyms.insert or
+  // users.insert leaves an orphan auth user — the email appears "already
+  // registered" and the person can never sign up again.
+  async function rollback(gymId?: string) {
     try {
       await supabase.auth.admin.deleteUser(userId)
     } catch (e) {
       console.error('[signup] rollback deleteUser failed', e)
+    }
+    if (gymId) {
+      try {
+        await supabase.from('gyms').delete().eq('id', gymId)
+      } catch (e) {
+        console.error('[signup] rollback gym delete failed', gymId, e)
+      }
     }
   }
 
@@ -79,7 +86,7 @@ export async function POST(req: Request) {
   const { data: gym, error: gymError } = await supabase
     .from('gyms').insert({ name: trimmedGymName, timezone, gym_type: resolvedGymType }).select().single()
   if (gymError) {
-    await rollbackAuthUser()
+    await rollback()
     return jsonServerError('auth/signup gyms.insert', gymError)
   }
 
@@ -88,12 +95,19 @@ export async function POST(req: Request) {
     id: userId, gym_id: gym.id, email, role: 'owner'
   })
   if (userError) {
-    await rollbackAuthUser()
+    // Pass gym.id so the orphan gym row is cleaned up alongside the auth user.
+    await rollback(gym.id)
     return jsonServerError('auth/signup users.insert', userError)
   }
 
-  // 4. Set owner_id on gym
-  await supabase.from('gyms').update({ owner_id: userId }).eq('id', gym.id)
+  // 4. Set owner_id on gym — treat failure as a rollback condition: the owner
+  // can't be found via gyms.owner_id in the admin UI and billing joins break.
+  const { error: ownerError } = await supabase
+    .from('gyms').update({ owner_id: userId }).eq('id', gym.id)
+  if (ownerError) {
+    await rollback(gym.id)
+    return jsonServerError('auth/signup gyms.update owner_id', ownerError)
+  }
 
   return jsonOk({ success: true })
 }

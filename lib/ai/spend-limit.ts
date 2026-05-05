@@ -34,15 +34,24 @@ export async function checkAiLimit(
   gymId: string,
   supabase: SupabaseClient<Database>
 ): Promise<{ limited: boolean }> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('gyms')
     .select('ai_calls_this_month, ai_month')
     .eq('id', gymId)
     .single()
 
+  if (error) {
+    // Transient DB error (pooling hiccup, 5xx) — allow rather than block.
+    // Blocking on infrastructure errors would deny AI to all gyms during any
+    // Supabase outage. Log for alerting, but don't penalise the user.
+    console.error('[ai/spend-limit] read error for', gymId, error)
+    return { limited: false }
+  }
+
   if (!data) {
+    // Row genuinely missing (deleted gym, misconfigured request) — block.
     console.error('[ai/spend-limit] gym row not found for', gymId, '— blocking AI call')
-    return { limited: true } // fail closed
+    return { limited: true }
   }
 
   const month = currentMonth()
