@@ -79,74 +79,34 @@ export async function POST(req: Request) {
     return jsonError('You already have a booking at this time', 409)
   }
 
-  // Count confirmed + waitlisted together in a single round-trip — we need
-  // both numbers, but two separate count queries doubled the DB hops on the
-  // hot booking path. One fetch, bucket in JS, same result.
-  const { data: statusRows } = await supabase.from('bookings')
-    .select('status')
-    .eq('instance_id', instanceId)
-    .in('status', ['confirmed', 'pending_confirmation', 'waitlisted'])
-
-  let confirmedCount = 0
-  let waitlistCount = 0
-  for (const row of (statusRows ?? []) as { status: string }[]) {
-    if (row.status === 'waitlisted') waitlistCount++
-    else confirmedCount++
-  }
-
-  const isFull = confirmedCount >= instance.capacity
-
-  if (isFull && !waitlistEnabled) {
-    return jsonError('Class is full')
-  }
-
-  const maxWaitlist = 10
-  if (isFull && waitlistCount >= maxWaitlist) {
-    return jsonError('Waitlist is full')
-  }
-
-  const status = isFull ? 'waitlisted' : 'confirmed'
-  const waitlist_position = isFull ? waitlistCount + 1 : null
-
-  // Check for an existing cancelled booking (unique constraint on instance_id+user_id)
+  // Check for an existing cancelled booking to pass to the atomic function
+  // (unique constraint on instance_id+user_id means we must UPDATE, not INSERT)
   const { data: existing } = await supabase.from('bookings')
     .select('id').eq('instance_id', instanceId).eq('user_id', user.id).eq('status', 'cancelled').maybeSingle()
 
-  let booking: { id: string } | null = null, error: { message: string } | null = null
-  if (existing) {
-    // Re-booking: un-cancel a previously cancelled row. This UPDATE sets
-    // status → confirmed/waitlisted, which is not permitted by the member's
-    // narrow cancellation-only RLS policy. Use the admin client here — auth
-    // and gym membership were already verified by requireMemberAuth() above.
-    ;({ data: booking, error } = await createAdminClient().from('bookings')
-      .update({ status, waitlist_position, cancelled_at: null, confirmation_expires_at: null })
-      .eq('id', existing.id).eq('user_id', user.id).select().single())
-  } else {
-    ;({ data: booking, error } = await supabase.from('bookings').insert({
-      gym_id: userData.gym_id,
-      instance_id: instanceId,
-      user_id: user.id,
-      status,
-      waitlist_position,
-    }).select().single())
-  }
+  // Atomic capacity check + insert/update in a single serialised transaction.
+  // The DB function holds a FOR UPDATE lock on the class_instances row so
+  // concurrent requests cannot race past the capacity check.
+  const { data: rpcResult, error: rpcError } = await createAdminClient()
+    .rpc('insert_booking_atomic', {
+      p_gym_id:           userData.gym_id,
+      p_instance_id:      instanceId,
+      p_user_id:          user.id,
+      p_capacity:         instance.capacity,
+      p_waitlist_enabled: waitlistEnabled,
+      p_max_waitlist:     10,
+      p_existing_id:      existing?.id ?? null,
+    })
 
-  if (error || !booking) return jsonServerError('bookings POST', error)
+  if (rpcError || !rpcResult) return jsonServerError('bookings POST', rpcError)
 
-  // Post-insert race condition check: if two requests slipped through simultaneously,
-  // recount and cancel the just-created booking if we're now over capacity.
-  if (status === 'confirmed') {
-    const { count: finalCount } = await supabase.from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('instance_id', instanceId)
-      .in('status', ['confirmed', 'pending_confirmation'])
-    if ((finalCount ?? 0) > instance.capacity) {
-      await supabase.from('bookings')
-        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-        .eq('id', booking.id)
-      return jsonError('Class is full')
-    }
-  }
+  const result = rpcResult as { booking_id?: string; status?: string; waitlist_position?: number | null; error?: string }
+
+  if (result.error === 'class_full')    return jsonError('Class is full')
+  if (result.error === 'waitlist_full') return jsonError('Waitlist is full')
+  if (result.error)                     return jsonError('Booking failed')
+
+  const { booking_id, status } = result as { booking_id: string; status: string }
 
   if (status === 'confirmed' && notifyBookingConfirmed) {
     try {
@@ -158,7 +118,7 @@ export async function POST(req: Request) {
     }
   }
 
-  return jsonOk({ booking })
+  return jsonOk({ booking: { id: booking_id, status } })
 }
 
 export async function DELETE(req: Request) {
