@@ -37,7 +37,12 @@ function getFrom() {
 }
 
 function withReplyTo(contactEmail: string | null | undefined): Record<string, string> {
-  return contactEmail ? { reply_to: contactEmail } : {}
+  if (!contactEmail) return {}
+  // Reject control characters (header injection) and anything that isn't a
+  // plausible email address before setting the reply-to header.
+  if (/[\x00-\x1F\x7F]/.test(contactEmail)) return {}
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contactEmail)) return {}
+  return { reply_to: contactEmail }
 }
 
 export async function sendBookingConfirmed(to: string, name: string, date: string, time: string, contactEmail?: string | null) {
