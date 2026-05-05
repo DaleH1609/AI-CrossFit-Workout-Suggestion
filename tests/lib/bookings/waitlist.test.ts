@@ -134,7 +134,6 @@ describe('promoteNextWaitlistMember', () => {
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'pending_confirmation',
-        confirmation_token: expect.any(String),
         confirmation_expires_at: expect.any(String),
       })
     )

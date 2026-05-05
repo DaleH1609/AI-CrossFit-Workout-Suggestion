@@ -67,7 +67,6 @@ export async function GET(req: Request) {
         .update({
           status: 'cancelled',
           cancelled_at: new Date().toISOString(),
-          confirmation_token: null,
           confirmation_expires_at: null,
           waitlist_position: null,
         })

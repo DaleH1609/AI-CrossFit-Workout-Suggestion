@@ -12,7 +12,6 @@ interface InstanceRel {
 interface BookingRow {
   id: string
   instance_id: string
-  confirmation_token: string | null
   confirmation_expires_at: string | null
   status: string
   class_instances: InstanceRel | InstanceRel[] | null
@@ -112,7 +111,7 @@ export async function POST(_req: Request, props: { params: Promise<{ token: stri
   }
 
   const { data: booking } = await supabase.from('bookings')
-    .select('id, instance_id, confirmation_token, confirmation_expires_at, status, class_instances(starts_at, capacity, gyms(timezone))')
+    .select('id, instance_id, confirmation_expires_at, status, class_instances(starts_at, capacity, gyms(timezone))')
     .eq('id', verified.bookingId)
     .eq('status', 'pending_confirmation')
     .maybeSingle<BookingRow>()
@@ -133,7 +132,6 @@ export async function POST(_req: Request, props: { params: Promise<{ token: stri
         status: 'cancelled',
         cancelled_at: new Date().toISOString(),
         waitlist_position: null,
-        confirmation_token: null,
         confirmation_expires_at: null,
       })
       .eq('id', booking.id)
@@ -162,7 +160,6 @@ export async function POST(_req: Request, props: { params: Promise<{ token: stri
       .update({
         status: 'cancelled',
         cancelled_at: new Date().toISOString(),
-        confirmation_token: null,
         confirmation_expires_at: null,
         waitlist_position: null,
       })
@@ -175,7 +172,6 @@ export async function POST(_req: Request, props: { params: Promise<{ token: stri
   // Atomic confirm: only promote pending_confirmation → confirmed.
   const { data: confirmRows, error: confirmUpdateError } = await supabase.from('bookings').update({
     status: 'confirmed',
-    confirmation_token: null,
     confirmation_expires_at: null,
     waitlist_position: null,
   })

@@ -114,7 +114,7 @@ export async function POST(req: Request) {
   let booking: { id: string } | null = null, error: { message: string } | null = null
   if (existing) {
     ;({ data: booking, error } = await supabase.from('bookings')
-      .update({ status, waitlist_position, cancelled_at: null, confirmation_token: null, confirmation_expires_at: null })
+      .update({ status, waitlist_position, cancelled_at: null, confirmation_expires_at: null })
       .eq('id', existing.id).select().single())
   } else {
     ;({ data: booking, error } = await supabase.from('bookings').insert({

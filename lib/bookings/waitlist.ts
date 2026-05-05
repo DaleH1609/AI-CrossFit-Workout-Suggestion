@@ -98,7 +98,6 @@ export async function promoteNextWaitlistMember(
   // already flipped it, rows.length === 0 and we bail out cleanly.
   const updatePromise = db.from('bookings').update({
     status: 'pending_confirmation',
-    confirmation_token: token,
     confirmation_expires_at: expiresAt,
   })
     .eq('id', next.id)

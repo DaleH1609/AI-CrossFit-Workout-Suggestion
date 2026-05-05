@@ -2,11 +2,12 @@
 //
 // HMAC-SHA256 signed booking confirmation tokens.
 //
-// Why: the previous scheme used `crypto.randomUUID()` stored in
-// `confirmation_token`, looked up by equality. That means anyone who can
-// guess or intercept a UUID (log scraping, email forwarding, referer leaks)
-// owns the confirmation. A signed token lets us verify integrity — we don't
-// need a lookup at all, and tampered tokens fail early with a generic error.
+// Why: the previous scheme used a random UUID stored in a DB column,
+// looked up by equality. That means anyone who can guess or intercept a UUID
+// (log scraping, email forwarding, referer leaks) owns the confirmation.
+// A signed token lets us verify integrity without a DB lookup; tampered
+// tokens fail early with a generic error. The DB column was dropped in
+// migration 019_drop_confirmation_token.sql.
 //
 // Format: `v1.{base64url(payload)}.{base64url(signature)}`
 // where payload is JSON { b: bookingId, e: expiresAtMs }.
