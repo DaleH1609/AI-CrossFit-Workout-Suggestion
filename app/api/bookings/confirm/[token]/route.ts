@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { verifyToken } from '@/lib/crypto/token'
+import { randomBytes } from 'crypto'
 
 interface InstanceRel {
   starts_at: string
@@ -44,7 +45,12 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
     return NextResponse.redirect(`${appUrl}/my-schedule?error=invalid-token`)
   }
 
-  return new Response(
+  // Generate a short-lived CSRF double-submit cookie.
+  // The same value is embedded in the form as a hidden field.
+  // The POST handler checks cookie === field before mutating.
+  const csrf = randomBytes(16).toString('hex')
+
+  const res = new Response(
     `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,6 +87,7 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
     <h1>Confirm your spot?</h1>
     <p>Click the button below to confirm your booking. Your spot is held until you confirm.</p>
     <form method="POST">
+      <input type="hidden" name="_csrf" value="${csrf}" />
       <button type="submit">Confirm my spot →</button>
     </form>
   </div>
@@ -91,19 +98,35 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store',
         'X-Robots-Tag': 'noindex, nofollow',
+        // SameSite=Strict: browser sends the cookie only on same-site navigations,
+        // so a cross-site form submit won't include it — but the hidden field still
+        // won't match because the attacker never saw the GET response.
+        'Set-Cookie': `_csrf=${csrf}; HttpOnly; SameSite=Strict; Path=/api/bookings/confirm; Max-Age=900`,
       },
     }
   )
+  return res
 }
 
 /**
  * POST — performs the actual booking confirmation mutation.
  * Triggered by the user clicking "Confirm my spot" on the GET interstitial.
  */
-export async function POST(_req: Request, props: { params: Promise<{ token: string }> }) {
+export async function POST(req: Request, props: { params: Promise<{ token: string }> }) {
   const { token } = await props.params
   const supabase = await createClient()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+
+  // CSRF double-submit cookie check: the hidden _csrf field in the form must
+  // match the _csrf cookie set on the GET response. Automated bots that follow
+  // the form action without first rendering the GET page will fail this check.
+  const cookieHeader = req.headers.get('cookie') ?? ''
+  const cookieCsrf = cookieHeader.match(/(?:^|;\s*)_csrf=([^;]+)/)?.[1] ?? ''
+  const formData = await req.formData().catch(() => null)
+  const formCsrf = formData?.get('_csrf')?.toString() ?? ''
+  if (!cookieCsrf || !formCsrf || cookieCsrf !== formCsrf) {
+    return NextResponse.redirect(`${appUrl}/my-schedule?error=invalid-token`)
+  }
 
   const verified = verifyToken(token)
   if (!verified) {
