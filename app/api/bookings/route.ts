@@ -5,6 +5,7 @@ import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { sendBookingConfirmed, sendBookingCancelled } from '@/lib/email/send'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const postSchema = z.object({ instanceId: z.uuid() })
 const deleteSchema = z.object({ bookingId: z.uuid() })
@@ -113,9 +114,13 @@ export async function POST(req: Request) {
 
   let booking: { id: string } | null = null, error: { message: string } | null = null
   if (existing) {
-    ;({ data: booking, error } = await supabase.from('bookings')
+    // Re-booking: un-cancel a previously cancelled row. This UPDATE sets
+    // status → confirmed/waitlisted, which is not permitted by the member's
+    // narrow cancellation-only RLS policy. Use the admin client here — auth
+    // and gym membership were already verified by requireMemberAuth() above.
+    ;({ data: booking, error } = await createAdminClient().from('bookings')
       .update({ status, waitlist_position, cancelled_at: null, confirmation_expires_at: null })
-      .eq('id', existing.id).select().single())
+      .eq('id', existing.id).eq('user_id', user.id).select().single())
   } else {
     ;({ data: booking, error } = await supabase.from('bookings').insert({
       gym_id: userData.gym_id,
