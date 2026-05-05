@@ -4,6 +4,7 @@ import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { getAnthropicClient } from '@/lib/claude/client'
 import { rateLimit } from '@/lib/rate-limit'
+import { checkAiLimit, incrementAiCalls } from '@/lib/ai/spend-limit'
 
 export async function GET() {
   const auth = await requireMemberAuth()
@@ -31,6 +32,9 @@ export async function POST(req: Request) {
 
   const { limited } = await rateLimit(userData.gym_id, 'ai')
   if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
+
+  const { limited: atLimit } = await checkAiLimit(userData.gym_id)
+  if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
 
   const parsed = await parseBody(req, postSchema)
   if (parsed instanceof NextResponse) return parsed
@@ -60,6 +64,7 @@ export async function POST(req: Request) {
 
   const { data, error } = await supabase.from('style_examples').insert({ gym_id: userData.gym_id, raw_text: rawText }).select().single()
   if (error) return jsonServerError('style POST', error)
+  incrementAiCalls(userData.gym_id).catch(err => console.error('[style] incrementAiCalls failed', err))
   return jsonOk({ example: data })
 }
 

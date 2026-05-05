@@ -5,6 +5,7 @@ import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { rateLimit } from '@/lib/rate-limit'
+import { checkAiLimit, incrementAiCalls } from '@/lib/ai/spend-limit'
 
 export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
@@ -15,6 +16,9 @@ export async function POST(req: Request) {
 
   const { limited } = await rateLimit(gymId, 'ai')
   if (limited) return jsonError('Too many requests. Please wait before generating again.', 429)
+
+  const { limited: atLimit } = await checkAiLimit(gymId)
+  if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
 
   let body: { weekStart?: unknown }
   try {
@@ -64,6 +68,8 @@ export async function POST(req: Request) {
     console.warn('[workouts/generate] scaling failed, saving without scaling', scalingErr)
   }
 
+  // Count one generation against the monthly ceiling (fire-and-forget)
+  incrementAiCalls(gymId).catch(err => console.error('[workouts/generate] incrementAiCalls failed', err))
 
   // Final safety net — ensure Saturday and Sunday always have actual content
   function dayHasContent(d: { parts?: { content?: string }[] }) {

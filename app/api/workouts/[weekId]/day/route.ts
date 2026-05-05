@@ -3,6 +3,7 @@ import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { generateDayScaling } from '@/lib/claude/generate-workouts'
 import type { WorkoutDay } from '@/lib/types'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { checkAiLimit, incrementAiCalls } from '@/lib/ai/spend-limit'
 
 export const maxDuration = 60
 
@@ -54,8 +55,11 @@ export async function PATCH(req: Request, props: { params: Promise<{ weekId: str
   // Regenerate scaling unless the client provided manual scaling
   let dayToSave = updatedDay
   if (!skipScaling) {
+    const { limited: atLimit } = await checkAiLimit(userData.gym_id)
+    if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
     try {
       dayToSave = await generateDayScaling(updatedDay)
+      incrementAiCalls(userData.gym_id).catch(err => console.error('[day/route] incrementAiCalls failed', err))
     } catch {
       // Scaling failed — save without it
     }
