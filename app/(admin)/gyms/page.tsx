@@ -1,5 +1,6 @@
 // app/(admin)/gyms/page.tsx
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdminAuth } from '@/lib/auth-helpers'
 import { GymSearchClient } from './gym-search-client'
 
 async function getAllGyms() {
@@ -54,6 +55,7 @@ async function getAllGyms() {
 }
 
 export default async function AdminGymsPage() {
+  await requireAdminAuth()
   const gyms = await getAllGyms()
   return (
     <div className="space-y-6 max-w-6xl">

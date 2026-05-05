@@ -1,5 +1,6 @@
 // app/(admin)/page.tsx
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdminAuth } from '@/lib/auth-helpers'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -69,6 +70,7 @@ const TYPE_BADGE: Record<string, string> = {
 }
 
 export default async function AdminOverviewPage() {
+  await requireAdminAuth()
   const [stats, recentGyms] = await Promise.all([getStats(), getRecentGyms()])
 
   const cards = [

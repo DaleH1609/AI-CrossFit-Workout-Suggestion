@@ -1,5 +1,6 @@
 // app/(admin)/users/page.tsx
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdminAuth } from '@/lib/auth-helpers'
 import { UserAccordionClient } from './user-accordion-client'
 
 async function searchUsers(q: string) {
@@ -78,6 +79,7 @@ export default async function AdminUsersPage(
     searchParams: Promise<{ q?: string }>
   }
 ) {
+  await requireAdminAuth()
   const searchParams = await props.searchParams;
   const q = searchParams.q?.trim() ?? ''
   const users = await searchUsers(q)

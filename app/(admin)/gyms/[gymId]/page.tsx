@@ -1,5 +1,6 @@
 // app/(admin)/gyms/[gymId]/page.tsx
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdminAuth } from '@/lib/auth-helpers'
 import { notFound } from 'next/navigation'
 import { MemberAccordionClient } from './member-accordion-client'
 import { DangerZoneClient } from './danger-zone-client'
@@ -162,6 +163,7 @@ async function getGymDetail(gymId: string) {
 }
 
 export default async function GymDetailPage(props: { params: Promise<{ gymId: string }> }) {
+  await requireAdminAuth()
   const params = await props.params;
   const data = await getGymDetail(params.gymId)
   if (!data) notFound()
