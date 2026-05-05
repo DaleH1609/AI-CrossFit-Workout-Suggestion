@@ -52,25 +52,45 @@ export async function POST(req: Request) {
 
   const resolvedGymType = gymType === 'hyrox' ? 'hyrox' : 'crossfit'
 
-  // 1. Create auth user
+  // 1. Create auth user — email_confirm omitted so Supabase sends a verification
+  // email. The owner must confirm their address before they can sign in.
+  // This prevents typo'd emails locking out the account with no recovery path.
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email, password, email_confirm: true
+    email, password,
   })
   // Don't leak Supabase error details (e.g. "email already in use") to avoid enumeration
   if (authError) return jsonError('Unable to create account. Check your details and try again.')
 
   const userId = authData.user.id
 
+  // Helper: rolls back the just-created auth user on any post-createUser failure.
+  // Without this, a failed gyms.insert or users.insert leaves an orphan auth
+  // user — the email appears "already registered" and the person can never sign
+  // up again (password reset sends to a non-existent user row).
+  async function rollbackAuthUser() {
+    try {
+      await supabase.auth.admin.deleteUser(userId)
+    } catch (e) {
+      console.error('[signup] rollback deleteUser failed', e)
+    }
+  }
+
   // 2. Create gym (no owner_id yet to avoid circular FK)
   const { data: gym, error: gymError } = await supabase
     .from('gyms').insert({ name: trimmedGymName, timezone, gym_type: resolvedGymType }).select().single()
-  if (gymError) return jsonServerError('auth/signup gyms.insert', gymError)
+  if (gymError) {
+    await rollbackAuthUser()
+    return jsonServerError('auth/signup gyms.insert', gymError)
+  }
 
   // 3. Create user row
   const { error: userError } = await supabase.from('users').insert({
     id: userId, gym_id: gym.id, email, role: 'owner'
   })
-  if (userError) return jsonServerError('auth/signup users.insert', userError)
+  if (userError) {
+    await rollbackAuthUser()
+    return jsonServerError('auth/signup users.insert', userError)
+  }
 
   // 4. Set owner_id on gym
   await supabase.from('gyms').update({ owner_id: userId }).eq('id', gym.id)
