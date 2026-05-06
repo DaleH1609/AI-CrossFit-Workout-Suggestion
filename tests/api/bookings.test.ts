@@ -41,32 +41,12 @@ describe('booking advance window', () => {
   })
 })
 
-describe('waitlist status logic', () => {
-  it('assigns confirmed status when class is not full', () => {
-    const isFull = false
-    const waitlistCount = 0
-    const status = isFull ? 'waitlisted' : 'confirmed'
-    const position = isFull ? waitlistCount + 1 : null
-    expect(status).toBe('confirmed')
-    expect(position).toBeNull()
-  })
-
-  it('assigns waitlisted status and correct position when class is full', () => {
-    const isFull = true
-    const waitlistCount = 3
-    const status = isFull ? 'waitlisted' : 'confirmed'
-    const position = isFull ? waitlistCount + 1 : null
-    expect(status).toBe('waitlisted')
-    expect(position).toBe(4)
-  })
-
-  it('assigns waitlist position 1 when waitlist is empty', () => {
-    const isFull = true
-    const waitlistCount = 0
-    const position = isFull ? waitlistCount + 1 : null
-    expect(position).toBe(1)
-  })
-})
+// NOTE (R9): the "waitlist status logic" tests were removed — they tested
+// inline JavaScript ternary expressions, not the actual RPC or route handler,
+// and would not have caught R1 (the broken confirmed-status UPDATE after
+// migration 022 narrowed member RLS). Real coverage requires a DB integration
+// test harness (Postgres container + migrations + fetch(handler)); see
+// docs/security-review-2026-05-05-r3.md for the suggested test plan.
 
 describe('cancellation cutoff', () => {
   it('allows cancellation more than 1 hour before class', () => {

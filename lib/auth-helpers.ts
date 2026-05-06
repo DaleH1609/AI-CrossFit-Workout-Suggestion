@@ -75,6 +75,19 @@ export async function requireMemberAuth(): Promise<MemberAuthResult | NextRespon
   const u = userData as { gym_id: string; name: string; email: string; revoked_at: string | null }
   if (u.revoked_at) return NextResponse.json({ error: 'Account access has been revoked' }, { status: 403 })
 
+  // Members get a 7-day grace period after their gym is suspended — they keep
+  // access while the owner resolves billing, but not indefinitely.
+  const { data: gymData } = await supabase
+    .from('gyms')
+    .select('suspended_at')
+    .eq('id', u.gym_id)
+    .single()
+
+  const GRACE_MS = 7 * 24 * 60 * 60 * 1000
+  if (gymData?.suspended_at && Date.now() - new Date(gymData.suspended_at).getTime() > GRACE_MS) {
+    return NextResponse.json({ error: 'Gym account suspended' }, { status: 403 })
+  }
+
   return { supabase, user: user as { id: string; email?: string }, userData: u }
 }
 
@@ -88,6 +101,16 @@ export interface AdminAuthResult {
 }
 
 /**
+ * Pure helper — exported so tests can import the real implementation.
+ * Parses the ADMIN_EMAILS env-var value (comma-separated, lowercased, trimmed).
+ * Returns false (fail-closed) when the list is empty or the email is absent.
+ */
+export function isAdminEmail(email: string, envValue: string | undefined = process.env.ADMIN_EMAILS): boolean {
+  const list = (envValue ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+  return list.length > 0 && list.includes(email.toLowerCase())
+}
+
+/**
  * requireAdminAuth — use in admin Server Components, layouts, and Server Actions.
  * Reads ADMIN_EMAILS env var at call-time (fail-closed: blocks all if missing/empty).
  * Calls redirect('/login') if unauthorized — works in Server Components and Server Actions.
@@ -97,8 +120,7 @@ export async function requireAdminAuth(): Promise<AdminAuthResult> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) redirect('/login')
-  const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
-  if (adminEmails.length === 0 || !adminEmails.includes(user.email.toLowerCase())) redirect('/login')
+  if (!isAdminEmail(user.email)) redirect('/login')
   return { user: { id: user.id, email: user.email } }
 }
 
@@ -157,4 +179,16 @@ export async function requireMemberServerAuth(): Promise<void> {
 
   if (!userData) redirect('/login')
   if ((userData as { revoked_at: string | null }).revoked_at) redirect('/login')
+
+  // Members get a 7-day grace period after their gym is suspended.
+  const { data: gymData } = await supabase
+    .from('gyms')
+    .select('suspended_at')
+    .eq('id', (userData as { gym_id: string }).gym_id)
+    .single()
+
+  const GRACE_MS = 7 * 24 * 60 * 60 * 1000
+  if (gymData?.suspended_at && Date.now() - new Date(gymData.suspended_at).getTime() > GRACE_MS) {
+    redirect('/suspended')
+  }
 }

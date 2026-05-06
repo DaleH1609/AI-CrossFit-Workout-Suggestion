@@ -1,15 +1,10 @@
 // tests/lib/admin-auth.test.ts
 import { describe, it, expect } from 'vitest'
+import { isAdminEmail } from '@/lib/auth-helpers'
 
-// Test the email-list parsing logic in isolation (pure function, no mocking needed)
-function parseAdminEmails(env: string | undefined): string[] {
-  return (env ?? '').split(',').map(e => e.trim()).filter(Boolean)
-}
-
-function isAdminEmail(email: string, env: string | undefined): boolean {
-  const list = parseAdminEmails(env)
-  return list.length > 0 && list.includes(email)
-}
+// isAdminEmail is the real implementation from lib/auth-helpers.ts.
+// Passing an explicit envValue (second arg) exercises the function without
+// mutating process.env, keeping tests side-effect free.
 
 describe('admin email check', () => {
   it('allows email in list', () => {
@@ -31,5 +26,9 @@ describe('admin email check', () => {
 
   it('blocks when ADMIN_EMAILS has only whitespace', () => {
     expect(isAdminEmail('admin@example.com', '   ,  ')).toBe(false)
+  })
+
+  it('matches case-insensitively — real impl lowercases both sides', () => {
+    expect(isAdminEmail('Admin@Example.COM', 'admin@example.com')).toBe(true)
   })
 })
