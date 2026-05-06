@@ -44,9 +44,11 @@ export default function InvitePage() {
     const access_token = params.get('access_token')
     const refresh_token = params.get('refresh_token')
     if (access_token && refresh_token) {
+      // Strip the tokens from the URL bar immediately — before any async work —
+      // so they are not readable by third-party JS running after this tick (N12).
+      window.history.replaceState(null, '', window.location.pathname)
       supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
         if (error) { router.replace('/login?error=invite_failed'); return }
-        window.history.replaceState(null, '', window.location.pathname)
         setSessionReady(true)
       })
     } else {

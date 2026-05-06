@@ -1,8 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { randomBytes } from 'crypto'
+import { isAdminEmail } from '@/lib/auth-helpers'
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  // Generate a per-request nonce for CSP. Set it on the forwarded request
+  // headers so Next.js applies it to its own inline hydration scripts (via the
+  // x-nonce convention) and so the root layout can read it for any custom
+  // <Script> components.
+  const nonce = randomBytes(16).toString('base64')
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+
+  let response = NextResponse.next({ request: { headers: requestHeaders } })
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -33,8 +43,7 @@ export async function proxy(request: NextRequest) {
   // /admin/* requires valid session + email in ADMIN_EMAILS (fail-closed)
   if (path.startsWith('/admin')) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
-    const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
-    if (!user.email || adminEmails.length === 0 || !adminEmails.includes(user.email.toLowerCase())) {
+    if (!user.email || !isAdminEmail(user.email)) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     return response // admin verified — skip role-based routing below
@@ -80,10 +89,14 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  const isDev = process.env.NODE_ENV === 'development'
   const csp = [
     "default-src 'self'",
+    // unsafe-inline kept for styles — no XSS risk without script injection.
     "style-src 'self' 'unsafe-inline'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+    // unsafe-inline removed — nonce replaces it for all inline scripts.
+    // unsafe-eval removed in production; kept in dev for Next.js HMR / eval().
+    `script-src 'self' 'nonce-${nonce}' blob:${isDev ? " 'unsafe-eval'" : ''}`,
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
     "img-src 'self' data:",
     "frame-ancestors 'none'",

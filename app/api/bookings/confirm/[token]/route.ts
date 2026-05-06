@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { verifyToken } from '@/lib/crypto/token'
-import { randomBytes } from 'crypto'
+import { randomBytes, timingSafeEqual } from 'crypto'
 
 interface InstanceRel {
   starts_at: string
@@ -132,7 +132,12 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
   const cookieCsrf = cookieHeader.match(/(?:^|;\s*)_kova_confirm_csrf=([^;]+)/)?.[1] ?? ''
   const formData = await req.formData().catch(() => null)
   const formCsrf = formData?.get('_kova_confirm_csrf')?.toString() ?? ''
-  if (!cookieCsrf || !formCsrf || cookieCsrf !== formCsrf) {
+  // timingSafeEqual prevents timing-side-channel attacks. Both buffers must be
+  // the same length; if either is empty the fast-path check short-circuits first.
+  const csrfMatch = cookieCsrf.length > 0 && formCsrf.length > 0 &&
+    cookieCsrf.length === formCsrf.length &&
+    timingSafeEqual(Buffer.from(cookieCsrf), Buffer.from(formCsrf))
+  if (!csrfMatch) {
     return NextResponse.redirect(`${appUrl}/my-schedule?error=invalid-token`)
   }
 
