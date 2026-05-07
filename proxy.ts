@@ -58,7 +58,9 @@ export async function proxy(request: NextRequest) {
     !path.startsWith('/signup') &&
     !path.startsWith('/invite') &&
     !path.startsWith('/auth/callback') &&
-    path !== '/suspended'
+    path !== '/suspended' &&
+    path !== '/privacy' &&
+    path !== '/terms'
   ) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -107,7 +109,8 @@ export async function proxy(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
-  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+  // HSTS is set globally in next.config.mjs so it covers API routes too.
+  // Removed from here to avoid duplication — next.config.mjs wins for all routes.
 
   return response
 }

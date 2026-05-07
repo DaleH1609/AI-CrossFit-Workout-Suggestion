@@ -14,6 +14,9 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           // Opt out of FLoC / Privacy Sandbox ad-tracking APIs.
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          // HSTS here (not proxy.ts) so API routes get it too — proxy.ts
+          // matcher excludes /api/*. 2-year max-age, preload-list eligible.
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },
     ]
