@@ -15,6 +15,7 @@ const SECTIONS = [
   { id: 'booking', label: 'Booking' },
   { id: 'members', label: 'Members' },
   { id: 'notifications', label: 'Notifications' },
+  { id: 'displays', label: 'Displays' },
 ]
 
 type GymSettings = {
@@ -53,6 +54,8 @@ function SavedIndicator({ show }: { show: boolean }) {
 
 export default function SettingsPage() {
   const [gym, setGym] = useState<GymSettings | null>(null)
+  const [whiteboardToken, setWhiteboardToken] = useState<string | null>(null)
+  const [whiteboardCopied, setWhiteboardCopied] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [gymTypeSaved, setGymTypeSaved] = useState(false)
@@ -70,11 +73,12 @@ export default function SettingsPage() {
       const gymUser = userData as unknown as { gym_id: string } | null
       if (!gymUser?.gym_id) { setLoadError('No gym found for your account'); return }
       const { data, error } = await supabase.from('gyms')
-        .select('name, timezone, gym_type, cancellation_cutoff_hours, default_capacity, waitlist_enabled, booking_advance_hours, show_member_names, notify_workout_published, notify_booking_confirmed, contact_email')
+        .select('name, timezone, gym_type, cancellation_cutoff_hours, default_capacity, waitlist_enabled, booking_advance_hours, show_member_names, notify_workout_published, notify_booking_confirmed, contact_email, whiteboard_token')
         .eq('id', gymUser.gym_id).single()
       if (error) { setLoadError(error.message); return }
       if (data) {
-        const raw = data as unknown as Partial<GymSettings>
+        const raw = data as unknown as Partial<GymSettings> & { whiteboard_token?: string }
+        setWhiteboardToken(raw.whiteboard_token ?? null)
         setGym({
           name: raw.name ?? '',
           timezone: raw.timezone ?? 'UTC',
@@ -368,6 +372,50 @@ export default function SettingsPage() {
                     patch({ notifyBookingConfirmed: val }, setNotifySaved)
                   }}
                 />
+              </div>
+            </div>
+          </section>
+
+          <div className="border-t border-border" />
+
+          {/* Displays */}
+          <section id="displays">
+            <h2 className="text-sm font-semibold text-foreground mb-5">Displays</h2>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-foreground mb-1">Whiteboard / TV Mode</p>
+                <p className="text-secondary text-xs mb-3">
+                  Open this URL on a wall-mounted display. Shows today&apos;s workout, class roster, and check-ins. Auto-refreshes every minute.
+                </p>
+                {whiteboardToken ? (
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-xs bg-background border border-border rounded px-3 py-2 text-secondary font-mono overflow-x-auto whitespace-nowrap">
+                      {typeof window !== 'undefined' ? `${window.location.origin}/whiteboard/${whiteboardToken}` : `/whiteboard/${whiteboardToken}`}
+                    </code>
+                    <button
+                      onClick={() => {
+                        if (typeof window !== 'undefined') {
+                          navigator.clipboard.writeText(`${window.location.origin}/whiteboard/${whiteboardToken}`)
+                          setWhiteboardCopied(true)
+                          setTimeout(() => setWhiteboardCopied(false), 2000)
+                        }
+                      }}
+                      className="px-3 py-2 text-xs border border-border rounded-btn text-secondary hover:text-foreground hover:border-foreground/30 transition-colors whitespace-nowrap"
+                    >
+                      {whiteboardCopied ? '✓ Copied' : 'Copy'}
+                    </button>
+                    <a
+                      href={`/whiteboard/${whiteboardToken}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2 text-xs bg-accent text-background rounded-btn hover:bg-accent-90 transition-colors whitespace-nowrap font-semibold"
+                    >
+                      Open ↗
+                    </a>
+                  </div>
+                ) : (
+                  <p className="text-secondary text-xs">Loading…</p>
+                )}
               </div>
             </div>
           </section>

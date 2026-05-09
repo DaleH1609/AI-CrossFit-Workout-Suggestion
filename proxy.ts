@@ -60,7 +60,9 @@ export async function proxy(request: NextRequest) {
     !path.startsWith('/auth/callback') &&
     path !== '/suspended' &&
     path !== '/privacy' &&
-    path !== '/terms'
+    path !== '/terms' &&
+    !path.startsWith('/whiteboard') &&
+    !path.startsWith('/gyms')
   ) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
