@@ -59,6 +59,11 @@ export interface RecentWeek {
   workouts: WorkoutWeek
 }
 
+export interface WorkoutRationale {
+  summary: string
+  bullets: string[]  // 2-4 coaching insights explaining programming decisions
+}
+
 export interface MovementAnalysis {
   gaps: Array<{ movement: string; daysSince: number }>
   overused: Array<{ movement: string; count: number }>

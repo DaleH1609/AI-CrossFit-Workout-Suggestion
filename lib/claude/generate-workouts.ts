@@ -1,7 +1,7 @@
 // lib/claude/generate-workouts.ts
-import { buildGenerationPrompt, buildMovementAnalysisPrompt } from './prompts'
+import { buildGenerationPrompt, buildRationalePrompt, buildMovementAnalysisPrompt } from './prompts'
 import { getAnthropicClient as getClient } from './client'
-import type { WorkoutDay, WorkoutWeek, MovementAnalysis, RecentWeek } from '@/lib/types'
+import type { WorkoutDay, WorkoutWeek, MovementAnalysis, RecentWeek, WorkoutRationale } from '@/lib/types'
 
 export function validateWorkoutWeek(data: unknown): data is WorkoutWeek {
   if (!Array.isArray(data)) return false
@@ -89,6 +89,36 @@ export async function generateWorkouts(
   if (!raw) throw new Error('Failed to generate valid workouts after 2 attempts')
 
   return raw
+}
+
+export async function generateRationale(
+  week: WorkoutWeek,
+  history: WorkoutWeek[],
+  gymType: 'crossfit' | 'hyrox' = 'crossfit'
+): Promise<WorkoutRationale | null> {
+  const client = getClient()
+  const prompt = buildRationalePrompt(week, history, gymType)
+
+  try {
+    const message = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const raw = message.content[0].type === 'text' ? message.content[0].text : ''
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+    const parsed = JSON.parse(cleaned)
+    if (
+      Array.isArray(parsed.bullets) &&
+      parsed.bullets.length >= 2 &&
+      typeof parsed.summary === 'string'
+    ) {
+      return parsed as WorkoutRationale
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 

@@ -1,5 +1,5 @@
 // app/api/workouts/generate/route.ts
-import { generateWorkouts, generateScaling } from '@/lib/claude/generate-workouts'
+import { generateWorkouts, generateScaling, generateRationale } from '@/lib/claude/generate-workouts'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { getRecentWeeks } from '@/lib/workouts/get-recent-weeks'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -68,6 +68,14 @@ export async function POST(req: Request) {
     console.warn('[workouts/generate] scaling failed, saving without scaling', scalingErr)
   }
 
+  // Generate rationale (non-blocking — failure does not prevent save)
+  let rationale = null
+  try {
+    rationale = await generateRationale(workouts, historyWeeks, gymType)
+  } catch (rationaleErr) {
+    console.warn('[workouts/generate] rationale generation failed', rationaleErr)
+  }
+
   // Count one generation against the monthly ceiling (fire-and-forget)
   incrementAiCalls(gymId, supabase).catch(err => console.error('[workouts/generate] incrementAiCalls failed', err))
 
@@ -93,13 +101,14 @@ export async function POST(req: Request) {
     p_gym_id: gymId,
     p_week_start: weekStart,
     p_workouts: workouts,
+    p_rationale: rationale,
   } as never)
 
   if (error) return jsonServerError('workouts/generate save_workout_draft', error)
 
   // Fetch the saved row so the client gets the real DB id
   const { data: savedWeek } = await admin.from('workout_weeks')
-    .select('id, workouts, status')
+    .select('id, workouts, status, rationale')
     .eq('gym_id', gymId)
     .eq('week_start', weekStart)
     .eq('status', 'draft')
@@ -107,5 +116,5 @@ export async function POST(req: Request) {
     .limit(1)
     .maybeSingle()
 
-  return jsonOk({ week: savedWeek ?? { workouts, status: 'draft' } })
+  return jsonOk({ week: savedWeek ?? { workouts, status: 'draft', rationale } })
 }

@@ -1,6 +1,55 @@
 // lib/claude/prompts.ts
 import type { WorkoutWeek, RecentWeek } from '@/lib/types'
 
+export function buildRationalePrompt(
+  week: WorkoutWeek,
+  history: WorkoutWeek[],
+  gymType: 'crossfit' | 'hyrox' = 'crossfit'
+): string {
+  const weekSummary = week.map(d => {
+    const content = d.parts.map(p => p.content.split('\n')[0]).join(' | ')
+    return `  ${d.day}${d.descriptor ? ` (${d.descriptor})` : ''}: ${content}`
+  }).join('\n')
+
+  const historyText = history.length === 0
+    ? 'No previous weeks — this is the first week.'
+    : history.map((w, i) => {
+        const lines = w.map(d => {
+          const c = d.parts.map(p => p.content.split('\n')[0]).join(' | ')
+          return `  ${d.day}: ${c}`
+        }).join('\n')
+        return `Week ${i + 1}:\n${lines}`
+      }).join('\n\n')
+
+  return `You are a ${gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'} programming coach explaining your weekly programming decisions to the gym owner.
+
+## This Week's Program
+${weekSummary}
+
+## Previous Weeks (oldest first)
+${historyText}
+
+Write a brief, insightful explanation of WHY this week is programmed this way. Focus on:
+- Movement balance and periodisation decisions
+- How this week contrasts with or builds on the previous weeks
+- Key coaching intentions (e.g. "heavy lower-body before a deload", "pulling emphasis to balance last week's push")
+
+Return ONLY valid JSON — no markdown, no explanation:
+{
+  "summary": "One sentence (max 20 words) capturing the week's overall theme",
+  "bullets": [
+    "Coaching insight 1 (specific, e.g. 'Deadlift on Monday after a push-heavy last week to balance posterior chain volume')",
+    "Coaching insight 2",
+    "Coaching insight 3"
+  ]
+}
+
+Rules:
+- 2–4 bullets, each a single sentence under 25 words
+- Be specific — reference actual movements from the week
+- Speak as a coach to a coach, not marketing copy`
+}
+
 const CROSSFIT_BUILTIN = `You are an expert CrossFit programmer. Generate a Mon–Sun week with:
 - Monday: Strength (squat/hinge) + interval conditioning
 - Tuesday: For-time or AMRAP with gymnastics and cardio
@@ -67,7 +116,20 @@ export function buildGenerationPrompt(
     : history.map((week, i) => formatWeekAsText(week, `Week ${i + 1}`)).join('\n\n')
 
   if (styleExamples.length >= 3) {
-    const examplesText = styleExamples
+    // Cap each example and the aggregate to bound prompt size.
+    // Individual cap: 5,000 chars (representative without being excessive).
+    // Aggregate cap: 40,000 chars total — stops including further examples once hit.
+    const MAX_EXAMPLE_CHARS = 5_000
+    const MAX_TOTAL_CHARS = 40_000
+    let totalChars = 0
+    const cappedExamples = styleExamples
+      .map(ex => ex.length > MAX_EXAMPLE_CHARS ? ex.slice(0, MAX_EXAMPLE_CHARS) : ex)
+      .filter(ex => {
+        if (totalChars >= MAX_TOTAL_CHARS) return false
+        totalChars += ex.length
+        return true
+      })
+    const examplesText = cappedExamples
       .map(ex => `<user_example>\n${ex}\n</user_example>`)
       .join('\n\n')
     const dayTypeRule = gymType === 'hyrox'

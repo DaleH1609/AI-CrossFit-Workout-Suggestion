@@ -5,6 +5,8 @@ import { WorkoutWeekGrid } from '@/components/workout/workout-week-grid'
 import { WorkoutEditModal } from '@/components/workout/workout-edit-modal'
 import { ScalingEditModal } from '@/components/workout/scaling-edit-modal'
 import { MovementIntelligencePanel } from '@/components/workout/MovementIntelligencePanel'
+import { RationalePanel } from '@/components/workout/rationale-panel'
+import type { WorkoutRationale } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
@@ -27,7 +29,7 @@ function getMondayOfCurrentWeek() {
 }
 
 export default function DashboardPage() {
-  const [week, setWeek] = useState<{ id: string; workouts: WorkoutWeek; status: string } | null>(null)
+  const [week, setWeek] = useState<{ id: string; workouts: WorkoutWeek; status: string; rationale?: WorkoutRationale | null } | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [creatingManual, setCreatingManual] = useState(false)
@@ -46,9 +48,9 @@ export default function DashboardPage() {
     setLoading(true)
     try {
       const { data } = await supabase.from('workout_weeks')
-        .select('id, workouts, status').eq('week_start', weekStart)
+        .select('id, workouts, status, rationale').eq('week_start', weekStart)
         .in('status', ['draft', 'published']).order('created_at', { ascending: false }).limit(1).maybeSingle()
-      setWeek(data as { id: string; workouts: WorkoutWeek; status: string } | null)
+      setWeek(data as { id: string; workouts: WorkoutWeek; status: string; rationale?: WorkoutRationale | null } | null)
     } catch (err) {
       console.error('[dashboard] loadWeek failed', err)
       setError('Failed to load workout data. Please refresh.')
@@ -65,9 +67,9 @@ export default function DashboardPage() {
       body: JSON.stringify({ weekStart })
     })
     if (res.ok) {
-      const apiData = await res.json() as { week?: { id: string; workouts: WorkoutWeek; status: string } }
+      const apiData = await res.json() as { week?: { id: string; workouts: WorkoutWeek; status: string; rationale?: WorkoutRationale | null } }
       if (apiData.week?.workouts?.length) {
-        setWeek({ id: apiData.week.id, workouts: apiData.week.workouts, status: apiData.week.status ?? 'draft' })
+        setWeek({ id: apiData.week.id, workouts: apiData.week.workouts, status: apiData.week.status ?? 'draft', rationale: apiData.week.rationale })
       } else {
         await loadWeek()
       }
@@ -102,9 +104,9 @@ export default function DashboardPage() {
       body: JSON.stringify({ weekStart })
     })
     if (res.ok) {
-      const apiData = await res.json() as { week?: { id: string; workouts: WorkoutWeek; status: string } }
+      const apiData = await res.json() as { week?: { id: string; workouts: WorkoutWeek; status: string; rationale?: WorkoutRationale | null } }
       if (apiData.week) {
-        setWeek({ id: apiData.week.id, workouts: apiData.week.workouts, status: apiData.week.status ?? 'draft' })
+        setWeek({ id: apiData.week.id, workouts: apiData.week.workouts, status: apiData.week.status ?? 'draft', rationale: apiData.week.rationale })
       } else {
         await loadWeek()
       }
@@ -169,6 +171,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <RationalePanel rationale={week?.rationale ?? null} />
       <MovementIntelligencePanel />
       {generating && (
         <div className="flex items-center gap-2 mb-4 text-secondary text-sm">
