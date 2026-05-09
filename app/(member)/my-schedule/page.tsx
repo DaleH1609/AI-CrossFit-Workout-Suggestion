@@ -16,11 +16,15 @@ export default async function MySchedulePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: bookingsRaw } = await supabase.from('bookings')
-    .select('*, class_instances(date, local_time, starts_at)')
-    .eq('user_id', user.id)
-    .in('status', ['confirmed', 'waitlisted', 'pending_confirmation'])
-    .order('created_at', { ascending: true })
+  const [{ data: bookingsRaw }, { data: userProfile }] = await Promise.all([
+    supabase.from('bookings')
+      .select('*, class_instances(date, local_time, starts_at)')
+      .eq('user_id', user.id)
+      .in('status', ['confirmed', 'waitlisted', 'pending_confirmation'])
+      .order('created_at', { ascending: true }),
+    supabase.from('users').select('calendar_token').eq('id', user.id).single(),
+  ])
+  const calendarToken = (userProfile as unknown as { calendar_token?: string } | null)?.calendar_token
 
   const today = new Date().toISOString().split('T')[0]
   const bookings = ((bookingsRaw ?? []) as unknown as BookingRow[])
@@ -29,7 +33,24 @@ export default async function MySchedulePage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-foreground mb-8">My Schedule</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="font-display text-3xl text-foreground">My Schedule</h1>
+        {calendarToken && (
+          <a
+            href={`/api/calendar/${calendarToken}`}
+            download
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-border text-xs text-secondary hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Add to Calendar
+          </a>
+        )}
+      </div>
 
       {bookings.length === 0 ? (
         <div className="py-16 text-center">
