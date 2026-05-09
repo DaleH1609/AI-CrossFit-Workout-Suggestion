@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { WorkoutCard } from '@/components/workout/workout-card'
 import { ClassTile } from '@/components/booking/class-tile'
+import { ScoreEntry } from '@/components/workout/score-entry'
 import type { WorkoutDay } from '@/lib/types'
 
 interface ClassInstance {
@@ -110,7 +111,14 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
           <p className="text-secondary-60 text-sm italic">Rest day — no classes scheduled.</p>
         ) : (
           <div className="space-y-4">
-            {selectedWorkout && <WorkoutCard day={selectedWorkout} isToday={isToday} />}
+            {selectedWorkout && (
+              <>
+                <WorkoutCard day={selectedWorkout} isToday={isToday} />
+                {selectedDateStr <= new Date().toISOString().split('T')[0] && (
+                  <ScoreEntry workoutDate={selectedDateStr} />
+                )}
+              </>
+            )}
             <div>
               {selectedWorkout && (
                 <p className="text-secondary text-xs font-semibold uppercase tracking-wider mb-2">Classes</p>
