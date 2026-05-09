@@ -2,6 +2,13 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+interface AttendanceStats {
+  total: number
+  current: number
+  longest: number
+  joinedAt: string | null
+}
+
 function SavedBadge({ show }: { show: boolean }) {
   return (
     <span className={`text-xs text-accent transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}>
@@ -20,16 +27,23 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState('')
   const [showPasswordForm, setShowPasswordForm] = useState(false)
 
+  const [stats, setStats] = useState<AttendanceStats | null>(null)
+
   const supabase = createClient()
 
   useEffect(() => {
-    async function loadName() {
+    async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const { data } = await supabase.from('users').select('name').eq('id', user.id).single()
       if (data) setName((data as { name: string }).name ?? '')
     }
-    loadName()
+    async function loadStats() {
+      const res = await fetch('/api/members/stats')
+      if (res.ok) setStats(await res.json() as AttendanceStats)
+    }
+    loadProfile()
+    loadStats()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSaveName(e: React.FormEvent) {
@@ -67,8 +81,26 @@ export default function ProfilePage() {
         </div>
         <div>
           <p className="font-display text-xl text-foreground leading-tight">{name || 'Your Profile'}</p>
-          <p className="text-secondary text-xs mt-0.5 uppercase tracking-wider">Member</p>
+          <p className="text-secondary text-xs mt-0.5 uppercase tracking-wider">
+            {stats?.joinedAt
+              ? `Member since ${new Date(stats.joinedAt).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`
+              : 'Member'}
+          </p>
         </div>
+      </div>
+
+      {/* Attendance stats */}
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        {[
+          { label: 'Total Classes', value: stats?.total ?? '—' },
+          { label: 'Current Streak', value: stats?.current != null ? `${stats.current}d` : '—' },
+          { label: 'Longest Streak', value: stats?.longest != null ? `${stats.longest}d` : '—' },
+        ].map(({ label, value }) => (
+          <div key={label} className="rounded-lg border border-border bg-surface p-3 text-center">
+            <p className="font-display text-2xl text-foreground">{value}</p>
+            <p className="text-secondary text-[10px] mt-0.5 uppercase tracking-wider leading-tight">{label}</p>
+          </div>
+        ))}
       </div>
 
       {/* Name section */}
