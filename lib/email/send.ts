@@ -222,3 +222,21 @@ export async function sendAccessRevoked(to: string, name: string) {
     html: accessRevokedHtml(name),
   })
 }
+
+export async function sendDeletionRequestAlert(to: string, memberName: string | null, memberEmail: string, gymName: string) {
+  await getResend().emails.send({
+    from: getFrom(),
+    subject: `Account deletion request — ${memberEmail}`,
+    to,
+    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} — Deletion Request</h2>
+      <p>A member has requested deletion of their account under GDPR Art. 17 (right to erasure):</p>
+      <ul style="margin:8px 0;padding-left:20px;line-height:2">
+        ${memberName ? `<li><strong>Name:</strong> ${escapeHtmlInline(memberName)}</li>` : ''}
+        <li><strong>Email:</strong> ${escapeHtmlInline(memberEmail)}</li>
+      </ul>
+      <p>Log in to your dashboard and navigate to <strong>Members</strong> to review and action this request.</p>
+      <p style="color:#6B7280;font-size:11px;margin-top:32px">You must action this request within 30 days to comply with GDPR.</p>
+    </div>`,
+  })
+}

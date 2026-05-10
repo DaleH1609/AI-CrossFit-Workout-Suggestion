@@ -44,6 +44,10 @@ export default function ProfilePage() {
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [emailWorking, setEmailWorking] = useState(false)
 
+  const [deletionRequested, setDeletionRequested] = useState(false)
+  const [deletionWorking, setDeletionWorking] = useState(false)
+  const [deletionError, setDeletionError] = useState('')
+
   const [stats, setStats] = useState<AttendanceStats | null>(null)
   const [waiverSignedAt, setWaiverSignedAt] = useState<string | null>(null)
   const [photoConsent, setPhotoConsent] = useState(false)
@@ -104,6 +108,16 @@ export default function ProfilePage() {
     if (error) { setEmailError(error.message); return }
     setEmailMessage('Check your new email address to confirm the change.')
     setNewEmail('')
+  }
+
+  async function handleRequestDeletion() {
+    if (!confirm('Are you sure you want to request deletion of your account? Your gym will be notified and must confirm before any data is removed.')) return
+    setDeletionWorking(true)
+    setDeletionError('')
+    const res = await fetch('/api/members/request-deletion', { method: 'POST' })
+    setDeletionWorking(false)
+    if (res.ok) { setDeletionRequested(true) }
+    else { setDeletionError('Failed to submit request. Please try again.') }
   }
 
   return (
@@ -259,6 +273,23 @@ export default function ProfilePage() {
           Download my data (JSON)
           <span className="group-hover:translate-x-0.5 transition-transform text-secondary">↓</span>
         </a>
+        <div className="mt-4 pt-4 border-t border-border/40">
+          <p className="text-xs text-secondary mb-2">Under GDPR, you have the right to request deletion of your account and all associated data.</p>
+          {deletionRequested ? (
+            <p className="text-xs text-accent">Request submitted. Your gym will be in touch within 30 days.</p>
+          ) : (
+            <>
+              <button
+                onClick={handleRequestDeletion}
+                disabled={deletionWorking}
+                className="text-xs text-danger/70 hover:text-danger transition-colors disabled:opacity-50"
+              >
+                {deletionWorking ? 'Submitting…' : 'Request account deletion'}
+              </button>
+              {deletionError && <p className="text-xs text-danger mt-1">{deletionError}</p>}
+            </>
+          )}
+        </div>
       </section>
 
       <div className="border-t border-border" />
