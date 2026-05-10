@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
-  const { supabase, userData } = auth
+  const { supabase, user, userData } = auth
   const parsed = await parseBody(req, schema)
   if (parsed instanceof NextResponse) return parsed
   const { memberId } = parsed
@@ -34,6 +34,6 @@ export async function POST(req: Request) {
     }
   }
 
-  auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'member.restore', targetId: memberId, targetType: 'user' })
+  auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'member.restore', targetId: memberId, targetType: 'user' })
   return jsonOk({ success: true })
 }

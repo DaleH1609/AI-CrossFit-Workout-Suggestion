@@ -7,7 +7,7 @@ export async function PATCH(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
-  const { supabase, userData } = auth
+  const { supabase, user, userData } = auth
   let body: Record<string, unknown>
   try {
     body = await req.json()
@@ -97,6 +97,6 @@ export async function PATCH(req: Request) {
   const { error } = await supabase.from('gyms').update(updates).eq('id', userData.gym_id)
   if (error) return jsonServerError('settings/gym PATCH', error)
 
-  auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'settings.update' })
+  auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'settings.update' })
   return jsonOk({ success: true })
 }

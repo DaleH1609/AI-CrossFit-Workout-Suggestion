@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
-import { promoteNextWaitlistMember }
-import { auditLog } from '@/lib/audit/gym-log' from '@/lib/bookings/waitlist'
+import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
+import { auditLog } from '@/lib/audit/gym-log'
 import type { BookingWithInstance } from '@/lib/bookings/types'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError } from '@/lib/api/response'
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
-  const { supabase, userData } = auth
+  const { supabase, user, userData } = auth
   const parsed = await parseBody(req, schema)
   if (parsed instanceof NextResponse) return parsed
   const { memberId } = parsed
@@ -84,6 +84,6 @@ export async function POST(req: Request) {
   const adminSupabase = createAdminClient()
   await adminSupabase.auth.admin.deleteUser(memberId)
 
-    auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'member.delete', targetId: memberId, targetType: 'user' })
+    auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'member.delete', targetId: memberId, targetType: 'user' })
   return jsonOk({ success: true })
 }

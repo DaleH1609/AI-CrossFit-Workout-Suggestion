@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   const auth = await requireOwnerAuth()
   if (isNextResponse(auth)) return auth
 
-  const { supabase, userData } = auth
+  const { supabase, user, userData } = auth
   const gymId = userData.gym_id
   const parsed = await parseBody(req, schema)
   if (parsed instanceof NextResponse) return parsed
@@ -73,6 +73,6 @@ export async function POST(req: Request) {
     url: '/this-week',
   }).catch(err => console.error('[workouts/approve] push failed', err))
 
-  auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'workout.publish', targetId: parsed.weekId, targetType: 'workout' })
+  auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'workout.publish', targetId: parsed.weekId, targetType: 'workout' })
   return jsonOk({ success: true, emailStats })
 }
