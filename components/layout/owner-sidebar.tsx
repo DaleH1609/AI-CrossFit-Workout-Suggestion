@@ -63,6 +63,13 @@ function IconPencil() {
     </svg>
   )
 }
+function IconFunnel() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 4h18l-7 8v6l-4-2V12L3 4z" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 const nav = [
@@ -71,6 +78,7 @@ const nav = [
   { href: '/style-profile', label: 'Style Profile',  Icon: IconSparkle  },
   { href: '/schedule',      label: 'Class Schedule', Icon: IconClock    },
   { href: '/members',       label: 'Members',        Icon: IconUsers    },
+  { href: '/leads',         label: 'Leads',          Icon: IconFunnel   },
   { href: '/wod-blog',      label: 'WOD Blog',       Icon: IconPencil   },
   { href: '/settings',      label: 'Settings',       Icon: IconSettings },
 ]
