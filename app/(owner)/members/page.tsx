@@ -36,11 +36,15 @@ export default function MembersPage() {
   const [tab, setTab] = useState<'members' | 'coaches'>('members')
   const [coaches, setCoaches] = useState<MemberRow[]>([])
   const [inviteError, setInviteError] = useState('')
+  const [deletionRequests, setDeletionRequests] = useState<Array<{
+    id: string; requested_at: string;
+    users: { id: string; name: string | null; email: string } | null
+  }>>([])
   const supabase = createClient()
   const { toast } = useToast()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { loadMembers(); loadCoaches() }, [])
+  useEffect(() => { loadMembers(); loadCoaches(); loadDeletionRequests() }, [])
 
   useEffect(() => {
     if (members.length === 0) return
@@ -73,6 +77,21 @@ export default function MembersPage() {
     } catch (err) {
       console.error('[members] loadMembers failed', err)
     }
+  }
+
+  async function loadDeletionRequests() {
+    const res = await fetch('/api/admin/deletion-requests')
+    if (res.ok) setDeletionRequests(await res.json() ?? [])
+  }
+
+  async function handleActionDeletion(requestId: string, memberId: string) {
+    if (!confirm('Have you deleted this member's account? Mark request as actioned?')) return
+    await fetch('/api/admin/deletion-requests', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: requestId }),
+    })
+    await Promise.all([loadMembers(), loadDeletionRequests()])
   }
 
   async function loadCoaches() {
@@ -180,6 +199,30 @@ export default function MembersPage() {
 
   return (
     <div>
+      {deletionRequests.length > 0 && (
+        <div className="mb-6 rounded-xl border border-danger/30 bg-danger/5 p-4 space-y-2">
+          <p className="text-sm font-semibold text-danger">Pending Deletion Requests ({deletionRequests.length})</p>
+          {deletionRequests.map(req => (
+            <div key={req.id} className="flex items-center justify-between gap-4 text-xs text-secondary">
+              <span>
+                {req.users?.name ?? req.users?.email ?? '—'}
+                {req.users?.name && req.users?.email && <span className="text-secondary/60 ml-1">({req.users.email})</span>}
+                {' '}— requested {new Date(req.requested_at).toLocaleDateString('en-GB')}
+              </span>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => req.users && handleActionDeletion(req.id, req.users.id)}
+                  className="text-xs text-danger hover:underline"
+                >
+                  Mark actioned
+                </button>
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-secondary/60 pt-1">Delete the member via the Members list, then mark each request as actioned.</p>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-3xl text-foreground">Members</h1>
         <div className="flex gap-1 bg-surface border border-border rounded-lg p-1">
