@@ -67,6 +67,7 @@ function IconPencil() {
 // ─── Nav items ────────────────────────────────────────────────────────────────
 const nav = [
   { href: '/dashboard',     label: 'Weekly Program', Icon: IconCalendar },
+  { href: '/calendar',      label: 'Macro View',     Icon: IconCalendar },
   { href: '/style-profile', label: 'Style Profile',  Icon: IconSparkle  },
   { href: '/schedule',      label: 'Class Schedule', Icon: IconClock    },
   { href: '/members',       label: 'Members',        Icon: IconUsers    },
