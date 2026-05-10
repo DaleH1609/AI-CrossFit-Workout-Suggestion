@@ -1,5 +1,5 @@
 // lib/claude/generate-workouts.ts
-import { buildGenerationPrompt, buildRationalePrompt, buildMovementAnalysisPrompt } from './prompts'
+import { buildGenerationPrompt, buildRationalePrompt, buildMovementAnalysisPrompt, type EditEntry } from './prompts'
 import { getAnthropicClient as getClient } from './client'
 import type { WorkoutDay, WorkoutWeek, MovementAnalysis, RecentWeek, WorkoutRationale } from '@/lib/types'
 
@@ -80,9 +80,10 @@ Return ONLY a valid JSON array with the same structure but each day having an ad
 export async function generateWorkouts(
   styleExamples: string[],
   history: WorkoutWeek[],
-  gymType: 'crossfit' | 'hyrox' = 'crossfit'
+  gymType: 'crossfit' | 'hyrox' = 'crossfit',
+  editHistory: EditEntry[] = []
 ): Promise<WorkoutWeek> {
-  const prompt = buildGenerationPrompt(styleExamples, history, gymType)
+  const prompt = buildGenerationPrompt(styleExamples, history, gymType, editHistory)
 
   const result = await callClaude(prompt)
   const raw = result ?? await callClaude(prompt)

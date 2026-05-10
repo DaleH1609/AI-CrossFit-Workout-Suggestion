@@ -53,9 +53,18 @@ export async function POST(req: Request) {
   const recentWeeks = await getRecentWeeks(supabase, gymId)
   const historyWeeks = recentWeeks.map(w => w.workouts)
 
+  // Fetch recent coach edits to inform generation
+  const { data: editRows } = await supabase
+    .from('workout_edits')
+    .select('day_name, field, before_text, after_text')
+    .eq('gym_id', gymId)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  const editHistory = editRows ?? []
+
   let workouts
   try {
-    workouts = await generateWorkouts(styleTexts, historyWeeks, gymType)
+    workouts = await generateWorkouts(styleTexts, historyWeeks, gymType, editHistory)
   } catch (err) {
     return jsonServerError('workouts/generate generateWorkouts', err)
   }

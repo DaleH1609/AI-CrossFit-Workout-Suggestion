@@ -106,14 +106,32 @@ function formatWeekAsText(week: WorkoutWeek, label: string): string {
   return `${label}:\n${dayLines}`
 }
 
+export interface EditEntry {
+  day_name: string
+  field: string
+  before_text: string
+  after_text: string
+}
+
 export function buildGenerationPrompt(
   styleExamples: string[],
   history: WorkoutWeek[],
-  gymType: 'crossfit' | 'hyrox' = 'crossfit'
+  gymType: 'crossfit' | 'hyrox' = 'crossfit',
+  editHistory: EditEntry[] = []
 ): string {
   const historyText = history.length === 0
     ? 'No previous weeks — this is the first week.'
     : history.map((week, i) => formatWeekAsText(week, `Week ${i + 1}`)).join('\n\n')
+
+  const editHistoryText = editHistory.length === 0 ? '' : `
+## Coach Edit Preferences (learn from these past changes)
+The coach has manually edited the following AI-generated workouts. Use these as signals of their taste:
+${editHistory.slice(0, 15).map(e =>
+  `- ${e.day_name} / ${e.field}: changed "${e.before_text.split('\n')[0].slice(0, 80)}" → "${e.after_text.split('\n')[0].slice(0, 80)}"`
+).join('\n')}
+
+Apply these preferences when generating the new week.
+`
 
   if (styleExamples.length >= 3) {
     // Cap each example and the aggregate to bound prompt size.
@@ -143,7 +161,7 @@ ${examplesText}
 
 ## Previous Weeks (most recent last)
 ${historyText}
-
+${editHistoryText}
 ${PERIODIZATION_RULES}
 
 ${OUTPUT_REQUIREMENTS}
@@ -159,7 +177,7 @@ ${dayTypeRule}`
 
 ## Previous Weeks (most recent last)
 ${historyText}
-
+${editHistoryText}
 ${PERIODIZATION_RULES}
 
 ${OUTPUT_REQUIREMENTS}
