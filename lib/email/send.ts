@@ -160,6 +160,60 @@ function escapeHtmlInline(s: string) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
 }
 
+// Lead nurture emails
+export async function sendLeadWelcome(to: string, name: string | null, gymName: string, contactEmail?: string | null) {
+  const displayName = name || 'there'
+  await getResend().emails.send({
+    from: getFrom(),
+    subject: `Thanks for your interest in ${gymName}`,
+    to,
+    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)}</h2>
+      <p>Hi ${escapeHtmlInline(displayName)},</p>
+      <p>Thanks for reaching out! We got your details and someone from our team will be in touch soon to book your first class.</p>
+      <p style="color:#9CA3AF">In the meantime, feel free to reply to this email if you have any questions.</p>
+      <p style="color:#6B7280;font-size:11px;margin-top:32px">${escapeHtmlInline(gymName)}</p>
+    </div>`,
+    ...withReplyTo(contactEmail),
+  })
+}
+
+export async function sendLeadOwnerAlert(to: string, leadName: string | null, leadEmail: string, gymName: string) {
+  await getResend().emails.send({
+    from: getFrom(),
+    subject: `New lead: ${leadEmail}`,
+    to,
+    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} — New Lead</h2>
+      <p>A new lead signed up from your website:</p>
+      <ul style="margin:8px 0;padding-left:20px;line-height:2">
+        ${leadName ? `<li><strong>Name:</strong> ${escapeHtmlInline(leadName)}</li>` : ''}
+        <li><strong>Email:</strong> ${escapeHtmlInline(leadEmail)}</li>
+      </ul>
+      <p>Log in to your dashboard to follow up.</p>
+    </div>`,
+  })
+}
+
+export async function sendLeadTrialBooked(to: string, name: string | null, gymName: string, trialDate: string | null, contactEmail?: string | null) {
+  const displayName = name || 'there'
+  const dateStr = trialDate ? new Date(trialDate + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : 'soon'
+  await getResend().emails.send({
+    from: getFrom(),
+    subject: `Your trial class is booked — ${gymName}`,
+    to,
+    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)}</h2>
+      <p>Hi ${escapeHtmlInline(displayName)},</p>
+      <p>Great news — your trial class is booked for <strong>${escapeHtmlInline(dateStr)}</strong>. We can't wait to see you!</p>
+      <p>Wear comfortable workout clothes. Arrive 5-10 minutes early so we can show you around. Bring water.</p>
+      <p style="color:#9CA3AF">Any questions? Just reply to this email.</p>
+      <p style="color:#6B7280;font-size:11px;margin-top:32px">${escapeHtmlInline(gymName)}</p>
+    </div>`,
+    ...withReplyTo(contactEmail),
+  })
+}
+
 export async function sendAccessRevoked(to: string, name: string) {
   await getResend().emails.send({
     from: getFrom(),

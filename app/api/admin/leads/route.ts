@@ -3,7 +3,9 @@
 // PATCH — update lead (status, notes, trial_date)
 // DELETE ?id= — delete lead
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { sendLeadTrialBooked } from '@/lib/email/send'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,7 +50,8 @@ export async function PATCH(req: Request) {
   if (typeof body.id !== 'string') return jsonError('id required')
 
   const updates: Record<string, unknown> = {}
-  if (typeof body.status === 'string' && VALID_STATUSES.includes(body.status)) updates.status = body.status
+  const newStatus = typeof body.status === 'string' && VALID_STATUSES.includes(body.status) ? body.status : null
+  if (newStatus) updates.status = newStatus
   if (body.notes !== undefined) updates.notes = typeof body.notes === 'string' ? body.notes || null : null
   if (body.trial_date !== undefined) updates.trial_date = typeof body.trial_date === 'string' ? body.trial_date || null : null
   if (typeof body.name === 'string') updates.name = body.name.trim() || null
@@ -60,6 +63,22 @@ export async function PATCH(req: Request) {
     .update(updates).eq('id', body.id).eq('gym_id', admin.gymId)
 
   if (error) return jsonServerError('admin/leads PATCH', error)
+
+  // Send trial_booked email when status transitions to trial_booked
+  if (newStatus === 'trial_booked') {
+    const adb = createAdminClient()
+    const [{ data: lead }, { data: gym }] = await Promise.all([
+      adb.from('leads').select('email, name, trial_date').eq('id', body.id).single(),
+      adb.from('gyms').select('name, contact_email').eq('id', admin.gymId).single(),
+    ])
+    if (lead && gym) {
+      const l = lead as { email: string; name: string | null; trial_date: string | null }
+      const g = gym as { name: string; contact_email: string | null }
+      const trialDate = (updates.trial_date as string | null | undefined) ?? l.trial_date
+      sendLeadTrialBooked(l.email, l.name, g.name, trialDate ?? null, g.contact_email).catch(() => {})
+    }
+  }
+
   return jsonOk({ updated: true })
 }
 

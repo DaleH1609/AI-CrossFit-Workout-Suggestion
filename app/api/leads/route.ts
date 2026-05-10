@@ -3,6 +3,7 @@
 // Requires ?gymId= query param so the form knows which gym to attribute the lead to.
 import { createClient } from '@/lib/supabase/server'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { sendLeadWelcome, sendLeadOwnerAlert } from '@/lib/email/send'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,19 +21,43 @@ export async function POST(req: Request) {
 
   const supabase = await createClient()
 
-  // Verify gym exists and is active
-  const { data: gym } = await supabase.from('gyms').select('id').eq('id', gymId).single()
+  // Verify gym exists and fetch name + contact_email for notification
+  const { data: gym } = await supabase
+    .from('gyms')
+    .select('id, name, contact_email')
+    .eq('id', gymId)
+    .single()
   if (!gym) return jsonError('Gym not found', 404)
 
-  const { error } = await supabase.from('leads').upsert({
+  const g = gym as { id: string; name: string; contact_email: string | null }
+  const leadEmail = body.email.toLowerCase().trim()
+  const leadName = typeof body.name === 'string' ? body.name.trim() || null : null
+
+  const { error, data: inserted } = await supabase.from('leads').upsert({
     gym_id: gymId,
-    email: body.email.toLowerCase().trim(),
-    name: typeof body.name === 'string' ? body.name.trim() || null : null,
+    email: leadEmail,
+    name: leadName,
     phone: typeof body.phone === 'string' ? body.phone.trim() || null : null,
     source: typeof body.source === 'string' ? body.source.trim() || 'website' : 'website',
     status: 'new',
-  }, { onConflict: 'gym_id,email', ignoreDuplicates: true })
+  }, { onConflict: 'gym_id,email', ignoreDuplicates: true }).select('id').single()
 
   if (error) return jsonServerError('leads POST', error)
+
+  // Fire-and-forget: send welcome to lead + alert to gym owner
+  // Only send on actual insert (ignoreDuplicates means data is null when skipped)
+  if (inserted) {
+    const emailsToSend: Promise<void>[] = [
+      sendLeadWelcome(leadEmail, leadName, g.name, g.contact_email).catch(() => {}),
+    ]
+    // Notify gym's contact email if set
+    if (g.contact_email) {
+      emailsToSend.push(
+        sendLeadOwnerAlert(g.contact_email, leadName, leadEmail, g.name).catch(() => {})
+      )
+    }
+    await Promise.all(emailsToSend)
+  }
+
   return jsonOk({ captured: true })
 }
