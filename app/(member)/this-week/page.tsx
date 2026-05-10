@@ -1,9 +1,10 @@
 export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { WeekDayView } from '@/components/booking/week-day-view'
+import { OnboardingChecklist } from '@/components/member/onboarding-checklist'
 import type { WorkoutDay } from '@/lib/types'
 
-interface UserRow { gym_id: string; id: string }
+interface UserRow { gym_id: string; id: string; created_at: string; waiver_signed_at: string | null }
 interface WeekData { workouts: WorkoutDay[] }
 interface ClassInstance { id: string; date: string; local_time: string; starts_at: string; capacity: number; name?: string | null }
 interface BookingRow { id: string; instance_id: string; status: string }
@@ -21,7 +22,7 @@ export default async function ThisWeekPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: userDataRaw } = await supabase.from('users').select('gym_id, id').eq('id', user.id).single()
+  const { data: userDataRaw } = await supabase.from('users').select('gym_id, id, created_at, waiver_signed_at').eq('id', user.id).single()
   const userData = userDataRaw as unknown as UserRow | null
   if (!userData) return (
     <section aria-label="Account setup incomplete" className="flex flex-col items-center justify-center py-20 text-center">
@@ -39,7 +40,7 @@ export default async function ThisWeekPage() {
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekEnd.getDate() + 6)
 
-  const [{ data: weekData }, { data: instancesRaw }, { data: gymRaw }] = await Promise.all([
+  const [{ data: weekData }, { data: instancesRaw }, { data: gymRaw }, { data: onboardingRaw }] = await Promise.all([
     supabase.from('workout_weeks').select('workouts')
       .eq('gym_id', userData.gym_id).eq('status', 'published').is('archived_at', null)
       .eq('week_start', weekStart).maybeSingle(),
@@ -48,6 +49,8 @@ export default async function ThisWeekPage() {
       .gte('date', weekStart).lte('date', weekEnd.toISOString().split('T')[0])
       .order('date').order('local_time'),
     supabase.from('gyms').select('show_member_names, waitlist_enabled').eq('id', userData.gym_id).single(),
+    supabase.from('member_onboarding').select('step, completed_at')
+      .eq('gym_id', userData.gym_id).eq('user_id', user.id),
   ])
 
   const workouts: WorkoutDay[] = (weekData as unknown as WeekData | null)?.workouts ?? []
@@ -89,12 +92,32 @@ export default async function ThisWeekPage() {
     }
   }
 
+  const completedSteps = (onboardingRaw ?? []) as { step: string; completed_at: string }[]
+  const hasBookings = userBookings.length > 0
+  const waiverSignedAt = userData.waiver_signed_at ?? null
+  const daysSinceJoined = Math.floor((Date.now() - new Date(userData.created_at).getTime()) / 86_400_000)
+  const allOnboardingKeys = ['profile', 'waiver', 'first_booking', 'intro_video', ...Array.from({ length: 6 }, (_, i) => `intro_class_${i + 1}`)]
+  const completedSet = new Set(completedSteps.map(s => s.step))
+  if (waiverSignedAt) completedSet.add('waiver')
+  if (hasBookings) completedSet.add('first_booking')
+  const onboardingComplete = allOnboardingKeys.every(k => completedSet.has(k))
+  const showOnboarding = !onboardingComplete && daysSinceJoined < 60
+
   const weekEndFormatted = new Date(weekStart)
   weekEndFormatted.setDate(weekEndFormatted.getDate() + 6)
   const weekLabel = `${new Date(weekStart + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${weekEndFormatted.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
 
   return (
     <div>
+      {showOnboarding && (
+        <div className="mb-8">
+          <OnboardingChecklist
+            completedSteps={completedSteps}
+            waiverSignedAt={waiverSignedAt}
+            hasBookings={hasBookings}
+          />
+        </div>
+      )}
       <p className="text-secondary text-sm mb-6 font-medium">{weekLabel}</p>
       {workouts.length === 0 && instances.length === 0 ? (
         <section aria-label="No classes this week" className="flex flex-col items-center justify-center py-20 text-center">
