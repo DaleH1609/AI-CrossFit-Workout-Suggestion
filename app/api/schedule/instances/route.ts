@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   // Fetch instances for this date and gym
   const { data: instances, error } = await supabase
     .from('class_instances')
-    .select('id, starts_at, capacity, local_time')
+    .select('id, starts_at, capacity, local_time, name, coach_id')
     .eq('gym_id', userData.gym_id)
     .eq('date', date)
     .order('starts_at')
@@ -50,8 +50,19 @@ export async function GET(req: Request) {
     bookingsByInstance.set(b.instance_id, list)
   }
 
-  const result = instances.map(instance => ({
+  type RawInstance = { id: string; starts_at: string; capacity: number; local_time: string; name: string | null; coach_id: string | null }
+
+  // Resolve coach names in one query
+  const coachIds = [...new Set((instances as unknown as RawInstance[]).map(i => i.coach_id).filter(Boolean) as string[])]
+  const coachMap = new Map<string, string>()
+  if (coachIds.length > 0) {
+    const { data: coaches } = await supabase.from('users').select('id, name').in('id', coachIds)
+    for (const c of coaches ?? []) coachMap.set((c as { id: string; name: string }).id, (c as { id: string; name: string }).name)
+  }
+
+  const result = (instances as unknown as RawInstance[]).map(instance => ({
     ...instance,
+    coachName: instance.coach_id ? (coachMap.get(instance.coach_id) ?? null) : null,
     bookings: (bookingsByInstance.get(instance.id) ?? []).map(b => ({
       id: b.id,
       user_id: b.user_id,

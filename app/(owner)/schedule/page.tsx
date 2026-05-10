@@ -19,7 +19,15 @@ interface InstanceWithBookings {
   local_time: string
   name: string
   capacity: number
+  coach_id: string | null
+  coachName: string | null
   bookings: Booking[]
+}
+
+interface Coach {
+  id: string
+  name: string
+  email: string
 }
 
 type Tab = 'schedule' | 'attendance'
@@ -37,15 +45,17 @@ export default function SchedulePage() {
   const [instances, setInstances] = useState<InstanceWithBookings[]>([])
   const [loadingInstances, setLoadingInstances] = useState(false)
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
+  const [coaches, setCoaches] = useState<Coach[]>([])
   const { toast } = useToast()
   const tabListRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function load() {
       try {
-        const [templatesRes, typesRes] = await Promise.all([
+        const [templatesRes, typesRes, coachesRes] = await Promise.all([
           fetch('/api/schedule/templates'),
           fetch('/api/class-types'),
+          fetch('/api/admin/coaches'),
         ])
         if (!templatesRes.ok || !typesRes.ok) {
           toast('Failed to load schedule', 'error')
@@ -60,6 +70,7 @@ export default function SchedulePage() {
           dayDefaults: templatesData.dayDefaults ?? {},
         })
         setClassTypes(typesData.classTypes ?? [])
+        if (coachesRes.ok) setCoaches(await coachesRes.json() ?? [])
       } catch (err) {
         console.error('[schedule] load failed', err)
         toast('Network error — could not load schedule', 'error')
@@ -138,6 +149,21 @@ export default function SchedulePage() {
         }))
       )
       toast('Network error — could not update attendance', 'error')
+    }
+  }
+
+  async function handleCoachAssign(instanceId: string, coachId: string | null) {
+    const prev = instances.find(i => i.id === instanceId)
+    const coachName = coachId ? (coaches.find(c => c.id === coachId)?.name ?? null) : null
+    setInstances(all => all.map(i => i.id === instanceId ? { ...i, coach_id: coachId, coachName } : i))
+    const res = await fetch(`/api/schedule/instances/${instanceId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coachId }),
+    })
+    if (!res.ok) {
+      setInstances(all => all.map(i => i.id === instanceId ? { ...i, coach_id: prev?.coach_id ?? null, coachName: prev?.coachName ?? null } : i))
+      toast('Failed to assign coach', 'error')
     }
   }
 
@@ -263,6 +289,9 @@ export default function SchedulePage() {
                         )}
                       </div>
                       <div className="flex items-center gap-3">
+                        {instance.coachName && (
+                          <span className="text-xs text-accent/70">{instance.coachName}</span>
+                        )}
                         <span className="text-secondary text-xs tabular-nums">
                           {confirmedCount} / {instance.capacity}
                         </span>
@@ -274,6 +303,21 @@ export default function SchedulePage() {
                     </button>
                     {isOpen && (
                       <div className="border border-t-0 border-border rounded-b-card px-4 py-3 space-y-2 bg-background">
+                        {coaches.length > 0 && (
+                          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                            <span className="text-xs text-secondary shrink-0">Coach:</span>
+                            <select
+                              value={instance.coach_id ?? ''}
+                              onChange={e => handleCoachAssign(instance.id, e.target.value || null)}
+                              className="flex-1 text-xs bg-surface border border-border rounded px-2 py-1 text-foreground focus:outline-none focus:border-accent"
+                            >
+                              <option value="">— unassigned —</option>
+                              {coaches.map(c => (
+                                <option key={c.id} value={c.id}>{c.name || c.email}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                         {instance.bookings.length === 0 ? (
                           <p className="text-secondary text-sm italic">No confirmed bookings.</p>
                         ) : (
