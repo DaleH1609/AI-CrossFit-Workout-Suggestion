@@ -79,6 +79,7 @@ const nav = [
   { href: '/schedule',      label: 'Class Schedule', Icon: IconClock    },
   { href: '/members',       label: 'Members',        Icon: IconUsers    },
   { href: '/leads',         label: 'Leads',          Icon: IconFunnel   },
+  { href: '/reports',       label: 'Reports',        Icon: IconSparkle  },
   { href: '/wod-blog',      label: 'WOD Blog',       Icon: IconPencil   },
   { href: '/settings',      label: 'Settings',       Icon: IconSettings },
 ]
