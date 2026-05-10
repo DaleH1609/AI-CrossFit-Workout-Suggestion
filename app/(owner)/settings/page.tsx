@@ -17,6 +17,7 @@ const SECTIONS = [
   { id: 'notifications', label: 'Notifications' },
   { id: 'displays', label: 'Displays' },
   { id: 'public-page', label: 'Public Page' },
+  { id: 'integrations', label: 'Integrations' },
 ]
 
 type GymSettings = {
@@ -60,6 +61,10 @@ export default function SettingsPage() {
   const [gymSlug, setGymSlug] = useState('')
   const [slugSaved, setSlugSaved] = useState(false)
   const [slugError, setSlugError] = useState('')
+  const [webhooks, setWebhooks] = useState<{ id: string; platform: string; url: string; label: string; events: string[] }[]>([])
+  const [webhookForm, setWebhookForm] = useState({ platform: 'slack', url: '', label: '', events: ['workout_published'] })
+  const [webhookSaving, setWebhookSaving] = useState(false)
+  const [webhookError, setWebhookError] = useState('')
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [gymTypeSaved, setGymTypeSaved] = useState(false)
@@ -103,6 +108,7 @@ export default function SettingsPage() {
       console.error('[settings] load error', err)
       setLoadError('Failed to load settings. Please refresh.')
     })
+    fetch('/api/settings/webhooks').then(r => r.ok ? r.json() : []).then(setWebhooks).catch(() => {})
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function patch(body: Record<string, unknown>, setSaved: (v: boolean) => void) {
@@ -475,6 +481,98 @@ export default function SettingsPage() {
                 <a href="/wod-blog" className="text-xs text-secondary hover:text-foreground transition-colors">
                   Manage WOD posts →
                 </a>
+              </div>
+            )}
+          </section>
+
+          <div className="border-t border-border" />
+
+          {/* Integrations — Slack/Discord webhooks */}
+          <section id="integrations">
+            <h2 className="text-sm font-semibold text-foreground mb-2">Integrations</h2>
+            <p className="text-secondary text-xs mb-5">Send automatic notifications to Slack or Discord when events happen in your gym.</p>
+
+            {/* Add webhook form */}
+            <div className="rounded-lg border border-border bg-surface p-4 mb-4">
+              <p className="text-xs font-semibold text-foreground mb-3">Add Webhook</p>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <select value={webhookForm.platform}
+                    onChange={e => setWebhookForm(f => ({ ...f, platform: e.target.value }))}
+                    className="px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent">
+                    <option value="slack">Slack</option>
+                    <option value="discord">Discord</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                  <input value={webhookForm.url} onChange={e => setWebhookForm(f => ({ ...f, url: e.target.value }))}
+                    placeholder="https://hooks.slack.com/…"
+                    className="flex-1 px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors" />
+                </div>
+                <input value={webhookForm.label} onChange={e => setWebhookForm(f => ({ ...f, label: e.target.value }))}
+                  placeholder="Label (optional)"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors" />
+                <div className="flex flex-wrap gap-2">
+                  {['workout_published', 'booking_confirmed', 'booking_cancelled', 'new_member'].map(ev => (
+                    <label key={ev} className="flex items-center gap-1.5 cursor-pointer">
+                      <input type="checkbox"
+                        checked={webhookForm.events.includes(ev)}
+                        onChange={e => setWebhookForm(f => ({
+                          ...f,
+                          events: e.target.checked ? [...f.events, ev] : f.events.filter(x => x !== ev),
+                        }))}
+                        className="accent-accent"
+                      />
+                      <span className="text-xs text-secondary capitalize">{ev.replace(/_/g, ' ')}</span>
+                    </label>
+                  ))}
+                </div>
+                {webhookError && <p className="text-danger text-xs">{webhookError}</p>}
+                <button
+                  onClick={async () => {
+                    setWebhookError('')
+                    setWebhookSaving(true)
+                    const res = await fetch('/api/settings/webhooks', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(webhookForm),
+                    })
+                    if (res.ok) {
+                      const w = await res.json()
+                      setWebhooks(prev => [...prev, w])
+                      setWebhookForm({ platform: 'slack', url: '', label: '', events: ['workout_published'] })
+                    } else {
+                      const d = await res.json().catch(() => ({}))
+                      setWebhookError(d.error ?? 'Failed to add webhook')
+                    }
+                    setWebhookSaving(false)
+                  }}
+                  disabled={webhookSaving || !webhookForm.url || webhookForm.events.length === 0}
+                  className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
+                >
+                  {webhookSaving ? 'Adding…' : 'Add Webhook'}
+                </button>
+              </div>
+            </div>
+
+            {/* Existing webhooks */}
+            {webhooks.length > 0 && (
+              <div className="space-y-2">
+                {webhooks.map(w => (
+                  <div key={w.id} className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3 group">
+                    <div className="min-w-0">
+                      <p className="text-sm text-foreground capitalize">{w.platform}{w.label ? ` — ${w.label}` : ''}</p>
+                      <p className="text-xs text-secondary truncate">{w.url}</p>
+                      <p className="text-xs text-secondary mt-0.5">{w.events.map(e => e.replace(/_/g, ' ')).join(', ')}</p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        await fetch(`/api/settings/webhooks?id=${w.id}`, { method: 'DELETE' })
+                        setWebhooks(prev => prev.filter(x => x.id !== w.id))
+                      }}
+                      className="text-danger text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-4 hover:underline"
+                    >Remove</button>
+                  </div>
+                ))}
               </div>
             )}
           </section>
