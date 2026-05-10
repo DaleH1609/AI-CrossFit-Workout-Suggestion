@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
 import { MemberNotes } from '@/components/admin/member-notes'
+import { MemberPasses } from '@/components/admin/member-passes'
+import { MemberPauses } from '@/components/admin/member-pauses'
 
 interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null }
 interface GymUserRow { gym_id: string }
@@ -29,6 +31,7 @@ export default function MembersPage() {
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [notesMember, setNotesMember] = useState<MemberRow | null>(null)
+  const [memberPanel, setMemberPanel] = useState<'notes' | 'passes' | 'pauses'>('notes')
   const [inviteError, setInviteError] = useState('')
   const supabase = createClient()
   const { toast } = useToast()
@@ -248,19 +251,30 @@ export default function MembersPage() {
         </div>
       )}
 
-      {/* Coach notes slide-over */}
+      {/* Member detail slide-over */}
       {notesMember && (
         <div className="fixed inset-0 z-40 flex justify-end">
           <div className="absolute inset-0 bg-black/40" onClick={() => setNotesMember(null)} />
           <div className="relative w-full max-w-sm bg-background border-l border-border h-full overflow-y-auto p-6 z-10">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="font-display text-lg text-foreground">Coach Notes</h2>
-                <p className="text-secondary text-xs">{notesMember.name || notesMember.email}</p>
+                <h2 className="font-display text-lg text-foreground">{notesMember.name || notesMember.email}</h2>
+                {notesMember.name && <p className="text-secondary text-xs">{notesMember.email}</p>}
               </div>
               <button onClick={() => setNotesMember(null)} className="text-secondary hover:text-foreground text-xl leading-none">×</button>
             </div>
-            <MemberNotes memberId={notesMember.id} />
+            {/* Tabs */}
+            <div className="flex gap-1 mb-5 bg-surface rounded-lg p-1">
+              {(['notes', 'passes', 'pauses'] as const).map(tab => (
+                <button key={tab} onClick={() => setMemberPanel(tab)}
+                  className={`flex-1 py-1.5 text-xs font-medium capitalize rounded transition-colors ${
+                    memberPanel === tab ? 'bg-accent text-background' : 'text-secondary hover:text-foreground'
+                  }`}>{tab}</button>
+              ))}
+            </div>
+            {memberPanel === 'notes' && <MemberNotes memberId={notesMember.id} />}
+            {memberPanel === 'passes' && <MemberPasses memberId={notesMember.id} />}
+            {memberPanel === 'pauses' && <MemberPauses memberId={notesMember.id} />}
           </div>
         </div>
       )}
