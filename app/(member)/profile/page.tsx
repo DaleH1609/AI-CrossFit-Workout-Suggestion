@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { SkillTracker } from '@/components/member/skill-tracker'
+import { MemberBadges } from '@/components/member/badges'
 
 interface AttendanceStats {
   total: number
@@ -179,6 +180,14 @@ export default function ProfilePage() {
             Liability waiver accepted on {new Date(waiverSignedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.
           </p>
         )}
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Badges + referrals */}
+      <section className="pt-7 pb-7">
+        <h2 className="text-sm font-semibold text-foreground mb-4">Achievements</h2>
+        <MemberBadges />
       </section>
 
       <div className="border-t border-border" />
