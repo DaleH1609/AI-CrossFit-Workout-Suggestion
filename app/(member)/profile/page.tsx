@@ -9,6 +9,12 @@ interface AttendanceStats {
   joinedAt: string | null
 }
 
+interface ProfileData {
+  name: string
+  waiver_signed_at: string | null
+  photo_consent: boolean
+}
+
 function SavedBadge({ show }: { show: boolean }) {
   return (
     <span className={`text-xs text-accent transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}>
@@ -28,6 +34,9 @@ export default function ProfilePage() {
   const [showPasswordForm, setShowPasswordForm] = useState(false)
 
   const [stats, setStats] = useState<AttendanceStats | null>(null)
+  const [waiverSignedAt, setWaiverSignedAt] = useState<string | null>(null)
+  const [photoConsent, setPhotoConsent] = useState(false)
+  const [consentSaving, setConsentSaving] = useState(false)
 
   const supabase = createClient()
 
@@ -35,8 +44,13 @@ export default function ProfilePage() {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.from('users').select('name').eq('id', user.id).single()
-      if (data) setName((data as { name: string }).name ?? '')
+      const { data } = await supabase.from('users').select('name, waiver_signed_at, photo_consent').eq('id', user.id).single()
+      if (data) {
+        const row = data as unknown as ProfileData
+        setName(row.name ?? '')
+        setWaiverSignedAt(row.waiver_signed_at)
+        setPhotoConsent(row.photo_consent ?? false)
+      }
     }
     async function loadStats() {
       const res = await fetch('/api/members/stats')
@@ -128,6 +142,42 @@ export default function ProfilePage() {
             Save Name
           </button>
         </form>
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Photo consent */}
+      <section className="pt-7">
+        <h2 className="text-sm font-semibold text-foreground mb-3">Privacy</h2>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-foreground">Photo & video consent</p>
+            <p className="text-secondary text-xs mt-0.5">Allow your gym to use photos/videos of you for marketing.</p>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              const next = !photoConsent
+              setConsentSaving(true)
+              await fetch('/api/members/waiver', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photo_consent: next }),
+              })
+              setPhotoConsent(next)
+              setConsentSaving(false)
+            }}
+            disabled={consentSaving}
+            className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 disabled:opacity-50 ${photoConsent ? 'bg-accent' : 'bg-border'}`}
+          >
+            <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${photoConsent ? 'translate-x-5' : 'translate-x-0'}`} />
+          </button>
+        </div>
+        {waiverSignedAt && (
+          <p className="text-secondary text-xs mt-4">
+            Liability waiver accepted on {new Date(waiverSignedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.
+          </p>
+        )}
       </section>
 
       <div className="border-t border-border" />
