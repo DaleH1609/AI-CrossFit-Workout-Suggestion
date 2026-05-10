@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { WorkoutCard } from '@/components/workout/workout-card'
 import { ClassTile } from '@/components/booking/class-tile'
 import { ScoreEntry } from '@/components/workout/score-entry'
+import { ClassFeedback } from '@/components/booking/class-feedback'
 import type { WorkoutDay } from '@/lib/types'
 
 interface ClassInstance {
@@ -127,16 +128,28 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
                 <p className="text-secondary-60 text-xs italic">No classes scheduled for today.</p>
               ) : (
                 <div className="space-y-2">
-                  {selectedInstances.map(inst => (
-                    <ClassTile
-                      key={inst.id}
-                      instance={inst}
-                      confirmedCount={bookingCounts[inst.id] ?? 0}
-                      userBooking={userBookings.find(b => b.instance_id === inst.id) ?? null}
-                      bookedMemberNames={memberNames?.[inst.id]}
-                      waitlistEnabled={waitlistEnabled}
-                    />
-                  ))}
+                  {selectedInstances.map(inst => {
+                    const userBooking = userBookings.find(b => b.instance_id === inst.id) ?? null
+                    const isPast = inst.date < today || (inst.date === today && inst.starts_at < new Date().toISOString())
+                    const attended = isPast && userBooking?.status === 'confirmed'
+                    const displayTime = new Date(`1970-01-01T${inst.local_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                    return (
+                      <div key={inst.id}>
+                        <ClassTile
+                          instance={inst}
+                          confirmedCount={bookingCounts[inst.id] ?? 0}
+                          userBooking={userBooking}
+                          bookedMemberNames={memberNames?.[inst.id]}
+                          waitlistEnabled={waitlistEnabled}
+                        />
+                        {attended && (
+                          <div className="pl-2">
+                            <ClassFeedback instanceId={inst.id} classTime={displayTime} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
