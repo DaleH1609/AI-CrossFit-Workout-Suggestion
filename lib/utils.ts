@@ -17,13 +17,6 @@ export function getMondayOfCurrentWeek(): string {
 }
 
 /**
- * BOOKING_ADVANCE_DAYS — number of days before a class that booking opens.
- * Used in app/api/bookings/route.ts (enforced server-side) and
- * components/booking/class-slot.tsx (UI feedback only).
- */
-export const BOOKING_ADVANCE_DAYS = 2
-
-/**
  * DAYS — full week ordered Monday–Sunday.
  * Used in schedule/page.tsx and prompts.ts.
  */
