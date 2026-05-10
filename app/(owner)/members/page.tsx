@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
+import { MemberNotes } from '@/components/admin/member-notes'
 
 interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null }
 interface GymUserRow { gym_id: string }
@@ -27,6 +28,7 @@ export default function MembersPage() {
   const [inviting, setInviting] = useState(false)
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [notesMember, setNotesMember] = useState<MemberRow | null>(null)
   const [inviteError, setInviteError] = useState('')
   const supabase = createClient()
   const { toast } = useToast()
@@ -211,6 +213,13 @@ export default function MembersPage() {
 
               {/* Actions — visible on hover */}
               <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <button
+                  onClick={() => setNotesMember(m)}
+                  className="text-xs text-secondary hover:text-foreground transition-colors"
+                  title="Coach notes"
+                >
+                  Notes
+                </button>
                 {m.revoked_at ? (
                   <button
                     onClick={() => handleRestore(m.id)}
@@ -236,6 +245,23 @@ export default function MembersPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Coach notes slide-over */}
+      {notesMember && (
+        <div className="fixed inset-0 z-40 flex justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setNotesMember(null)} />
+          <div className="relative w-full max-w-sm bg-background border-l border-border h-full overflow-y-auto p-6 z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-display text-lg text-foreground">Coach Notes</h2>
+                <p className="text-secondary text-xs">{notesMember.name || notesMember.email}</p>
+              </div>
+              <button onClick={() => setNotesMember(null)} className="text-secondary hover:text-foreground text-xl leading-none">×</button>
+            </div>
+            <MemberNotes memberId={notesMember.id} />
+          </div>
         </div>
       )}
 

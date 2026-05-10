@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { SkillTracker } from '@/components/member/skill-tracker'
 
 interface AttendanceStats {
   total: number
@@ -178,6 +179,14 @@ export default function ProfilePage() {
             Liability waiver accepted on {new Date(waiverSignedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.
           </p>
         )}
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Skill tracker */}
+      <section className="pt-7 pb-7">
+        <h2 className="text-sm font-semibold text-foreground mb-4">My Skills</h2>
+        <SkillTracker />
       </section>
 
       <div className="border-t border-border" />
