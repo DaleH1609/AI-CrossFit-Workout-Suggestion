@@ -28,6 +28,16 @@ const nav = [
     ),
   },
   {
+    href: '/benchmarks',
+    label: 'Progress',
+    icon: (
+      <svg aria-hidden="true" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+        <path d="M3 17l4-4 4 4 5-5 5 5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M3 21h18" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
     href: '/profile',
     label: 'Profile',
     icon: (
