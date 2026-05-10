@@ -38,6 +38,12 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState('')
   const [showPasswordForm, setShowPasswordForm] = useState(false)
 
+  const [newEmail, setNewEmail] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [showEmailForm, setShowEmailForm] = useState(false)
+  const [emailWorking, setEmailWorking] = useState(false)
+
   const [stats, setStats] = useState<AttendanceStats | null>(null)
   const [waiverSignedAt, setWaiverSignedAt] = useState<string | null>(null)
   const [photoConsent, setPhotoConsent] = useState(false)
@@ -85,6 +91,19 @@ export default function ProfilePage() {
     setPasswordSaved(true)
     setShowPasswordForm(false)
     setTimeout(() => setPasswordSaved(false), 2000)
+  }
+
+  async function handleChangeEmail(e: React.FormEvent) {
+    e.preventDefault()
+    setEmailError('')
+    setEmailMessage('')
+    if (!newEmail.includes('@')) { setEmailError('Enter a valid email address'); return }
+    setEmailWorking(true)
+    const { error } = await supabase.auth.updateUser({ email: newEmail })
+    setEmailWorking(false)
+    if (error) { setEmailError(error.message); return }
+    setEmailMessage('Check your new email address to confirm the change.')
+    setNewEmail('')
   }
 
   return (
@@ -240,6 +259,57 @@ export default function ProfilePage() {
           Download my data (JSON)
           <span className="group-hover:translate-x-0.5 transition-transform text-secondary">↓</span>
         </a>
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Email change */}
+      <section className="pt-7 pb-7">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-foreground">Email Address</h2>
+        </div>
+
+        {!showEmailForm ? (
+          <button
+            onClick={() => setShowEmailForm(true)}
+            className="text-sm text-secondary hover:text-foreground transition-colors flex items-center gap-1.5 group"
+          >
+            Change email
+            <span className="group-hover:translate-x-0.5 transition-transform text-secondary">→</span>
+          </button>
+        ) : (
+          <form onSubmit={handleChangeEmail} className="space-y-3">
+            <input
+              type="email"
+              value={newEmail}
+              onChange={e => setNewEmail(e.target.value)}
+              placeholder="New email address"
+              required
+              autoFocus
+              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
+            />
+            {emailError && (
+              <div className="px-4 py-3 rounded-lg border border-danger/20 bg-danger/5 text-sm text-danger">
+                {emailError}
+              </div>
+            )}
+            {emailMessage && (
+              <div className="px-4 py-3 rounded-lg border border-accent/20 bg-accent/5 text-sm text-accent">
+                {emailMessage}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button type="submit" disabled={emailWorking}
+                className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] disabled:opacity-50">
+                {emailWorking ? 'Sending…' : 'Send Verification'}
+              </button>
+              <button type="button" onClick={() => { setShowEmailForm(false); setNewEmail(''); setEmailError(''); setEmailMessage('') }}
+                className="text-sm text-secondary hover:text-foreground transition-colors">
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
       </section>
 
       <div className="border-t border-border" />
