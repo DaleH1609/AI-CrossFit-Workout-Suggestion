@@ -1,5 +1,6 @@
 // app/api/settings/gym/route.ts
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
+import { auditLog } from '@/lib/audit/gym-log'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 export async function PATCH(req: Request) {
@@ -96,5 +97,6 @@ export async function PATCH(req: Request) {
   const { error } = await supabase.from('gyms').update(updates).eq('id', userData.gym_id)
   if (error) return jsonServerError('settings/gym PATCH', error)
 
+  auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'settings.update' })
   return jsonOk({ success: true })
 }

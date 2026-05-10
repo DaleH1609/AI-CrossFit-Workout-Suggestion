@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { dispatchWebhooks } from '@/lib/webhooks/dispatch'
+import { auditLog } from '@/lib/audit/gym-log'
 import { sendPushToGym } from '@/lib/push/send'
 
 const schema = z.object({ weekId: z.uuid() })
@@ -72,5 +73,6 @@ export async function POST(req: Request) {
     url: '/this-week',
   }).catch(err => console.error('[workouts/approve] push failed', err))
 
+  auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'workout.publish', targetId: parsed.weekId, targetType: 'workout' })
   return jsonOk({ success: true, emailStats })
 }

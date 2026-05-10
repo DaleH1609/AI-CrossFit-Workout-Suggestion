@@ -3,6 +3,7 @@ import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import type { BookingWithInstance } from '@/lib/bookings/types'
 import { sendAccessRevoked } from '@/lib/email/send'
+import { auditLog } from '@/lib/audit/gym-log'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk } from '@/lib/api/response'
 
@@ -89,5 +90,6 @@ export async function POST(req: Request) {
     }
   }
 
+    auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'member.revoke', targetId: memberId, targetType: 'user' })
   return jsonOk({ success: true })
 }

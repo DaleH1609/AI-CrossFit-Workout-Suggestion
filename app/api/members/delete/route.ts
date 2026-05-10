@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
-import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
+import { promoteNextWaitlistMember }
+import { auditLog } from '@/lib/audit/gym-log' from '@/lib/bookings/waitlist'
 import type { BookingWithInstance } from '@/lib/bookings/types'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError } from '@/lib/api/response'
@@ -83,5 +84,6 @@ export async function POST(req: Request) {
   const adminSupabase = createAdminClient()
   await adminSupabase.auth.admin.deleteUser(memberId)
 
+    auditLog({ gymId: userData.gym_id, actorId: userData.userId, action: 'member.delete', targetId: memberId, targetType: 'user' })
   return jsonOk({ success: true })
 }

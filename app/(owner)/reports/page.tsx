@@ -28,14 +28,20 @@ export default function ReportsPage() {
   const [overview, setOverview] = useState<OverviewData | null>(null)
   const [heatmap, setHeatmap] = useState<{ dow: number; hour: number; count: number }[]>([])
   const [loading, setLoading] = useState(true)
+  const [auditLog, setAuditLog] = useState<Array<{
+    id: string; action: string; target_type: string | null; created_at: string
+    users: { name: string | null; email: string } | null
+  }>>([])
 
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/reports?type=overview').then(r => r.json()),
       fetch('/api/admin/reports?type=attendance_heatmap').then(r => r.json()),
-    ]).then(([ov, hm]) => {
+      fetch('/api/admin/audit-log?limit=50').then(r => r.ok ? r.json() : []),
+    ]).then(([ov, hm, al]) => {
       setOverview(ov)
       setHeatmap(Array.isArray(hm) ? hm : [])
+      setAuditLog(Array.isArray(al) ? al : [])
     }).catch(console.error).finally(() => setLoading(false))
   }, [])
 
@@ -178,6 +184,32 @@ export default function ReportsPage() {
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+      {/* Audit log */}
+      <div className="rounded-xl border border-border bg-surface p-6">
+        <h2 className="font-semibold text-foreground mb-4 text-sm">Activity Log</h2>
+        {auditLog.length === 0 ? (
+          <p className="text-secondary text-xs">No activity recorded yet.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {auditLog.map(entry => {
+              const actor = entry.users?.name ?? entry.users?.email ?? 'System'
+              const action = entry.action.replace('.', ' ').replace('_', ' ')
+              const dt = new Date(entry.created_at)
+              const dateStr = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+              const timeStr = dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+              return (
+                <div key={entry.id} className="flex items-center gap-3 py-1 border-b border-border/40 last:border-0">
+                  <span className="text-[10px] text-secondary/60 tabular-nums shrink-0 w-28">{dateStr} {timeStr}</span>
+                  <span className="text-xs text-accent font-medium shrink-0 min-w-[120px]">{action}</span>
+                  <span className="text-xs text-secondary truncate">{actor}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
