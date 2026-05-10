@@ -17,6 +17,7 @@ const SECTIONS = [
   { id: 'notifications', label: 'Notifications' },
   { id: 'displays', label: 'Displays' },
   { id: 'public-page', label: 'Public Page' },
+  { id: 'broadcast', label: 'Broadcast Email' },
   { id: 'integrations', label: 'Integrations' },
 ]
 
@@ -61,6 +62,10 @@ export default function SettingsPage() {
   const [gymSlug, setGymSlug] = useState('')
   const [slugSaved, setSlugSaved] = useState(false)
   const [slugError, setSlugError] = useState('')
+  const [broadcast, setBroadcast] = useState({ subject: '', body: '', audience: 'active' as 'active' | 'all' })
+  const [broadcastSending, setBroadcastSending] = useState(false)
+  const [broadcastResult, setBroadcastResult] = useState<{ sent: number; failed: number; total: number } | null>(null)
+  const [broadcastError, setBroadcastError] = useState('')
   const [webhooks, setWebhooks] = useState<{ id: string; platform: string; url: string; label: string; events: string[] }[]>([])
   const [webhookForm, setWebhookForm] = useState({ platform: 'slack', url: '', label: '', events: ['workout_published'] })
   const [webhookSaving, setWebhookSaving] = useState(false)
@@ -483,6 +488,67 @@ export default function SettingsPage() {
                 </a>
               </div>
             )}
+          </section>
+
+          <div className="border-t border-border" />
+
+          {/* Broadcast email */}
+          <section id="broadcast">
+            <h2 className="text-sm font-semibold text-foreground mb-1">Broadcast Email</h2>
+            <p className="text-secondary text-xs mb-5">Send a one-off email to all active members — announcements, schedule changes, special events.</p>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <select
+                  value={broadcast.audience}
+                  onChange={e => setBroadcast(f => ({ ...f, audience: e.target.value as 'active' | 'all' }))}
+                  className="px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent"
+                >
+                  <option value="active">Active members only</option>
+                  <option value="all">All members (incl. revoked)</option>
+                </select>
+              </div>
+              <input
+                type="text"
+                placeholder="Subject line…"
+                value={broadcast.subject}
+                onChange={e => setBroadcast(f => ({ ...f, subject: e.target.value }))}
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
+              />
+              <textarea
+                placeholder="Message body…"
+                rows={5}
+                value={broadcast.body}
+                onChange={e => setBroadcast(f => ({ ...f, body: e.target.value }))}
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors resize-y"
+              />
+              {broadcastError && <p className="text-danger text-xs">{broadcastError}</p>}
+              {broadcastResult && (
+                <p className="text-xs text-accent">
+                  Sent to {broadcastResult.sent}/{broadcastResult.total} members
+                  {broadcastResult.failed > 0 ? ` (${broadcastResult.failed} failed)` : ''}
+                </p>
+              )}
+              <button
+                disabled={broadcastSending || !broadcast.subject.trim() || !broadcast.body.trim()}
+                onClick={async () => {
+                  setBroadcastError('')
+                  setBroadcastResult(null)
+                  setBroadcastSending(true)
+                  const res = await fetch('/api/admin/broadcast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: broadcast.subject, bodyText: broadcast.body, audience: broadcast.audience }),
+                  })
+                  const data = await res.json().catch(() => ({}))
+                  if (!res.ok) { setBroadcastError(data.error ?? 'Failed to send'); }
+                  else { setBroadcastResult(data); setBroadcast(f => ({ ...f, subject: '', body: '' })) }
+                  setBroadcastSending(false)
+                }}
+                className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
+              >
+                {broadcastSending ? 'Sending…' : 'Send Email'}
+              </button>
+            </div>
           </section>
 
           <div className="border-t border-border" />

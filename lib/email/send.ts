@@ -115,6 +115,51 @@ export async function sendAccessRestored(to: string, name: string, gymName: stri
  * unescaped HTML template (XSS if a member picks a malicious name). Moving
  * here lets us reuse the HTML-escaping templates helper.
  */
+export async function sendBroadcast(
+  members: { email: string; name: string }[],
+  subject: string,
+  bodyHtml: string,
+  gymName: string,
+  contactEmail?: string | null
+): Promise<{ sent: number; failed: number }> {
+  const resend = getResend()
+  const from = getFrom()
+  const extra = withReplyTo(contactEmail)
+  const results = await Promise.allSettled(
+    members.map(m =>
+      resend.emails.send({
+        from,
+        to: m.email,
+        subject,
+        html: broadcastHtml(m.name, bodyHtml, gymName),
+        ...extra,
+      })
+    )
+  )
+  let sent = 0, failed = 0
+  for (let i = 0; i < results.length; i++) {
+    if (results[i].status === 'fulfilled') { sent++ }
+    else {
+      failed++
+      console.error('[email/broadcast] send failed', { to: members[i]?.email, reason: (results[i] as PromiseRejectedResult).reason })
+    }
+  }
+  return { sent, failed }
+}
+
+function broadcastHtml(name: string, bodyHtml: string, gymName: string) {
+  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+    <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)}</h2>
+    <p>Hi ${escapeHtmlInline(name)},</p>
+    <div style="margin:16px 0;line-height:1.6">${bodyHtml}</div>
+    <p style="color:#6B7280;font-size:11px;margin-top:32px">You're receiving this because you're a member of ${escapeHtmlInline(gymName)}.</p>
+  </div>`
+}
+
+function escapeHtmlInline(s: string) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+}
+
 export async function sendAccessRevoked(to: string, name: string) {
   await getResend().emails.send({
     from: getFrom(),

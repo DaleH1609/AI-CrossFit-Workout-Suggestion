@@ -1,12 +1,21 @@
 export const dynamic = 'force-dynamic'
-import { requireMemberAuth } from '@/lib/auth/require-member'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
+async function requireMember() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data } = await supabase.from('users').select('gym_id').eq('id', user.id).single()
+  if (!data) return null
+  return { userId: user.id, gymId: data.gym_id as string }
+}
+
 // GET /api/members/year-in-review?year=2026
 export async function GET(req: Request) {
-  const auth = await requireMemberAuth()
-  if (!auth.ok) return jsonError(auth.error, auth.status)
+  const auth = await requireMember()
+  if (!auth) return jsonError('Unauthorized', 401)
 
   const { searchParams } = new URL(req.url)
   const year = parseInt(searchParams.get('year') ?? String(new Date().getFullYear()), 10)

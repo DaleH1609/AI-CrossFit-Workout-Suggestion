@@ -26,6 +26,7 @@ interface Props {
   todayWorkout: WorkoutDay | null
   instances: ClassInstance[]
   bookings: BookingRow[]
+  checkinCodes?: Record<string, string>
 }
 
 function Clock({ timezone }: { timezone: string }) {
@@ -52,7 +53,7 @@ function Clock({ timezone }: { timezone: string }) {
   return <span>{time}</span>
 }
 
-export function WhiteboardClient({ gymName, today, timezone, todayWorkout, instances, bookings }: Props) {
+export function WhiteboardClient({ gymName, today, timezone, todayWorkout, instances, bookings, checkinCodes = {} }: Props) {
   const [, forceRefresh] = useState(0)
 
   // Auto-refresh the page every 60 seconds to pick up new bookings
@@ -152,6 +153,15 @@ export function WhiteboardClient({ gymName, today, timezone, todayWorkout, insta
                         <span>{confirmed} / {inst.capacity} booked</span>
                         {checkedIn > 0 && <span className="text-green-400">{checkedIn} in</span>}
                       </div>
+                      {isNext && checkinCodes[inst.id] && (
+                        <div className="mt-3 pt-3 border-t border-white/10">
+                          <p className="text-[9px] tracking-[0.2em] text-white/30 uppercase mb-1">Check-in code</p>
+                          <p className="font-mono text-2xl font-bold tracking-[0.3em] text-[#b8952a]">
+                            {checkinCodes[inst.id]}
+                          </p>
+                          <p className="text-[9px] text-white/20 mt-0.5">Open kova.app/check-in on your phone</p>
+                        </div>
+                      )}
                     </div>
                   )
                 })}

@@ -1,12 +1,21 @@
 export const dynamic = 'force-dynamic'
-import { requireOwnerAuth } from '@/lib/auth/require-owner'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
+  if (!data || !['owner', 'admin'].includes(data.role ?? '')) return null
+  return { gymId: data.gym_id as string }
+}
+
 // GET /api/admin/challenges — list challenges for this gym
-export async function GET(req: Request) {
-  const auth = await requireOwnerAuth()
-  if (!auth.ok) return jsonError(auth.error, auth.status)
+export async function GET() {
+  const auth = await requireAdmin()
+  if (!auth) return jsonError('Unauthorized', 401)
 
   try {
     const { data, error } = await createAdminClient()
@@ -23,8 +32,8 @@ export async function GET(req: Request) {
 
 // POST /api/admin/challenges — create a challenge
 export async function POST(req: Request) {
-  const auth = await requireOwnerAuth()
-  if (!auth.ok) return jsonError(auth.error, auth.status)
+  const auth = await requireAdmin()
+  if (!auth) return jsonError('Unauthorized', 401)
 
   const body = await req.json().catch(() => ({}))
   const { title, description, month, type = 'classes', target } = body as {
@@ -32,7 +41,6 @@ export async function POST(req: Request) {
   }
 
   if (!title || !month) return jsonError('title and month are required')
-  // month must be first of the month
   const monthDate = new Date(month)
   if (isNaN(monthDate.getTime())) return jsonError('Invalid month date')
 
@@ -49,10 +57,10 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH /api/admin/challenges — update (active toggle, title, etc.)
+// PATCH /api/admin/challenges — update
 export async function PATCH(req: Request) {
-  const auth = await requireOwnerAuth()
-  if (!auth.ok) return jsonError(auth.error, auth.status)
+  const auth = await requireAdmin()
+  if (!auth) return jsonError('Unauthorized', 401)
 
   const body = await req.json().catch(() => ({}))
   const { id, ...updates } = body as { id?: string; [k: string]: unknown }
@@ -73,8 +81,8 @@ export async function PATCH(req: Request) {
 
 // DELETE /api/admin/challenges?id=...
 export async function DELETE(req: Request) {
-  const auth = await requireOwnerAuth()
-  if (!auth.ok) return jsonError(auth.error, auth.status)
+  const auth = await requireAdmin()
+  if (!auth) return jsonError('Unauthorized', 401)
 
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')

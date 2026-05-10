@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { WhiteboardClient } from './whiteboard-client'
 import { notFound } from 'next/navigation'
 import type { WorkoutDay } from '@/lib/types'
+import { generateCheckinCode } from '@/lib/checkin'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -92,6 +93,12 @@ export default async function WhiteboardPage(props: { params: Promise<{ token: s
 
   const bookings = (bookingsRaw ?? []) as unknown as (BookingRow & { instance_id: string })[]
 
+  // Generate check-in codes for today's instances (server-side, uses BOOKING_TOKEN_SECRET)
+  const checkinCodes: Record<string, string> = {}
+  for (const inst of instances) {
+    try { checkinCodes[inst.id] = generateCheckinCode(inst.id) } catch { /* skip if secret not configured */ }
+  }
+
   return (
     <WhiteboardClient
       gymName={gymName}
@@ -100,6 +107,7 @@ export default async function WhiteboardPage(props: { params: Promise<{ token: s
       todayWorkout={todayWorkout}
       instances={instances}
       bookings={bookings}
+      checkinCodes={checkinCodes}
     />
   )
 }

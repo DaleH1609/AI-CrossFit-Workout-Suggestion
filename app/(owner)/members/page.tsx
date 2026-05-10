@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/toast'
 import { MemberNotes } from '@/components/admin/member-notes'
 import { MemberPasses } from '@/components/admin/member-passes'
 import { MemberPauses } from '@/components/admin/member-pauses'
+import { MemberScaling } from '@/components/admin/member-scaling'
 
 interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null; role?: string }
 interface GymUserRow { gym_id: string }
@@ -31,7 +32,7 @@ export default function MembersPage() {
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [notesMember, setNotesMember] = useState<MemberRow | null>(null)
-  const [memberPanel, setMemberPanel] = useState<'notes' | 'passes' | 'pauses'>('notes')
+  const [memberPanel, setMemberPanel] = useState<'notes' | 'passes' | 'pauses' | 'scaling'>('notes')
   const [tab, setTab] = useState<'members' | 'coaches'>('members')
   const [coaches, setCoaches] = useState<MemberRow[]>([])
   const [inviteError, setInviteError] = useState('')
@@ -349,16 +350,17 @@ export default function MembersPage() {
             </div>
             {/* Tabs */}
             <div className="flex gap-1 mb-5 bg-surface rounded-lg p-1">
-              {(['notes', 'passes', 'pauses'] as const).map(tab => (
-                <button key={tab} onClick={() => setMemberPanel(tab)}
+              {(['notes', 'passes', 'pauses', 'scaling'] as const).map(t => (
+                <button key={t} onClick={() => setMemberPanel(t)}
                   className={`flex-1 py-1.5 text-xs font-medium capitalize rounded transition-colors ${
-                    memberPanel === tab ? 'bg-accent text-background' : 'text-secondary hover:text-foreground'
-                  }`}>{tab}</button>
+                    memberPanel === t ? 'bg-accent text-background' : 'text-secondary hover:text-foreground'
+                  }`}>{t}</button>
               ))}
             </div>
             {memberPanel === 'notes' && <MemberNotes memberId={notesMember.id} />}
             {memberPanel === 'passes' && <MemberPasses memberId={notesMember.id} />}
             {memberPanel === 'pauses' && <MemberPauses memberId={notesMember.id} />}
+            {memberPanel === 'scaling' && <MemberScaling memberId={notesMember.id} />}
           </div>
         </div>
       )}
