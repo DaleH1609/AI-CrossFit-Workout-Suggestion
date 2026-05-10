@@ -16,6 +16,7 @@ const SECTIONS = [
   { id: 'members', label: 'Members' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'displays', label: 'Displays' },
+  { id: 'public-page', label: 'Public Page' },
 ]
 
 type GymSettings = {
@@ -56,6 +57,9 @@ export default function SettingsPage() {
   const [gym, setGym] = useState<GymSettings | null>(null)
   const [whiteboardToken, setWhiteboardToken] = useState<string | null>(null)
   const [whiteboardCopied, setWhiteboardCopied] = useState(false)
+  const [gymSlug, setGymSlug] = useState('')
+  const [slugSaved, setSlugSaved] = useState(false)
+  const [slugError, setSlugError] = useState('')
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [gymTypeSaved, setGymTypeSaved] = useState(false)
@@ -73,12 +77,13 @@ export default function SettingsPage() {
       const gymUser = userData as unknown as { gym_id: string } | null
       if (!gymUser?.gym_id) { setLoadError('No gym found for your account'); return }
       const { data, error } = await supabase.from('gyms')
-        .select('name, timezone, gym_type, cancellation_cutoff_hours, default_capacity, waitlist_enabled, booking_advance_hours, show_member_names, notify_workout_published, notify_booking_confirmed, contact_email, whiteboard_token')
+        .select('name, timezone, gym_type, cancellation_cutoff_hours, default_capacity, waitlist_enabled, booking_advance_hours, show_member_names, notify_workout_published, notify_booking_confirmed, contact_email, whiteboard_token, slug')
         .eq('id', gymUser.gym_id).single()
       if (error) { setLoadError(error.message); return }
       if (data) {
-        const raw = data as unknown as Partial<GymSettings> & { whiteboard_token?: string }
+        const raw = data as unknown as Partial<GymSettings> & { whiteboard_token?: string; slug?: string }
         setWhiteboardToken(raw.whiteboard_token ?? null)
+        setGymSlug(raw.slug ?? '')
         setGym({
           name: raw.name ?? '',
           timezone: raw.timezone ?? 'UTC',
@@ -418,6 +423,60 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
+          </section>
+
+          <div className="border-t border-border" />
+
+          {/* Public Page */}
+          <section id="public-page">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold text-foreground">Public Page</h2>
+              <SavedIndicator show={slugSaved} />
+            </div>
+            <p className="text-secondary text-xs mb-4">
+              Give your gym a public URL for your WOD blog and gym info. Share it with prospects and the broader community.
+            </p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm text-secondary whitespace-nowrap">/gyms/</span>
+              <input
+                value={gymSlug}
+                onChange={e => { setGymSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')); setSlugError('') }}
+                placeholder="my-crossfit-gym"
+                className="flex-1 px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors font-mono"
+              />
+              <button
+                onClick={async () => {
+                  setSlugError('')
+                  if (!gymSlug.trim()) { setSlugError('Slug cannot be empty'); return }
+                  const res = await fetch('/api/settings/gym', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slug: gymSlug.trim() }),
+                  })
+                  if (!res.ok) {
+                    const d = await res.json().catch(() => ({}))
+                    setSlugError(d.error ?? 'Failed to save slug (it may already be taken)')
+                  } else {
+                    setSlugSaved(true); setTimeout(() => setSlugSaved(false), 2000)
+                  }
+                }}
+                className="px-4 py-2.5 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors whitespace-nowrap"
+              >
+                Save
+              </button>
+            </div>
+            {slugError && <p className="text-danger text-xs mt-1">{slugError}</p>}
+            {gymSlug && (
+              <div className="flex items-center gap-3 mt-3">
+                <a href={`/gyms/${gymSlug}`} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-accent hover:underline">
+                  View public page ↗
+                </a>
+                <a href="/wod-blog" className="text-xs text-secondary hover:text-foreground transition-colors">
+                  Manage WOD posts →
+                </a>
+              </div>
+            )}
           </section>
 
           <div className="pb-8" />

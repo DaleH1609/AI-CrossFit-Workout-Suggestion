@@ -56,12 +56,21 @@ function IconSignOut() {
   )
 }
 
+function IconPencil() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
 // ─── Nav items ────────────────────────────────────────────────────────────────
 const nav = [
   { href: '/dashboard',     label: 'Weekly Program', Icon: IconCalendar },
   { href: '/style-profile', label: 'Style Profile',  Icon: IconSparkle  },
   { href: '/schedule',      label: 'Class Schedule', Icon: IconClock    },
   { href: '/members',       label: 'Members',        Icon: IconUsers    },
+  { href: '/wod-blog',      label: 'WOD Blog',       Icon: IconPencil   },
   { href: '/settings',      label: 'Settings',       Icon: IconSettings },
 ]
 

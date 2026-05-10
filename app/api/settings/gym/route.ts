@@ -19,7 +19,7 @@ export async function PATCH(req: Request) {
   const ALLOWED_KEYS = new Set([
     'gymType', 'cancellationCutoffHours', 'defaultCapacity', 'waitlistEnabled',
     'bookingAdvanceHours', 'showMemberNames', 'notifyWorkoutPublished',
-    'notifyBookingConfirmed', 'contactEmail',
+    'notifyBookingConfirmed', 'contactEmail', 'slug',
   ])
   const unknownKeys = Object.keys(body).filter(k => !ALLOWED_KEYS.has(k))
   if (unknownKeys.length > 0) return jsonError(`Unknown field(s): ${unknownKeys.join(', ')}`)
@@ -80,6 +80,13 @@ export async function PATCH(req: Request) {
       return jsonError('Invalid email address')
     }
     updates.contact_email = val || null
+  }
+
+  if ('slug' in body) {
+    const val = String(body.slug ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '')
+    if (!val) return jsonError('Slug cannot be empty')
+    if (val.length < 3) return jsonError('Slug must be at least 3 characters')
+    updates.slug = val
   }
 
   if (Object.keys(updates).length === 0) {
