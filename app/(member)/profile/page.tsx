@@ -5,6 +5,7 @@ import { SkillTracker } from '@/components/member/skill-tracker'
 import { MemberBadges } from '@/components/member/badges'
 import { PushSubscribeButton } from '@/components/push/push-subscribe-button'
 import { Measurements } from '@/components/member/measurements'
+import { YearInReview } from '@/components/member/year-in-review'
 
 interface AttendanceStats {
   total: number
@@ -206,6 +207,14 @@ export default function ProfilePage() {
       <section className="pt-7 pb-7">
         <h2 className="text-sm font-semibold text-foreground mb-4">Body Measurements</h2>
         <Measurements />
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Year in review */}
+      <section className="pt-7 pb-7">
+        <h2 className="text-sm font-semibold text-foreground mb-4">Year in Review</h2>
+        <YearInReview />
       </section>
 
       <div className="border-t border-border" />
