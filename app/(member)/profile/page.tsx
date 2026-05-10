@@ -228,6 +228,22 @@ export default function ProfilePage() {
 
       <div className="border-t border-border" />
 
+      {/* Data export */}
+      <section className="pt-7 pb-7">
+        <h2 className="text-sm font-semibold text-foreground mb-1">Your Data</h2>
+        <p className="text-xs text-secondary mb-3">Download a copy of all your personal data stored in KOVA.</p>
+        <a
+          href="/api/members/export"
+          download
+          className="text-sm text-secondary hover:text-foreground transition-colors flex items-center gap-1.5 group"
+        >
+          Download my data (JSON)
+          <span className="group-hover:translate-x-0.5 transition-transform text-secondary">↓</span>
+        </a>
+      </section>
+
+      <div className="border-t border-border" />
+
       {/* Password section — collapsible */}
       <section className="pt-7">
         <div className="flex items-center justify-between mb-4">
