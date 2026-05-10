@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { SkillTracker } from '@/components/member/skill-tracker'
 import { MemberBadges } from '@/components/member/badges'
 import { PushSubscribeButton } from '@/components/push/push-subscribe-button'
+import { Measurements } from '@/components/member/measurements'
 
 interface AttendanceStats {
   total: number
@@ -197,6 +198,14 @@ export default function ProfilePage() {
       <section className="pt-7 pb-7">
         <h2 className="text-sm font-semibold text-foreground mb-4">My Skills</h2>
         <SkillTracker />
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Body measurements */}
+      <section className="pt-7 pb-7">
+        <h2 className="text-sm font-semibold text-foreground mb-4">Body Measurements</h2>
+        <Measurements />
       </section>
 
       <div className="border-t border-border" />
