@@ -7,7 +7,7 @@ import { MemberNotes } from '@/components/admin/member-notes'
 import { MemberPasses } from '@/components/admin/member-passes'
 import { MemberPauses } from '@/components/admin/member-pauses'
 
-interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null }
+interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null; role?: string }
 interface GymUserRow { gym_id: string }
 
 function AttendanceDots({ count }: { count: number }) {
@@ -32,12 +32,14 @@ export default function MembersPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [notesMember, setNotesMember] = useState<MemberRow | null>(null)
   const [memberPanel, setMemberPanel] = useState<'notes' | 'passes' | 'pauses'>('notes')
+  const [tab, setTab] = useState<'members' | 'coaches'>('members')
+  const [coaches, setCoaches] = useState<MemberRow[]>([])
   const [inviteError, setInviteError] = useState('')
   const supabase = createClient()
   const { toast } = useToast()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { loadMembers() }, [])
+  useEffect(() => { loadMembers(); loadCoaches() }, [])
 
   useEffect(() => {
     if (members.length === 0) return
@@ -70,6 +72,32 @@ export default function MembersPage() {
     } catch (err) {
       console.error('[members] loadMembers failed', err)
     }
+  }
+
+  async function loadCoaches() {
+    try {
+      const res = await fetch('/api/admin/coaches')
+      if (!res.ok) return
+      const data = await res.json()
+      setCoaches((data ?? []) as MemberRow[])
+    } catch (err) {
+      console.error('[members] loadCoaches failed', err)
+    }
+  }
+
+  async function handleRoleToggle(member: MemberRow, newRole: 'coach' | 'member') {
+    const res = await fetch('/api/admin/coaches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: member.id, role: newRole }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast(data.error ?? 'Failed to update role', 'error')
+      return
+    }
+    toast(newRole === 'coach' ? `${member.name || member.email} is now a coach` : `Role changed to member`, 'success')
+    await Promise.all([loadMembers(), loadCoaches()])
   }
 
   async function handleInvite(e: React.FormEvent) {
@@ -151,8 +179,55 @@ export default function MembersPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-foreground mb-6">Members</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-display text-3xl text-foreground">Members</h1>
+        <div className="flex gap-1 bg-surface border border-border rounded-lg p-1">
+          {(['members', 'coaches'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-3 py-1.5 text-xs font-medium capitalize rounded transition-colors ${
+                tab === t ? 'bg-accent text-background' : 'text-secondary hover:text-foreground'
+              }`}>{t} {t === 'coaches' && coaches.length > 0 && `(${coaches.length})`}
+            </button>
+          ))}
+        </div>
+      </div>
 
+      {/* Coaches tab */}
+      {tab === 'coaches' && (
+        <div className="space-y-4">
+          {coaches.length === 0 ? (
+            <div className="border border-border rounded-xl py-12 text-center">
+              <p className="text-secondary text-sm">No coaches yet.</p>
+              <p className="text-secondary text-xs mt-1">Promote a member to coach from the Members tab.</p>
+            </div>
+          ) : (
+            <div className="border border-border rounded-xl overflow-hidden">
+              <div className="grid grid-cols-[1fr_120px] px-5 py-2.5 border-b border-border bg-surface-raised">
+                <span className="text-[10px] text-secondary uppercase tracking-widest">Coach</span>
+                <span />
+              </div>
+              {coaches.map(c => (
+                <div key={c.id} className="group grid grid-cols-[1fr_120px] items-center px-5 py-3.5 border-b border-border last:border-0 hover:bg-surface-raised transition-colors">
+                  <div>
+                    <p className="text-sm text-foreground">{c.name || c.email}</p>
+                    {c.name && <p className="text-xs text-secondary mt-0.5">{c.email}</p>}
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => handleRoleToggle(c, 'member')}
+                      className="text-xs text-secondary hover:text-danger transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      Demote
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'members' && <>
       {/* Inline invite bar */}
       <form onSubmit={handleInvite} className="flex gap-2 mb-8">
         <input
@@ -217,6 +292,13 @@ export default function MembersPage() {
               {/* Actions — visible on hover */}
               <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                 <button
+                  onClick={() => handleRoleToggle(m, 'coach')}
+                  className="text-xs text-secondary hover:text-accent transition-colors"
+                  title="Promote to coach"
+                >
+                  Coach
+                </button>
+                <button
                   onClick={() => setNotesMember(m)}
                   className="text-xs text-secondary hover:text-foreground transition-colors"
                   title="Coach notes"
@@ -250,6 +332,8 @@ export default function MembersPage() {
           ))}
         </div>
       )}
+
+      </>}
 
       {/* Member detail slide-over */}
       {notesMember && (

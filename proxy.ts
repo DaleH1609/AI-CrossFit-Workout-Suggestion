@@ -83,6 +83,13 @@ export async function proxy(request: NextRequest) {
     if (role === 'member' && path.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL('/this-week', request.url))
     }
+    // Coaches go to their dashboard; block owner/member-only routes
+    if (role === 'coach' && path === '/') {
+      return NextResponse.redirect(new URL('/coach-dashboard', request.url))
+    }
+    if (role === 'coach' && (path.startsWith('/dashboard') || path.startsWith('/this-week'))) {
+      return NextResponse.redirect(new URL('/coach-dashboard', request.url))
+    }
     // Redirect root to role home.
     // Default to /dashboard when role is unknown (DB query failed) so that
     // unauthenticated-loop doesn't bounce owner→/this-week→member-layout→/login.
