@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { SkillTracker } from '@/components/member/skill-tracker'
 import { MemberBadges } from '@/components/member/badges'
+import { PushSubscribeButton } from '@/components/push/push-subscribe-button'
 
 interface AttendanceStats {
   total: number
@@ -196,6 +197,15 @@ export default function ProfilePage() {
       <section className="pt-7 pb-7">
         <h2 className="text-sm font-semibold text-foreground mb-4">My Skills</h2>
         <SkillTracker />
+      </section>
+
+      <div className="border-t border-border" />
+
+      {/* Notifications */}
+      <section className="pt-7 pb-7">
+        <h2 className="text-sm font-semibold text-foreground mb-1">Notifications</h2>
+        <p className="text-xs text-secondary mb-3">Get alerts when new workouts are published or your class spot opens.</p>
+        <PushSubscribeButton />
       </section>
 
       <div className="border-t border-border" />

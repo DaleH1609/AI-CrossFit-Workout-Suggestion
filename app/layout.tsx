@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Bebas_Neue, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { ServiceWorkerRegister } from '@/components/push/service-worker-register'
 
 const bebasNeue = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' })
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
   title: { default: 'KOVA', template: '%s | KOVA' },
   description: 'AI-powered gym programming for CrossFit and Hyrox gyms. Generate weekly WODs in seconds.',
   keywords: ['CrossFit programming', 'Hyrox training', 'gym management', 'WOD generator'],
+  manifest: '/manifest.json',
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'KOVA' },
   openGraph: {
     title: 'KOVA — Train Smarter. Perform Better.',
     description: 'AI-powered gym programming for CrossFit and Hyrox gyms.',
@@ -33,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${bebasNeue.variable} ${dmSans.variable}`} suppressHydrationWarning>
       <body className="bg-background text-foreground font-body antialiased">
         <Providers>{children}</Providers>
+        <ServiceWorkerRegister />
       </body>
     </html>
   )

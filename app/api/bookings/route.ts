@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { requireMemberAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { sendBookingConfirmed, sendBookingCancelled } from '@/lib/email/send'
+import { sendPushToUser } from '@/lib/push/send'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -168,7 +169,21 @@ export async function DELETE(req: Request) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
   // Use admin client: the promotion UPDATE targets another member's row and
   // the member's narrow RLS (migration 022) would silently no-op on it.
-  await promoteNextWaitlistMember(createAdminClient(), instance.id, instance.starts_at, appUrl, timezone)
+  const promotion = await promoteNextWaitlistMember(createAdminClient(), instance.id, instance.starts_at, appUrl, timezone)
+
+  // Send push notification to the promoted member (fire-and-forget)
+  if (promotion.promoted && promotion.bookingId) {
+    const { data: promotedBooking } = await createAdminClient()
+      .from('bookings').select('user_id').eq('id', promotion.bookingId).single<{ user_id: string }>()
+    if (promotedBooking?.user_id) {
+      const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+      sendPushToUser(promotedBooking.user_id, {
+        title: 'Spot opened for you! 🎉',
+        body: `A space opened in the ${classTime} class — confirm your spot before it expires`,
+        url: '/my-schedule',
+      }).catch(err => console.error('[bookings DELETE] waitlist push failed', err))
+    }
+  }
 
   return jsonOk({ success: true })
 }

@@ -1,0 +1,15 @@
+'use client'
+// components/push/service-worker-register.tsx
+// Silently registers the service worker on mount
+import { useEffect } from 'react'
+
+export function ServiceWorkerRegister() {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err =>
+        console.error('[sw] registration failed', err)
+      )
+    }
+  }, [])
+  return null
+}

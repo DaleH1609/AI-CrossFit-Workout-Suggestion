@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { dispatchWebhooks } from '@/lib/webhooks/dispatch'
+import { sendPushToGym } from '@/lib/push/send'
 
 const schema = z.object({ weekId: z.uuid() })
 
@@ -61,10 +62,15 @@ export async function POST(req: Request) {
     console.error('[workouts/approve] notification failed', err)
   }
 
-  // Fire webhooks (non-blocking — failure must not roll back the publish)
+  // Fire webhooks + push notifications (non-blocking — failure must not roll back the publish)
   dispatchWebhooks(gymId, 'workout_published', { weekStart: draft.week_start }).catch(err =>
     console.error('[workouts/approve] webhook dispatch failed', err)
   )
+  sendPushToGym(gymId, {
+    title: 'New workout published! 💪',
+    body: `This week's programming is ready — ${draft.week_start}`,
+    url: '/this-week',
+  }).catch(err => console.error('[workouts/approve] push failed', err))
 
   return jsonOk({ success: true, emailStats })
 }
