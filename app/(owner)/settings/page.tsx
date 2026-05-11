@@ -62,6 +62,11 @@ export default function SettingsPage() {
   const [gymSlug, setGymSlug] = useState('')
   const [slugSaved, setSlugSaved] = useState(false)
   const [slugError, setSlugError] = useState('')
+  const [gymTagline, setGymTagline] = useState('')
+  const [gymDescription, setGymDescription] = useState('')
+  const [gymWebsite, setGymWebsite] = useState('')
+  const [gymInstagram, setGymInstagram] = useState('')
+  const [publicProfileSaved, setPublicProfileSaved] = useState(false)
   const [broadcast, setBroadcast] = useState({ subject: '', body: '', audience: 'active' as 'active' | 'all' })
   const [broadcastSending, setBroadcastSending] = useState(false)
   const [broadcastResult, setBroadcastResult] = useState<{ sent: number; failed: number; total: number } | null>(null)
@@ -87,13 +92,17 @@ export default function SettingsPage() {
       const gymUser = userData as unknown as { gym_id: string } | null
       if (!gymUser?.gym_id) { setLoadError('No gym found for your account'); return }
       const { data, error } = await supabase.from('gyms')
-        .select('name, timezone, gym_type, cancellation_cutoff_hours, default_capacity, waitlist_enabled, booking_advance_hours, show_member_names, notify_workout_published, notify_booking_confirmed, contact_email, whiteboard_token, slug')
+        .select('name, timezone, gym_type, cancellation_cutoff_hours, default_capacity, waitlist_enabled, booking_advance_hours, show_member_names, notify_workout_published, notify_booking_confirmed, contact_email, whiteboard_token, slug, tagline, description, website_url, instagram_url')
         .eq('id', gymUser.gym_id).single()
       if (error) { setLoadError(error.message); return }
       if (data) {
-        const raw = data as unknown as Partial<GymSettings> & { whiteboard_token?: string; slug?: string }
+        const raw = data as unknown as Partial<GymSettings> & { whiteboard_token?: string; slug?: string; tagline?: string | null; description?: string | null; website_url?: string | null; instagram_url?: string | null }
         setWhiteboardToken(raw.whiteboard_token ?? null)
         setGymSlug(raw.slug ?? '')
+        setGymTagline(raw.tagline ?? '')
+        setGymDescription(raw.description ?? '')
+        setGymWebsite(raw.website_url ?? '')
+        setGymInstagram(raw.instagram_url ?? '')
         setGym({
           name: raw.name ?? '',
           timezone: raw.timezone ?? 'UTC',
@@ -488,6 +497,61 @@ export default function SettingsPage() {
                 </a>
               </div>
             )}
+
+            {/* Public profile details */}
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-foreground">Profile Details</p>
+                <SavedIndicator show={publicProfileSaved} />
+              </div>
+              <input
+                value={gymTagline}
+                onChange={e => setGymTagline(e.target.value)}
+                placeholder="Tagline (e.g. 'Forging elite fitness since 2018')"
+                maxLength={200}
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
+              />
+              <textarea
+                value={gymDescription}
+                onChange={e => setGymDescription(e.target.value)}
+                placeholder="Description — tell the public about your gym, community, and approach."
+                rows={3}
+                maxLength={2000}
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors resize-none"
+              />
+              <input
+                value={gymWebsite}
+                onChange={e => setGymWebsite(e.target.value)}
+                placeholder="Website URL (https://…)"
+                type="url"
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
+              />
+              <input
+                value={gymInstagram}
+                onChange={e => setGymInstagram(e.target.value)}
+                placeholder="Instagram URL (https://instagram.com/…)"
+                type="url"
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
+              />
+              <button
+                onClick={async () => {
+                  const res = await fetch('/api/settings/gym', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      tagline: gymTagline,
+                      description: gymDescription,
+                      websiteUrl: gymWebsite,
+                      instagramUrl: gymInstagram,
+                    }),
+                  })
+                  if (res.ok) { setPublicProfileSaved(true); setTimeout(() => setPublicProfileSaved(false), 2000) }
+                }}
+                className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors"
+              >
+                Save Profile
+              </button>
+            </div>
           </section>
 
           <div className="border-t border-border" />

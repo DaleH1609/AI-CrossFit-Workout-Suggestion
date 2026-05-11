@@ -21,6 +21,7 @@ export async function PATCH(req: Request) {
     'gymType', 'cancellationCutoffHours', 'defaultCapacity', 'waitlistEnabled',
     'bookingAdvanceHours', 'showMemberNames', 'notifyWorkoutPublished',
     'notifyBookingConfirmed', 'contactEmail', 'slug',
+    'tagline', 'description', 'websiteUrl', 'instagramUrl',
   ])
   const unknownKeys = Object.keys(body).filter(k => !ALLOWED_KEYS.has(k))
   if (unknownKeys.length > 0) return jsonError(`Unknown field(s): ${unknownKeys.join(', ')}`)
@@ -88,6 +89,26 @@ export async function PATCH(req: Request) {
     if (!val) return jsonError('Slug cannot be empty')
     if (val.length < 3) return jsonError('Slug must be at least 3 characters')
     updates.slug = val
+  }
+
+  if ('tagline' in body) {
+    const val = String(body.tagline ?? '').trim().slice(0, 200)
+    updates.tagline = val || null
+  }
+
+  if ('description' in body) {
+    const val = String(body.description ?? '').trim().slice(0, 2000)
+    updates.description = val || null
+  }
+
+  if ('websiteUrl' in body) {
+    const val = String(body.websiteUrl ?? '').trim()
+    updates.website_url = val || null
+  }
+
+  if ('instagramUrl' in body) {
+    const val = String(body.instagramUrl ?? '').trim()
+    updates.instagram_url = val || null
   }
 
   if (Object.keys(updates).length === 0) {
