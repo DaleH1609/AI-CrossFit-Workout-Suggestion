@@ -48,12 +48,14 @@ export async function POST(req: Request) {
   let validationText = ''
   try {
     const client = getAnthropicClient()
+    let validationTokens: { inputTokens?: number; outputTokens?: number } | undefined
     const msg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 10,
       messages: [{ role: 'user', content: `Is the following text a ${gymLabel} workout? Answer YES or NO only.\n\n${rawText}` }],
     })
     validationText = msg.content[0].type === 'text' ? msg.content[0].text.trim().toUpperCase() : ''
+    validationTokens = { inputTokens: msg.usage.input_tokens, outputTokens: msg.usage.output_tokens }
   } catch {
     // If validation fails, allow the save to proceed rather than blocking the user
   }
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
 
   const { data, error } = await supabase.from('style_examples').insert({ gym_id: userData.gym_id, raw_text: rawText }).select().single()
   if (error) return jsonServerError('style POST', error)
-  incrementAiCalls(userData.gym_id, supabase).catch(err => console.error('[style] incrementAiCalls failed', err))
+  incrementAiCalls(userData.gym_id, supabase, validationTokens).catch(err => console.error('[style] incrementAiCalls failed', err))
   return jsonOk({ example: data })
 }
 

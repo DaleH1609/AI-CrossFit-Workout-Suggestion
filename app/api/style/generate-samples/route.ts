@@ -40,6 +40,8 @@ export async function POST() {
       messages: [{ role: 'user', content: prompt }],
     })
     text = message.content[0].type === 'text' ? message.content[0].text : ''
+    const tokens = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
+    incrementAiCalls(userData.gym_id, supabase, tokens).catch(err => console.error('[style/generate-samples] incrementAiCalls failed', err))
   } catch (err) {
     return jsonServerError('style/generate-samples', err)
   }
@@ -52,7 +54,5 @@ export async function POST() {
   if (samples.length === 0) {
     return jsonServerError('style/generate-samples', new Error('No samples produced'))
   }
-
-  incrementAiCalls(userData.gym_id, supabase).catch(err => console.error('[style/generate-samples] incrementAiCalls failed', err))
   return jsonOk({ samples })
 }

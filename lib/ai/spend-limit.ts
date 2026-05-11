@@ -60,34 +60,50 @@ export async function checkAiLimit(
 }
 
 /**
- * Increments the AI call counter for this gym, resetting if the month rolled over.
- * A slight read-modify-write race is acceptable — the rate-limit already caps
- * concurrent calls, and a single over-count at the boundary is harmless.
- * Call only after a successful AI response.
+ * Increments the AI call counter and optionally records token usage for this
+ * gym, resetting if the month rolled over. Call only after a successful AI
+ * response.
+ *
+ * @param tokens - Anthropic/OpenAI usage object with input_tokens and
+ *                 output_tokens. Pass undefined when tokens aren't available
+ *                 (e.g., streaming responses where usage isn't surfaced).
  */
 export async function incrementAiCalls(
   gymId: string,
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient<Database>,
+  tokens?: { inputTokens?: number; outputTokens?: number }
 ): Promise<void> {
   const month = currentMonth()
 
   const { data } = await supabase
     .from('gyms')
-    .select('ai_calls_this_month, ai_month')
+    .select('ai_calls_this_month, ai_month, ai_input_tokens_this_month, ai_output_tokens_this_month')
     .eq('id', gymId)
     .single()
 
   if (!data) return
 
+  const inTok = tokens?.inputTokens ?? 0
+  const outTok = tokens?.outputTokens ?? 0
+
   if (data.ai_month === month) {
     await supabase
       .from('gyms')
-      .update({ ai_calls_this_month: (data.ai_calls_this_month ?? 0) + 1 })
+      .update({
+        ai_calls_this_month: (data.ai_calls_this_month ?? 0) + 1,
+        ai_input_tokens_this_month: ((data.ai_input_tokens_this_month as number | null) ?? 0) + inTok,
+        ai_output_tokens_this_month: ((data.ai_output_tokens_this_month as number | null) ?? 0) + outTok,
+      })
       .eq('id', gymId)
   } else {
     await supabase
       .from('gyms')
-      .update({ ai_calls_this_month: 1, ai_month: month })
+      .update({
+        ai_calls_this_month: 1,
+        ai_month: month,
+        ai_input_tokens_this_month: inTok,
+        ai_output_tokens_this_month: outTok,
+      })
       .eq('id', gymId)
   }
 }

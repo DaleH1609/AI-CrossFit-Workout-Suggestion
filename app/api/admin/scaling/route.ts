@@ -109,7 +109,7 @@ Be specific and brief. Use CrossFit shorthand (e.g., "65/45 kg thrusters", "jump
       .join('\n')
       .trim()
 
-    await incrementAiCalls(auth.gymId, supabase).catch(() => {})
+    await incrementAiCalls(auth.gymId, supabase, { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }).catch(() => {})
 
     return jsonOk({ memberName, scaling })
   } catch (err) {
