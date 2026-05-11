@@ -110,6 +110,11 @@ export async function GET(req: Request) {
     console.error('[cron/waitlist-expire] partial failures', errors)
   }
 
+  // Heartbeat — fire-and-forget. Set CRON_HEARTBEAT_WAITLIST_EXPIRE to a
+  // Healthchecks.io / Better Stack ping URL to alert if this cron goes silent.
+  const heartbeatUrl = process.env.CRON_HEARTBEAT_WAITLIST_EXPIRE
+  if (heartbeatUrl) fetch(heartbeatUrl).catch(() => {})
+
   return jsonOk({
     processed,
     promoted,

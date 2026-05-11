@@ -118,5 +118,11 @@ export async function GET(req: Request) {
     console.error('[cron/generate-instances] partial failures', { count: errors.length, sample: errors.slice(0, 5) })
   }
 
+  // Heartbeat — fire-and-forget. Set CRON_HEARTBEAT_GENERATE_INSTANCES to a
+  // Healthchecks.io / Better Stack ping URL to alert if this cron goes silent.
+  const heartbeatUrl = process.env.CRON_HEARTBEAT_GENERATE_INSTANCES
+  if (heartbeatUrl) fetch(heartbeatUrl).catch(() => {})
+
   return jsonOk({ created, errors: errors.length })
 }
+
