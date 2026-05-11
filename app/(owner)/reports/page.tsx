@@ -156,7 +156,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Attendance heatmap */}
-      <div className="rounded-xl border border-border bg-surface p-5">
+      <div className="rounded-xl border border-border bg-surface p-5 mb-8">
         <h2 className="text-sm font-semibold text-foreground mb-4">Class Popularity Heatmap <span className="text-secondary text-xs font-normal">(last 90 days)</span></h2>
         <div className="overflow-x-auto">
           <table className="text-[9px] text-secondary w-full">
@@ -190,11 +190,10 @@ export default function ReportsPage() {
           </table>
         </div>
       </div>
-    </div>
 
       {/* Class feedback summary */}
       {feedbackSummary.length > 0 && (
-        <div className="rounded-xl border border-border bg-surface p-6">
+        <div className="rounded-xl border border-border bg-surface p-6 mb-8">
           <h2 className="font-semibold text-foreground mb-4 text-sm">Class Ratings (last 30 days)</h2>
           <div className="space-y-2">
             {feedbackSummary.slice(0, 10).map(f => {
