@@ -5,6 +5,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { auditLog } from '@/lib/audit/gym-log'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +14,7 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) 
   if (!user) return null
   const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
   if (!data || (data.role !== 'admin' && data.role !== 'owner')) return null
-  return { gymId: data.gym_id as string }
+  return { gymId: data.gym_id as string, actorId: user.id }
 }
 
 // GET — list all coaches
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
     .from('users').update({ role: body.role }).eq('id', body.userId)
 
   if (error) return jsonServerError('admin/coaches POST', error)
+  auditLog({ gymId: admin.gymId, actorId: admin.actorId, action: body.role === 'coach' ? 'member.promote_coach' : 'member.demote_coach', targetId: body.userId, targetType: 'user' })
   return jsonOk({ updated: true })
 }
 
