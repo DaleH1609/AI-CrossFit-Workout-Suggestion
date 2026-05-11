@@ -153,9 +153,13 @@ export async function DELETE(req: Request) {
     }
   }
 
-  const { error: cancelError } = await supabase.from('bookings')
+  // Use admin client: the narrowed member RLS (migration 053) revokes UPDATE
+  // from authenticated, so the user-scoped client would silently no-op.
+  const { error: cancelError } = await createAdminClient().from('bookings')
     .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
     .eq('id', bookingId)
+    .eq('user_id', user.id)           // belt-and-braces: still scope to this user
+    .eq('gym_id', userData.gym_id)    // and this gym
   if (cancelError) return jsonServerError('bookings DELETE', cancelError)
 
   try {
