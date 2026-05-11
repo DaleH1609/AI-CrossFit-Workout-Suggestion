@@ -29,7 +29,15 @@ export function WorkoutWeekGrid({ week, loading, onEdit, onEditScaling }: Workou
       </div>
     )
   }
-  if (!week) return null
+  if (!week) {
+    return (
+      <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 py-16 px-8 text-center">
+        <div className="text-4xl mb-4">🏋️</div>
+        <p className="text-foreground font-medium mb-1">No workout programmed yet</p>
+        <p className="text-secondary text-sm">Use the buttons above to generate a week of workouts with AI, or create one manually.</p>
+      </div>
+    )
+  }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
       {week.map((day, i) => (

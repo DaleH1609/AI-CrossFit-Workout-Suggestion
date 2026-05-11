@@ -298,8 +298,10 @@ export default function MembersPage() {
 
       {/* Member table */}
       {members.length === 0 ? (
-        <div className="border border-border rounded-xl py-16 text-center">
-          <p className="text-secondary text-sm">No members yet — invite someone above.</p>
+        <div className="border border-dashed border-border/60 rounded-xl py-16 px-8 text-center bg-surface/40">
+          <div className="text-4xl mb-4">👥</div>
+          <p className="text-foreground font-medium mb-1">No members yet</p>
+          <p className="text-secondary text-sm">Enter an email address above and hit Invite to add your first member. They'll receive a sign-up link.</p>
         </div>
       ) : (
         <div className="border border-border rounded-xl overflow-hidden">

@@ -144,10 +144,16 @@ async function submitLead(e) {
       {loading ? (
         <div className="text-center text-secondary text-sm py-12">Loading…</div>
       ) : filtered.length === 0 ? (
-        <div className="border border-border rounded-xl py-16 text-center">
-          <p className="text-secondary text-sm">
-            {filterStatus === 'all' ? 'No leads yet — share your embed snippet to start capturing.' : `No leads in "${statusMap[filterStatus]?.label}" stage.`}
-          </p>
+        <div className="border border-dashed border-border/60 rounded-xl py-16 px-8 text-center bg-surface/40">
+          <div className="text-4xl mb-4">📋</div>
+          {filterStatus === 'all' ? (
+            <>
+              <p className="text-foreground font-medium mb-1">No leads yet</p>
+              <p className="text-secondary text-sm">Add your lead capture embed to your gym website. New enquiries will appear here automatically.</p>
+            </>
+          ) : (
+            <p className="text-secondary text-sm">No leads in the <span className="text-foreground">{statusMap[filterStatus]?.label}</span> stage.</p>
+          )}
         </div>
       ) : (
         <div className="border border-border rounded-xl overflow-hidden">
