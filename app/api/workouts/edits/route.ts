@@ -23,13 +23,12 @@ export async function POST(req: Request) {
   try { body = await req.json() } catch { return jsonError('Invalid JSON') }
 
   if (
-    typeof body.weekStart !== 'string' ||
     typeof body.dayName !== 'string' ||
     typeof body.field !== 'string' ||
     typeof body.before !== 'string' ||
     typeof body.after !== 'string'
   ) {
-    return jsonError('weekStart, dayName, field, before, after required')
+    return jsonError('dayName, field, before, after required')
   }
 
   if (body.before === body.after) return jsonOk({ skipped: 'no change' })

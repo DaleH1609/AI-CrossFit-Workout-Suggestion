@@ -131,6 +131,29 @@ export function useWorkoutEditForm({ day, weekId, onSave, onClose }: UseWorkoutE
     const data = (await res.json()) as { workouts?: WorkoutDay[] }
     const savedDay = data.workouts?.find(d => d.day === updatedDay.day) ?? updatedDay
     onSave(savedDay)
+
+    // Record edits for AI learning — fire-and-forget, never blocks the UI
+    const beforeDescriptor = day.descriptor ?? ''
+    const afterDescriptor = savedDay.descriptor ?? ''
+    const beforeParts = JSON.stringify(day.parts)
+    const afterParts = JSON.stringify(savedDay.parts)
+    const editsToRecord: { field: string; before: string; after: string }[] = []
+    if (beforeDescriptor !== afterDescriptor) {
+      editsToRecord.push({ field: 'descriptor', before: beforeDescriptor, after: afterDescriptor })
+    }
+    if (beforeParts !== afterParts) {
+      editsToRecord.push({ field: 'parts', before: beforeParts, after: afterParts })
+    }
+    if (editsToRecord.length > 0) {
+      Promise.all(editsToRecord.map(e =>
+        fetch('/api/workouts/edits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dayName: day.day, ...e }),
+        })
+      )).catch(() => {}) // non-critical
+    }
+
     onClose()
   }
 
