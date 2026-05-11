@@ -59,6 +59,9 @@ export default function ProfilePage() {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      // Sync auth email → public.users.email in case a confirmed email change
+      // hasn't been reflected yet (N9-safe: only updates to match auth.users).
+      fetch('/api/profile/email', { method: 'POST' }).catch(() => {})
       const { data } = await supabase.from('users').select('name, waiver_signed_at, photo_consent').eq('id', user.id).single()
       if (data) {
         const row = data as unknown as ProfileData
