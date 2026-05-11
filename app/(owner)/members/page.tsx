@@ -8,7 +8,7 @@ import { MemberPasses } from '@/components/admin/member-passes'
 import { MemberPauses } from '@/components/admin/member-pauses'
 import { MemberScaling } from '@/components/admin/member-scaling'
 
-interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null; role?: string }
+interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null; role?: string; waiver_signed_at: string | null }
 interface GymUserRow { gym_id: string }
 
 function AttendanceDots({ count }: { count: number }) {
@@ -71,7 +71,7 @@ export default function MembersPage() {
     if (!user) return
     const { data: userData } = await supabase.from('users').select('gym_id').eq('id', user.id).single()
     const gymUser = userData as unknown as GymUserRow | null
-    const { data } = await supabase.from('users').select('id, email, name, created_at, revoked_at')
+    const { data } = await supabase.from('users').select('id, email, name, created_at, revoked_at, waiver_signed_at')
       .eq('gym_id', gymUser!.gym_id).eq('role', 'member').order('created_at')
     setMembers((data ?? []) as unknown as MemberRow[])
     } catch (err) {
@@ -317,7 +317,14 @@ export default function MembersPage() {
               className="group grid grid-cols-[1fr_140px_90px_80px] items-center px-5 py-3.5 border-b border-border last:border-0 hover:bg-surface-raised transition-colors">
 
               <div className="min-w-0 pr-4">
-                <p className="text-sm text-foreground truncate">{m.email}</p>
+                <div className="flex items-center gap-2 min-w-0">
+                  <p className="text-sm text-foreground truncate">{m.email}</p>
+                  {!m.waiver_signed_at && (
+                    <span className="shrink-0 text-[9px] font-bold tracking-wider text-warning border border-warning/30 bg-warning/5 px-1.5 py-0.5 rounded-full uppercase">
+                      No waiver
+                    </span>
+                  )}
+                </div>
                 {m.name && <p className="text-xs text-secondary mt-0.5 truncate">{m.name}</p>}
               </div>
 
