@@ -2,13 +2,20 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import { CancelBookingButton } from '@/components/booking/cancel-booking-button'
+import { ClassFeedback } from '@/components/booking/class-feedback'
 
 type BadgeVariant = 'draft' | 'published' | 'confirmed' | 'waitlisted' | 'pending_confirmation'
 
 interface BookingRow {
   id: string
   status: string
+  instance_id: string
   class_instances: { date: string; local_time: string; starts_at: string } | null
+}
+
+interface FeedbackRow {
+  instance_id: string
+  rating: number
 }
 
 export default async function MySchedulePage() {
@@ -16,9 +23,13 @@ export default async function MySchedulePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
+  const past14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString()
+
   const [{ data: bookingsRaw }, { data: userProfile }] = await Promise.all([
     supabase.from('bookings')
-      .select('*, class_instances(date, local_time, starts_at)')
+      .select('id, status, instance_id, class_instances(date, local_time, starts_at)')
       .eq('user_id', user.id)
       .in('status', ['confirmed', 'waitlisted', 'pending_confirmation'])
       .order('created_at', { ascending: true }),
@@ -26,10 +37,30 @@ export default async function MySchedulePage() {
   ])
   const calendarToken = (userProfile as unknown as { calendar_token?: string } | null)?.calendar_token
 
-  const today = new Date().toISOString().split('T')[0]
-  const bookings = ((bookingsRaw ?? []) as unknown as BookingRow[])
+  const allBookings = (bookingsRaw ?? []) as unknown as BookingRow[]
+
+  const bookings = allBookings
     .filter(b => (b.class_instances?.date ?? '') >= today)
     .sort((a, b) => new Date(a.class_instances!.starts_at).getTime() - new Date(b.class_instances!.starts_at).getTime())
+
+  // Past confirmed classes in the last 14 days — candidates for feedback
+  const pastBookings = allBookings
+    .filter(b => b.status === 'confirmed' && b.class_instances && b.class_instances.starts_at < today && b.class_instances.starts_at >= past14)
+    .sort((a, b) => new Date(b.class_instances!.starts_at).getTime() - new Date(a.class_instances!.starts_at).getTime())
+
+  // Fetch existing feedback for these instances
+  const pastInstanceIds = pastBookings.map(b => b.instance_id).filter(Boolean)
+  const existingFeedback: Record<string, number> = {}
+  if (pastInstanceIds.length > 0) {
+    const { data: feedbackRows } = await supabase
+      .from('class_feedback')
+      .select('instance_id, rating')
+      .eq('user_id', user.id)
+      .in('instance_id', pastInstanceIds)
+    for (const f of (feedbackRows ?? []) as unknown as FeedbackRow[]) {
+      existingFeedback[f.instance_id] = f.rating
+    }
+  }
 
   return (
     <div>
@@ -93,6 +124,35 @@ export default async function MySchedulePage() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Recent past classes — prompt for feedback */}
+      {pastBookings.length > 0 && (
+        <div className="mt-12 max-w-lg">
+          <h2 className="text-sm font-semibold text-foreground mb-5">Recent Classes</h2>
+          <div className="space-y-4">
+            {pastBookings.map(b => {
+              const inst = b.class_instances!
+              const dateLabel = new Date(inst.starts_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+              const timeLabel = new Date(`1970-01-01T${inst.local_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+              const existingRating = existingFeedback[b.instance_id]
+              return (
+                <div key={b.id} className="rounded-lg border border-border bg-surface p-4">
+                  <p className="text-xs text-secondary uppercase tracking-widest">{dateLabel}</p>
+                  <p className="text-sm text-foreground font-medium mt-0.5">{timeLabel}</p>
+                  {existingRating ? (
+                    <p className="mt-2 text-xs text-secondary flex items-center gap-1">
+                      <span className="text-accent">{'★'.repeat(existingRating)}{'☆'.repeat(5 - existingRating)}</span>
+                      <span>Rated</span>
+                    </p>
+                  ) : (
+                    <ClassFeedback instanceId={b.instance_id} classTime={timeLabel} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

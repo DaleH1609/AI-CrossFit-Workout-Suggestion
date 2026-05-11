@@ -32,16 +32,21 @@ export default function ReportsPage() {
     id: string; action: string; target_type: string | null; created_at: string
     users: { name: string | null; email: string } | null
   }>>([])
+  const [feedbackSummary, setFeedbackSummary] = useState<Array<{
+    instanceId: string; startsAt: string; localTime: string; avgRating: number; count: number
+  }>>([])
 
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/reports?type=overview').then(r => r.json()),
       fetch('/api/admin/reports?type=attendance_heatmap').then(r => r.json()),
       fetch('/api/admin/audit-log?limit=50').then(r => r.ok ? r.json() : []),
-    ]).then(([ov, hm, al]) => {
+      fetch('/api/admin/reports?type=feedback_summary').then(r => r.ok ? r.json() : []),
+    ]).then(([ov, hm, al, fb]) => {
       setOverview(ov)
       setHeatmap(Array.isArray(hm) ? hm : [])
       setAuditLog(Array.isArray(al) ? al : [])
+      setFeedbackSummary(Array.isArray(fb) ? fb : [])
     }).catch(console.error).finally(() => setLoading(false))
   }, [])
 
@@ -186,6 +191,29 @@ export default function ReportsPage() {
         </div>
       </div>
     </div>
+
+      {/* Class feedback summary */}
+      {feedbackSummary.length > 0 && (
+        <div className="rounded-xl border border-border bg-surface p-6">
+          <h2 className="font-semibold text-foreground mb-4 text-sm">Class Ratings (last 30 days)</h2>
+          <div className="space-y-2">
+            {feedbackSummary.slice(0, 10).map(f => {
+              const dt = new Date(f.startsAt)
+              const label = dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+              const time = new Date(`1970-01-01T${f.localTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+              const stars = Math.round(f.avgRating)
+              return (
+                <div key={f.instanceId} className="flex items-center gap-3 py-1.5 border-b border-border/40 last:border-0">
+                  <span className="text-[10px] text-secondary/60 tabular-nums shrink-0 w-32">{label} {time}</span>
+                  <span className="text-accent text-xs tracking-wider">{'★'.repeat(stars)}{'☆'.repeat(5 - stars)}</span>
+                  <span className="text-xs text-secondary">{f.avgRating.toFixed(1)} / 5</span>
+                  <span className="text-[10px] text-secondary/60">({f.count} {f.count === 1 ? 'rating' : 'ratings'})</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Audit log */}
       <div className="rounded-xl border border-border bg-surface p-6">

@@ -78,5 +78,42 @@ export async function GET(req: Request) {
     return jsonOk(data ?? [])
   }
 
+  if (type === 'feedback_summary') {
+    // Average rating per class instance for the last 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const { data, error } = await supabase
+      .from('class_feedback')
+      .select('instance_id, rating, created_at, class_instances(starts_at, local_time)')
+      .eq('gym_id', gymId)
+      .gte('created_at', thirtyDaysAgo)
+      .order('created_at', { ascending: false })
+    if (error) return jsonServerError('reports feedback_summary', error)
+
+    // Group by instance_id and compute average + count
+    const byInstance: Record<string, { ratings: number[]; startsAt: string; localTime: string }> = {}
+    for (const row of (data ?? []) as unknown as {
+      instance_id: string; rating: number; class_instances: { starts_at: string; local_time: string }
+    }[]) {
+      if (!byInstance[row.instance_id]) {
+        byInstance[row.instance_id] = {
+          ratings: [],
+          startsAt: row.class_instances.starts_at,
+          localTime: row.class_instances.local_time,
+        }
+      }
+      byInstance[row.instance_id].ratings.push(row.rating)
+    }
+
+    const summary = Object.entries(byInstance).map(([instanceId, v]) => ({
+      instanceId,
+      startsAt: v.startsAt,
+      localTime: v.localTime,
+      avgRating: v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length,
+      count: v.ratings.length,
+    })).sort((a, b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime())
+
+    return jsonOk(summary)
+  }
+
   return jsonError('Unknown report type')
 }
