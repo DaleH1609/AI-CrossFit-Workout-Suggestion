@@ -1,4 +1,6 @@
 // app/(admin)/page.tsx
+export const revalidate = 60 // refresh stats every minute
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdminAuth } from '@/lib/auth-helpers'
 import Link from 'next/link'
