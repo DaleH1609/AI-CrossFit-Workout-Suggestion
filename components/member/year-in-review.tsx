@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 interface YearData {
   year: number
@@ -102,6 +103,10 @@ export function YearInReview() {
               ))}
             </div>
           </div>
+
+          <Link href="/year-in-review" className="block text-center text-xs text-accent hover:underline mt-1">
+            Full year stats →
+          </Link>
         </>
       )}
     </div>
