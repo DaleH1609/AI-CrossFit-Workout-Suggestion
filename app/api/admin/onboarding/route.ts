@@ -13,8 +13,9 @@ const INTRO_STEPS = ['intro_class_1', 'intro_class_2', 'intro_class_3', 'intro_c
 async function requireAdminOrCoach(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
+  const { data } = await supabase.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
   if (!data || !(['admin', 'owner', 'coach'].includes(data.role))) return null
+  if (data.revoked_at) return null
   return { gymId: data.gym_id as string, actorId: user.id }
 }
 

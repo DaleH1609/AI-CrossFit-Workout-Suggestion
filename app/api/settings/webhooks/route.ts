@@ -4,6 +4,7 @@
 // DELETE ?id= — delete webhook
 import { createClient } from '@/lib/supabase/server'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { UUID_RE } from '@/lib/validation/z'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,8 +14,9 @@ const VALID_EVENTS = ['workout_published', 'booking_confirmed', 'booking_cancell
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
+  const { data } = await supabase.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
   if (!data || data.role !== 'admin' && data.role !== 'owner') return null
+  if (data.revoked_at) return null
   return { gymId: data.gym_id as string }
 }
 
@@ -73,7 +75,7 @@ export async function DELETE(req: Request) {
 
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
-  if (!id) return jsonError('id required')
+  if (!id || !UUID_RE.test(id)) return jsonError('id required')
 
   const { error } = await supabase.from('gym_webhooks')
     .delete().eq('id', id).eq('gym_id', admin.gymId)

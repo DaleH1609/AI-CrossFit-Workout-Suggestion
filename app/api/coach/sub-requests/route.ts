@@ -7,9 +7,10 @@ async function requireCoach() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role, name').eq('id', user.id).single()
-  const d = data as { gym_id: string; role: string; name: string } | null
+  const { data } = await supabase.from('users').select('gym_id, role, name, revoked_at').eq('id', user.id).single()
+  const d = data as { gym_id: string; role: string; name: string; revoked_at: string | null } | null
   if (!d || !['coach', 'admin', 'owner'].includes(d.role ?? '')) return null
+  if (d.revoked_at) return null
   return { userId: user.id, gymId: d.gym_id, name: d.name }
 }
 

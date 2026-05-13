@@ -3,6 +3,9 @@ import { Bebas_Neue, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { ServiceWorkerRegister } from '@/components/push/service-worker-register'
+import { CookieBanner } from '@/components/ui/cookie-banner'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const bebasNeue = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' })
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
@@ -37,6 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-background text-foreground font-body antialiased">
         <Providers>{children}</Providers>
         <ServiceWorkerRegister />
+        <CookieBanner />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

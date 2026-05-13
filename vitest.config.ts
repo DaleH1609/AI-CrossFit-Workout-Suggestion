@@ -8,6 +8,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
+    // Exclude DB integration tests — they need Docker and run via test:integration
+    exclude: ['tests/integration/**', 'node_modules/**'],
   },
   resolve: { alias: { '@': path.resolve(__dirname, '.') } },
 })

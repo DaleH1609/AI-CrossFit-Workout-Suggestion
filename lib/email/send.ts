@@ -46,11 +46,11 @@ function withReplyTo(contactEmail: string | null | undefined): Record<string, st
 }
 
 export async function sendBookingConfirmed(to: string, name: string, date: string, time: string, contactEmail?: string | null) {
-  await getResend().emails.send({ from: getFrom(), to, subject: 'Booking Confirmed', html: bookingConfirmedHtml(name, date, time), ...withReplyTo(contactEmail) })
+  await getResend().emails.send({ from: getFrom(), to, subject: 'Booking Confirmed', html: await bookingConfirmedHtml(name, date, time), ...withReplyTo(contactEmail) })
 }
 
 export async function sendWaitlistPromotion(to: string, name: string, date: string, time: string, confirmUrl: string, expiresIn: string, contactEmail?: string | null) {
-  await getResend().emails.send({ from: getFrom(), to, subject: 'Spot Available — Confirm Now', html: waitlistPromotionHtml(name, date, time, confirmUrl, expiresIn), ...withReplyTo(contactEmail) })
+  await getResend().emails.send({ from: getFrom(), to, subject: 'Spot Available — Confirm Now', html: await waitlistPromotionHtml(name, date, time, confirmUrl, expiresIn), ...withReplyTo(contactEmail) })
 }
 
 /**
@@ -74,7 +74,7 @@ export async function sendWorkoutsPublishedEmail(
         from,
         to: m.email,
         subject: "This Week's Workouts Are Live",
-        html: workoutsPublishedHtml(gymName),
+        html: await workoutsPublishedHtml(gymName),
         ...extra,
       })
     )
@@ -97,15 +97,15 @@ export async function sendWorkoutsPublishedEmail(
 }
 
 export async function sendMemberInvite(to: string, gymName: string, inviteUrl: string) {
-  await getResend().emails.send({ from: getFrom(), to, subject: `You're invited to ${gymName}`, html: memberInvitedHtml(gymName, inviteUrl) })
+  await getResend().emails.send({ from: getFrom(), to, subject: `You're invited to ${gymName}`, html: await memberInvitedHtml(gymName, inviteUrl) })
 }
 
 export async function sendBookingCancelled(to: string, name: string, date: string, time: string, contactEmail?: string | null) {
-  await getResend().emails.send({ from: getFrom(), to, subject: 'Booking Cancelled', html: bookingCancelledHtml(name, date, time), ...withReplyTo(contactEmail) })
+  await getResend().emails.send({ from: getFrom(), to, subject: 'Booking Cancelled', html: await bookingCancelledHtml(name, date, time), ...withReplyTo(contactEmail) })
 }
 
 export async function sendAccessRestored(to: string, name: string, gymName: string, loginUrl: string) {
-  await getResend().emails.send({ from: getFrom(), to, subject: 'Your gym access has been restored', html: accessRestoredHtml(name, gymName, loginUrl) })
+  await getResend().emails.send({ from: getFrom(), to, subject: 'Your gym access has been restored', html: await accessRestoredHtml(name, gymName, loginUrl) })
 }
 
 /**
@@ -219,7 +219,7 @@ export async function sendAccessRevoked(to: string, name: string) {
     from: getFrom(),
     to,
     subject: 'Your gym access has been removed',
-    html: accessRevokedHtml(name),
+    html: await accessRevokedHtml(name),
   })
 }
 

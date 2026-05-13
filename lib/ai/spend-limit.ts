@@ -60,50 +60,25 @@ export async function checkAiLimit(
 }
 
 /**
- * Increments the AI call counter and optionally records token usage for this
- * gym, resetting if the month rolled over. Call only after a successful AI
- * response.
+ * Atomically increments the AI call counter and token usage for this gym,
+ * resetting if the month rolled over. Call only after a successful AI response.
  *
- * @param tokens - Anthropic/OpenAI usage object with input_tokens and
- *                 output_tokens. Pass undefined when tokens aren't available
- *                 (e.g., streaming responses where usage isn't surfaced).
+ * Uses a single UPDATE … RETURNING RPC (migration 055) instead of the old
+ * read-modify-write pattern, which had a race window where two concurrent calls
+ * could both read the pre-increment count and one call would be "free" (K7).
+ *
+ * @param tokens - Anthropic/OpenAI usage object. Pass undefined when tokens
+ *                 aren't available (e.g., streaming responses).
  */
 export async function incrementAiCalls(
   gymId: string,
   supabase: SupabaseClient<Database>,
   tokens?: { inputTokens?: number; outputTokens?: number }
 ): Promise<void> {
-  const month = currentMonth()
-
-  const { data } = await supabase
-    .from('gyms')
-    .select('ai_calls_this_month, ai_month, ai_input_tokens_this_month, ai_output_tokens_this_month')
-    .eq('id', gymId)
-    .single()
-
-  if (!data) return
-
-  const inTok = tokens?.inputTokens ?? 0
-  const outTok = tokens?.outputTokens ?? 0
-
-  if (data.ai_month === month) {
-    await supabase
-      .from('gyms')
-      .update({
-        ai_calls_this_month: (data.ai_calls_this_month ?? 0) + 1,
-        ai_input_tokens_this_month: ((data.ai_input_tokens_this_month as number | null) ?? 0) + inTok,
-        ai_output_tokens_this_month: ((data.ai_output_tokens_this_month as number | null) ?? 0) + outTok,
-      })
-      .eq('id', gymId)
-  } else {
-    await supabase
-      .from('gyms')
-      .update({
-        ai_calls_this_month: 1,
-        ai_month: month,
-        ai_input_tokens_this_month: inTok,
-        ai_output_tokens_this_month: outTok,
-      })
-      .eq('id', gymId)
-  }
+  await supabase.rpc('increment_ai_calls', {
+    p_gym_id:        gymId,
+    p_month:         currentMonth(),
+    p_input_tokens:  tokens?.inputTokens  ?? 0,
+    p_output_tokens: tokens?.outputTokens ?? 0,
+  })
 }

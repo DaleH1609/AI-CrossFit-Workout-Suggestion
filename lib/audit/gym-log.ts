@@ -10,10 +10,15 @@ export type GymAuditAction =
   | 'member.delete'
   | 'member.promote_coach'
   | 'member.demote_coach'
+  | 'member.pause'
+  | 'member.unpause'
+  | 'member.pass_add'
+  | 'member.pass_remove'
   | 'workout.publish'
   | 'workout.discard'
   | 'settings.update'
   | 'lead.status_change'
+  | 'lead.delete'
   | 'deletion_request.actioned'
 
 export function auditLog(opts: {

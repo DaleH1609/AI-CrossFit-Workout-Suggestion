@@ -1,67 +1,47 @@
 // lib/email/templates.ts
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+//
+// T5: Email templates as React components via react-email.
+// Variables are auto-escaped by React — no manual escapeHtml() needed.
+// Preview with: npx react-email dev  (reads from /emails/*.tsx)
+
+import * as React from 'react'
+import { render } from '@react-email/render'
+import { BookingConfirmed } from '@/emails/booking-confirmed'
+import { WaitlistPromotion } from '@/emails/waitlist-promotion'
+import { WorkoutsPublished } from '@/emails/workouts-published'
+import { MemberInvited } from '@/emails/member-invited'
+import { BookingCancelled } from '@/emails/booking-cancelled'
+import { AccessRestored } from '@/emails/access-restored'
+import { AccessRevoked } from '@/emails/access-revoked'
+
+export async function bookingConfirmedHtml(name: string, date: string, time: string): Promise<string> {
+  return render(React.createElement(BookingConfirmed, { name, date, time }))
 }
 
-export function bookingConfirmedHtml(name: string, date: string, time: string) {
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
-    <h2 style="color:#D4AF37;font-family:Georgia,serif">Booking Confirmed</h2>
-    <p>Hi ${escapeHtml(name)},</p>
-    <p>Your spot is confirmed for <strong>${escapeHtml(date)}</strong> at <strong>${escapeHtml(time)}</strong>.</p>
-    <p style="color:#9CA3AF;font-size:12px">Cancel up to 1 hour before class.</p>
-  </div>`
+export async function waitlistPromotionHtml(name: string, date: string, time: string, confirmUrl: string, expiresIn: string): Promise<string> {
+  // Only allow https:// confirm URLs — prevents javascript: or data: injection in the email
+  const safeUrl = confirmUrl.startsWith('https://') ? confirmUrl : '#'
+  return render(React.createElement(WaitlistPromotion, { name, date, time, confirmUrl: safeUrl, expiresIn }))
 }
 
-export function waitlistPromotionHtml(name: string, date: string, time: string, confirmUrl: string, expiresIn: string) {
-  const safeConfirmUrl = confirmUrl.startsWith('https://') ? escapeHtml(confirmUrl) : '#'
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
-    <h2 style="color:#D4AF37;font-family:Georgia,serif">Spot Available</h2>
-    <p>Hi ${escapeHtml(name)}, a spot opened for <strong>${escapeHtml(date)}</strong> at <strong>${escapeHtml(time)}</strong>.</p>
-    <p>Confirm within <strong>${escapeHtml(expiresIn)}</strong>:</p>
-    <a href="${safeConfirmUrl}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#D4AF37;color:#000;text-decoration:none;border-radius:4px;font-weight:600">Confirm My Spot</a>
-  </div>`
+export async function workoutsPublishedHtml(gymName: string): Promise<string> {
+  return render(React.createElement(WorkoutsPublished, { gymName }))
 }
 
-export function workoutsPublishedHtml(gymName: string) {
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
-    <h2 style="color:#D4AF37;font-family:Georgia,serif">This Week's Workouts Are Live</h2>
-    <p>${escapeHtml(gymName)} has published the workouts for this week. Log in to view and book your classes.</p>
-  </div>`
+export async function memberInvitedHtml(gymName: string, inviteUrl: string): Promise<string> {
+  const safeUrl = inviteUrl.startsWith('https://') ? inviteUrl : '#'
+  return render(React.createElement(MemberInvited, { gymName, inviteUrl: safeUrl }))
 }
 
-export function memberInvitedHtml(gymName: string, inviteUrl: string) {
-  const safeInviteUrl = inviteUrl.startsWith('https://') ? escapeHtml(inviteUrl) : '#'
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
-    <h2 style="color:#D4AF37;font-family:Georgia,serif">You're Invited</h2>
-    <p>You've been invited to join <strong>${escapeHtml(gymName)}</strong>.</p>
-    <a href="${safeInviteUrl}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#D4AF37;color:#000;text-decoration:none;border-radius:4px;font-weight:600">Accept Invite</a>
-  </div>`
+export async function bookingCancelledHtml(name: string, date: string, time: string): Promise<string> {
+  return render(React.createElement(BookingCancelled, { name, date, time }))
 }
 
-export function accessRestoredHtml(name: string, gymName: string, loginUrl: string) {
-  const safeLoginUrl = loginUrl.startsWith('https://') ? escapeHtml(loginUrl) : '#'
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
-    <h2 style="color:#D4AF37;font-family:Georgia,serif">Access Restored</h2>
-    <p>Hi ${escapeHtml(name)}, your access to <strong>${escapeHtml(gymName)}</strong> has been restored.</p>
-    <a href="${safeLoginUrl}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#D4AF37;color:#000;text-decoration:none;border-radius:4px;font-weight:600">Log In</a>
-  </div>`
+export async function accessRestoredHtml(name: string, gymName: string, loginUrl: string): Promise<string> {
+  const safeUrl = loginUrl.startsWith('https://') ? loginUrl : '#'
+  return render(React.createElement(AccessRestored, { name, gymName, loginUrl: safeUrl }))
 }
 
-export function bookingCancelledHtml(name: string, date: string, time: string) {
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
-    <h2 style="color:#D4AF37;font-family:Georgia,serif">Booking Cancelled</h2>
-    <p>Hi ${escapeHtml(name)}, your booking for <strong>${escapeHtml(date)}</strong> at <strong>${escapeHtml(time)}</strong> has been cancelled.</p>
-  </div>`
-}
-
-export function accessRevokedHtml(name: string) {
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:500px">
-    <h2 style="color:#D4AF37;font-family:Georgia,serif">Access Removed</h2>
-    <p>Hi ${escapeHtml(name)}, your access to the gym has been removed and your upcoming bookings have been cancelled.</p>
-  </div>`
+export async function accessRevokedHtml(name: string): Promise<string> {
+  return render(React.createElement(AccessRevoked, { name }))
 }

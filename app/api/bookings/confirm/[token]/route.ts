@@ -161,66 +161,47 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
     return NextResponse.redirect(`${appUrl}/my-schedule?error=server-error`)
   }
 
-  // Expired? Cancel and pass to next waitlisted member.
+  // Expired? Use expire_pending_confirmation RPC (migration 063): idempotent
+  // cancel scoped to pending_confirmation status; returns whether it acted so
+  // we avoid double-promotion if another process beat us.
   if (new Date(booking.confirmation_expires_at!).getTime() < Date.now()) {
-    const { data: cancelRows, error: cancelErr } = await supabase.from('bookings')
-      .update({
-        status: 'cancelled',
-        cancelled_at: new Date().toISOString(),
-        waitlist_position: null,
-        confirmation_expires_at: null,
-      })
-      .eq('id', booking.id)
-      .eq('status', 'pending_confirmation')
-      .select('id')
+    const { data: expireResult, error: expireErr } = await supabase
+      .rpc('expire_pending_confirmation', { p_booking_id: booking.id })
 
-    if (cancelErr) {
-      console.error('[confirm] expire-cancel failed', cancelErr)
+    if (expireErr) {
+      console.error('[confirm] expire_pending_confirmation rpc failed', expireErr)
       return NextResponse.redirect(`${appUrl}/my-schedule?error=server-error`)
     }
 
-    if (cancelRows && cancelRows.length > 0) {
+    const expired = expireResult as { cancelled: boolean; instance_id: string | null }
+    if (expired?.cancelled) {
       await promoteNextWaitlistMember(createAdminClient(), booking.instance_id, instance.starts_at, appUrl, getTimezone(instance))
     }
     return NextResponse.redirect(`${appUrl}/my-schedule?error=confirmation-expired`)
   }
 
-  // Re-check capacity at confirmation time.
-  const { count: confirmedCount } = await supabase.from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('instance_id', booking.instance_id)
-    .eq('status', 'confirmed')
+  // confirm_pending_booking RPC (migration 063): atomically re-checks capacity
+  // and flips pending_confirmation → confirmed under a FOR UPDATE lock on the
+  // class_instances row.  Eliminates the TOCTOU between a separate capacity
+  // SELECT and the UPDATE that existed before this migration.
+  const { data: confirmResult, error: confirmError } = await supabase
+    .rpc('confirm_pending_booking', { p_booking_id: booking.id, p_instance_id: booking.instance_id })
 
-  if ((confirmedCount ?? 0) >= instance.capacity) {
-    await supabase.from('bookings')
-      .update({
-        status: 'cancelled',
-        cancelled_at: new Date().toISOString(),
-        confirmation_expires_at: null,
-        waitlist_position: null,
-      })
-      .eq('id', booking.id)
-      .eq('status', 'pending_confirmation')
-
-    return NextResponse.redirect(`${appUrl}/my-schedule?error=class-filled`)
-  }
-
-  // Atomic confirm: only promote pending_confirmation → confirmed.
-  const { data: confirmRows, error: confirmUpdateError } = await supabase.from('bookings').update({
-    status: 'confirmed',
-    confirmation_expires_at: null,
-    waitlist_position: null,
-  })
-    .eq('id', booking.id)
-    .eq('status', 'pending_confirmation')
-    .select('id')
-
-  if (confirmUpdateError) {
-    console.error('[confirm] confirm update failed', confirmUpdateError)
+  if (confirmError) {
+    console.error('[confirm] confirm_pending_booking rpc failed', confirmError)
     return NextResponse.redirect(`${appUrl}/my-schedule?error=server-error`)
   }
 
-  if (!confirmRows || confirmRows.length === 0) {
+  const r = confirmResult as { confirmed: boolean; cancelled: boolean; reason: string | null }
+
+  if (r.reason === 'class_full') {
+    if (r.cancelled) {
+      await promoteNextWaitlistMember(createAdminClient(), booking.instance_id, instance.starts_at, appUrl, getTimezone(instance))
+    }
+    return NextResponse.redirect(`${appUrl}/my-schedule?error=class-filled`)
+  }
+
+  if (!r.confirmed) {
     return NextResponse.redirect(`${appUrl}/my-schedule?error=invalid-token`)
   }
 

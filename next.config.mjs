@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -23,4 +25,18 @@ const nextConfig = {
   },
 }
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Set SENTRY_ORG and SENTRY_PROJECT to enable source-map uploads at build time.
+  // Leave unset to skip source-map uploads (still captures runtime errors via DSN).
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Only upload source maps in CI to keep local builds fast
+  uploadSourceMaps: !!process.env.CI && !!process.env.SENTRY_AUTH_TOKEN,
+  // Suppress non-essential build output
+  silent: !process.env.CI,
+  // Don't block the build if Sentry auth token is missing
+  errorOnFailedUpload: false,
+  widenClientFileUpload: true,
+  // Tree-shake the Sentry logger in production builds
+  disableLogger: true,
+})

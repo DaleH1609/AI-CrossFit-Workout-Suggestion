@@ -63,8 +63,11 @@ export async function POST(req: Request) {
   const editHistory = editRows ?? []
 
   let workouts
+  let totalTokens = { inputTokens: 0, outputTokens: 0 }
   try {
-    workouts = await generateWorkouts(styleTexts, historyWeeks, gymType, editHistory)
+    const generated = await generateWorkouts(styleTexts, historyWeeks, gymType, editHistory)
+    workouts = generated.workouts
+    totalTokens = generated.usage
   } catch (err) {
     return jsonServerError('workouts/generate generateWorkouts', err)
   }
@@ -72,7 +75,9 @@ export async function POST(req: Request) {
 
   // Auto-scaling — non-blocking: failure does not prevent saving
   try {
-    workouts = await generateScaling(workouts)
+    const scaled = await generateScaling(workouts)
+    workouts = scaled.workouts
+    totalTokens = { inputTokens: totalTokens.inputTokens + scaled.usage.inputTokens, outputTokens: totalTokens.outputTokens + scaled.usage.outputTokens }
   } catch (scalingErr) {
     console.warn('[workouts/generate] scaling failed, saving without scaling', scalingErr)
   }
@@ -80,13 +85,16 @@ export async function POST(req: Request) {
   // Generate rationale (non-blocking — failure does not prevent save)
   let rationale = null
   try {
-    rationale = await generateRationale(workouts, historyWeeks, gymType)
+    const rationaleResult = await generateRationale(workouts, historyWeeks, gymType)
+    rationale = rationaleResult.rationale
+    totalTokens = { inputTokens: totalTokens.inputTokens + rationaleResult.usage.inputTokens, outputTokens: totalTokens.outputTokens + rationaleResult.usage.outputTokens }
   } catch (rationaleErr) {
     console.warn('[workouts/generate] rationale generation failed', rationaleErr)
   }
 
   // Count one generation against the monthly ceiling (fire-and-forget)
-  incrementAiCalls(gymId, supabase).catch(err => console.error('[workouts/generate] incrementAiCalls failed', err))
+  incrementAiCalls(gymId, supabase, { inputTokens: totalTokens.inputTokens, outputTokens: totalTokens.outputTokens })
+    .catch(err => console.error('[workouts/generate] incrementAiCalls failed', err))
 
   // Final safety net — ensure Saturday and Sunday always have actual content
   function dayHasContent(d: { parts?: { content?: string }[] }) {

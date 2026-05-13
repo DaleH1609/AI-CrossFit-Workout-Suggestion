@@ -5,8 +5,8 @@ import { notFound } from 'next/navigation'
 import { MemberAccordionClient } from './member-accordion-client'
 import { DangerZoneClient } from './danger-zone-client'
 import Link from 'next/link'
+import { UUID_RE } from '@/lib/validation/z'
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 function isUuid(v: string): boolean {
   return UUID_RE.test(v)
 }

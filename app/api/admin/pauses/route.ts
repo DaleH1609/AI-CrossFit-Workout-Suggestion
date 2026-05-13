@@ -4,15 +4,17 @@
 // DELETE ?id=    — delete pause
 import { createClient } from '@/lib/supabase/server'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { auditLog } from '@/lib/audit/gym-log'
 
 export const dynamic = 'force-dynamic'
 
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
+  const { data } = await supabase.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
   if (!data || data.role !== 'admin' && data.role !== 'owner') return null
-  return { gymId: data.gym_id as string }
+  if (data.revoked_at) return null
+  return { gymId: data.gym_id as string, actorId: user.id }
 }
 
 export async function GET(req: Request) {
@@ -58,6 +60,9 @@ export async function POST(req: Request) {
   }).select().single()
 
   if (error) return jsonServerError('pauses POST', error)
+
+  auditLog({ gymId: admin.gymId, actorId: admin.actorId, action: 'member.pause', targetId: body.memberId, payload: { pauseFrom: body.pauseFrom, pauseTo: body.pauseTo } })
+
   return jsonOk(data)
 }
 
@@ -74,5 +79,8 @@ export async function DELETE(req: Request) {
     .delete().eq('id', id).eq('gym_id', admin.gymId)
 
   if (error) return jsonServerError('pauses DELETE', error)
+
+  auditLog({ gymId: admin.gymId, actorId: admin.actorId, action: 'member.unpause', targetId: id })
+
   return jsonOk({ deleted: true })
 }

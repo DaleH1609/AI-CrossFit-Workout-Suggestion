@@ -8,8 +8,9 @@ export const dynamic = 'force-dynamic'
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
+  const { data } = await supabase.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
   if (!data || (data.role !== 'admin' && data.role !== 'owner')) return null
+  if (data.revoked_at) return null
   return { gymId: data.gym_id as string }
 }
 
@@ -21,11 +22,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const limit = Math.min(Number(searchParams.get('limit') ?? '50'), 200)
 
-  // Uses service-role via createAdminClient so RLS doesn't block reads
-  const { createAdminClient } = await import('@/lib/supabase/admin')
-  const adb = createAdminClient()
-
-  const { data, error } = await adb
+  // Use the user-scoped client — the RLS policy on gym_audit_log already
+  // restricts reads to owner/admin of the caller's gym, so no admin client needed.
+  const { data, error } = await supabase
     .from('gym_audit_log')
     .select('id, action, target_type, target_id, payload, created_at, users(name, email)')
     .eq('gym_id', admin.gymId)

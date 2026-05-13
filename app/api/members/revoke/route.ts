@@ -90,6 +90,6 @@ export async function POST(req: Request) {
     }
   }
 
-    auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'member.revoke', targetId: memberId, targetType: 'user' })
+  auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'member.revoke', targetId: memberId, targetType: 'user' })
   return jsonOk({ success: true })
 }

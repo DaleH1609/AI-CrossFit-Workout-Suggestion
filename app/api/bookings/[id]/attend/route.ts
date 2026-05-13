@@ -2,8 +2,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+import { UUID_RE } from '@/lib/validation/z'
 
 export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -14,9 +13,10 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
   const { data: { user } } = await supabaseUser.auth.getUser()
   if (!user) return jsonError('Unauthorized', 401)
 
-  const { data: userData } = await supabaseUser.from('users').select('gym_id, role').eq('id', user.id).single()
-  const u = userData as { gym_id: string; role: string } | null
+  const { data: userData } = await supabaseUser.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
+  const u = userData as { gym_id: string; role: string; revoked_at: string | null } | null
   if (!u || !['owner', 'admin', 'coach'].includes(u.role ?? '')) return jsonError('Forbidden', 403)
+  if (u.revoked_at) return jsonError('Forbidden', 403)
 
   let body: { attended?: unknown }
   try { body = await req.json() } catch { return jsonError('Invalid JSON body') }

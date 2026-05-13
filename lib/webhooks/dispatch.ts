@@ -65,6 +65,7 @@ export async function dispatchWebhooks(gymId: string, event: WebhookEvent, data:
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          signal: AbortSignal.timeout(5_000),
         })
       })
   )

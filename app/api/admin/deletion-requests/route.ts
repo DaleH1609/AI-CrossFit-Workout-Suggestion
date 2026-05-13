@@ -3,15 +3,17 @@
 // PATCH — mark a request as actioned (after owner manually deletes the member)
 import { createClient } from '@/lib/supabase/server'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { auditLog } from '@/lib/audit/gym-log'
 
 export const dynamic = 'force-dynamic'
 
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
+  const { data } = await supabase.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
   if (!data || (data.role !== 'admin' && data.role !== 'owner')) return null
-  return { gymId: data.gym_id as string }
+  if (data.revoked_at) return null
+  return { gymId: data.gym_id as string, actorId: user.id }
 }
 
 export async function GET() {
@@ -46,5 +48,8 @@ export async function PATCH(req: Request) {
     .eq('gym_id', admin.gymId)
 
   if (error) return jsonServerError('admin/deletion-requests PATCH', error)
+
+  auditLog({ gymId: admin.gymId, actorId: admin.actorId, action: 'deletion_request.actioned', targetId: body.id })
+
   return jsonOk({ actioned: true })
 }

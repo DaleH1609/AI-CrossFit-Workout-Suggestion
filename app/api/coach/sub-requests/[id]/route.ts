@@ -2,16 +2,16 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+import { UUID_RE } from '@/lib/validation/z'
 
 async function requireCoach() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
-  const d = data as { gym_id: string; role: string } | null
+  const { data } = await supabase.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
+  const d = data as { gym_id: string; role: string; revoked_at: string | null } | null
   if (!d || !['coach', 'admin', 'owner'].includes(d.role ?? '')) return null
+  if (d.revoked_at) return null
   return { userId: user.id, gymId: d.gym_id }
 }
 

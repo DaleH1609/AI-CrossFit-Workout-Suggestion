@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
   // headers so Next.js applies it to its own inline hydration scripts (via the
   // x-nonce convention) and so the root layout can read it for any custom
   // <Script> components.
-  const nonce = randomBytes(16).toString('base64')
+  const nonce = randomBytes(16).toString('base64url')
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
 

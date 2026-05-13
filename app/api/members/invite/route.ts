@@ -2,6 +2,7 @@ import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { auditLog } from '@/lib/audit/gym-log'
+import { dispatchWebhooks } from '@/lib/webhooks/dispatch'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -60,6 +61,9 @@ export async function POST(req: Request) {
   if (insertError) return jsonServerError('members/invite users.upsert', insertError)
 
   auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'member.invite', targetId: inviteData.user.id, targetType: 'user', payload: { email } })
+
+  dispatchWebhooks(userData.gym_id, 'new_member', { memberEmail: email })
+    .catch(err => console.error('[members/invite] webhook dispatch failed', err))
 
   return jsonOk({ success: true })
 }

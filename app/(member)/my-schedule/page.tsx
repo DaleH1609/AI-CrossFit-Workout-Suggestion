@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import { CancelBookingButton } from '@/components/booking/cancel-booking-button'
 import { ClassFeedback } from '@/components/booking/class-feedback'
+import { ClassRoster } from '@/components/booking/class-roster'
 
 type BadgeVariant = 'draft' | 'published' | 'confirmed' | 'waitlisted' | 'pending_confirmation'
 
@@ -120,6 +121,7 @@ export default async function MySchedulePage() {
                     <Badge variant={b.status as BadgeVariant} label={b.status === 'pending_confirmation' ? 'Confirm Spot' : b.status} />
                     {isConfirmed && <CancelBookingButton bookingId={b.id} />}
                   </div>
+                  {isConfirmed && <ClassRoster instanceId={b.instance_id} />}
                 </div>
               </div>
             )

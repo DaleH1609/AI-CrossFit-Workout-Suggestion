@@ -37,6 +37,12 @@ export async function requireOwnerAuth(): Promise<OwnerAuthResult | NextResponse
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  // MFA enforcement — defense-in-depth for API routes (layout enforces for page routes).
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (aal?.currentLevel !== 'aal2') {
+    return NextResponse.json({ error: 'MFA required', code: 'MFA_REQUIRED' }, { status: 403 })
+  }
+
   // Suspension check — blocks owner from all API mutations. Members are NOT affected.
   const { data: gymData, error: gymError } = await supabase
     .from('gyms')
@@ -115,18 +121,28 @@ export function isAdminEmail(email: string, envValue: string | undefined = proce
  * Reads ADMIN_EMAILS env var at call-time (fail-closed: blocks all if missing/empty).
  * Calls redirect('/login') if unauthorized — works in Server Components and Server Actions.
  * No DB query — identity lives entirely in the env var.
+ * MFA (aal2) is required for all admin routes.
  */
 export async function requireAdminAuth(): Promise<AdminAuthResult> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) redirect('/login')
   if (!isAdminEmail(user.email)) redirect('/login')
+
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
+    redirect('/mfa/verify')
+  }
+  if (aal?.currentLevel !== 'aal2') {
+    redirect('/mfa/enroll')
+  }
+
   return { user: { id: user.id, email: user.email } }
 }
 
 /**
  * requireOwnerServerAuth — use in Server Component layouts for (owner) routes.
- * Defence-in-depth: verifies session + owner role + not suspended.
+ * Defence-in-depth: verifies session + owner role + MFA (aal2) + not suspended.
  * Uses redirect() from next/navigation (works in Server Components/layouts).
  */
 export async function requireOwnerServerAuth(): Promise<void> {
@@ -146,6 +162,17 @@ export async function requireOwnerServerAuth(): Promise<void> {
   }
 
   if (userData?.role !== 'owner') redirect('/login')
+
+  // MFA enforcement — owners must have TOTP verified (aal2) to access any owner page.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
+    // Enrolled but not yet verified this session — challenge them.
+    redirect('/mfa/verify')
+  }
+  if (aal?.currentLevel !== 'aal2') {
+    // No MFA enrolled — force enrollment.
+    redirect('/mfa/enroll')
+  }
 
   const { data: gymData } = await supabase
     .from('gyms')

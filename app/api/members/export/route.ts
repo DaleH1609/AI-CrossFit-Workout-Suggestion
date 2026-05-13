@@ -26,34 +26,34 @@ export async function GET() {
       .eq('id', user.id).single(),
 
     supabase.from('bookings')
-      .select('id, status, attended, created_at, class_instances(starts_at, class_slot_templates(name))')
+      .select('id, status, attended, created_at, class_instances(date, local_time, class_slot_templates(name))')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
 
     supabase.from('workout_scores')
-      .select('id, score_value, score_unit, rx, notes, scored_at, workouts(week_start)')
+      .select('id, score_type, score_value, score_text, rx, notes, workout_date, created_at')
       .eq('user_id', user.id)
-      .order('scored_at', { ascending: false }),
+      .order('created_at', { ascending: false }),
 
     supabase.from('measurements')
-      .select('id, type, value, unit, notes, measured_at')
+      .select('id, measured_at, weight_kg, body_fat_pct, muscle_mass_kg, chest_cm, waist_cm, hips_cm, notes')
       .eq('user_id', user.id)
       .order('measured_at', { ascending: false }),
 
-    supabase.from('member_goals')
-      .select('id, title, description, target_date, completed_at, created_at')
+    supabase.from('personal_goals')
+      .select('id, title, target, achieved, achieved_at, due_date, created_at')
       .eq('user_id', user.id),
 
     supabase.from('member_badges')
-      .select('id, badge_key, earned_at')
+      .select('id, earned_at, badge_definitions(slug, name)')
       .eq('user_id', user.id),
 
     supabase.from('member_skills')
-      .select('id, skill_name, level, updated_at')
+      .select('id, level, notes, updated_at, skills(name, category)')
       .eq('user_id', user.id),
 
     supabase.from('class_feedback')
-      .select('id, rating, comment, created_at, class_instances(starts_at, class_slot_templates(name))')
+      .select('id, rating, comment, created_at, class_instances(date, local_time, class_slot_templates(name))')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
   ])
@@ -66,7 +66,7 @@ export async function GET() {
     bookings: bookingsRes.data ?? [],
     workout_scores: scoresRes.data ?? [],
     measurements: measurementsRes.data ?? [],
-    goals: goalsRes.data ?? [],
+    personal_goals: goalsRes.data ?? [],
     badges: badgesRes.data ?? [],
     skills: skillsRes.data ?? [],
     class_feedback: feedbackRes.data ?? [],

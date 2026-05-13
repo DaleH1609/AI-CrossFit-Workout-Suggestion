@@ -25,11 +25,12 @@ export async function GET() {
     return jsonOk({ insufficient_data: true })
   }
 
-  const analysis = await analyseMovementHistory(recentWeeks)
+  const { analysis, usage } = await analyseMovementHistory(recentWeeks)
   if (!analysis) {
     return jsonError('Movement analysis unavailable', 503)
   }
 
-  incrementAiCalls(gymId, supabase).catch(err => console.error('[movement-analysis] incrementAiCalls failed', err))
+  incrementAiCalls(gymId, supabase, { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens })
+    .catch(err => console.error('[movement-analysis] incrementAiCalls failed', err))
   return jsonOk(analysis)
 }

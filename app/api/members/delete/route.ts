@@ -84,6 +84,6 @@ export async function POST(req: Request) {
   const adminSupabase = createAdminClient()
   await adminSupabase.auth.admin.deleteUser(memberId)
 
-    auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'member.delete', targetId: memberId, targetType: 'user' })
+  auditLog({ gymId: userData.gym_id, actorId: user.id, action: 'member.delete', targetId: memberId, targetType: 'user' })
   return jsonOk({ success: true })
 }

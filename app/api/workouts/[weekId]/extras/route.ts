@@ -2,8 +2,7 @@
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import type { WorkoutDay, WorkoutExtra } from '@/lib/types'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+import { UUID_RE } from '@/lib/validation/z'
 
 export async function PATCH(req: Request, props: { params: Promise<{ weekId: string }> }) {
   const params = await props.params;

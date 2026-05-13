@@ -47,13 +47,29 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-base font-semibold text-foreground mb-3">4. Third-Party Services</h2>
+            <h2 className="text-base font-semibold text-foreground mb-3">4. Sub-processors</h2>
+            <p className="mb-3">We use the following sub-processors to operate the Service. Each processes personal data only to the extent necessary to perform its function, and each maintains a Data Processing Agreement (DPA) covering EU/UK GDPR obligations.</p>
             <ul className="list-disc list-inside space-y-2">
-              <li><strong className="text-foreground">Supabase</strong> — database and authentication hosting.</li>
-              <li><strong className="text-foreground">Anthropic</strong> — AI workout generation (workout content only, not personal data).</li>
-              <li><strong className="text-foreground">Resend</strong> — transactional email delivery.</li>
-              <li><strong className="text-foreground">Vercel</strong> — hosting and infrastructure.</li>
-              <li><strong className="text-foreground">Upstash</strong> — rate limiting (request counts only, no personal data).</li>
+              <li>
+                <strong className="text-foreground">Supabase</strong> — database and authentication hosting.{' '}
+                <a href="https://supabase.com/legal/dpa" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">DPA</a>
+              </li>
+              <li>
+                <strong className="text-foreground">Vercel</strong> — hosting and infrastructure.{' '}
+                <a href="https://vercel.com/legal/dpa" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">DPA</a>
+              </li>
+              <li>
+                <strong className="text-foreground">Resend</strong> — transactional email delivery.{' '}
+                <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Privacy Policy</a>
+              </li>
+              <li>
+                <strong className="text-foreground">Anthropic</strong> — AI workout generation. Workout style examples and programming context are sent to Anthropic; member personal data (names, emails) is never included.{' '}
+                <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Privacy Policy</a>
+              </li>
+              <li>
+                <strong className="text-foreground">Upstash</strong> — Redis caching and rate limiting (request counts only; no personal data is stored).{' '}
+                <a href="https://upstash.com/trust/dpa.pdf" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">DPA</a>
+              </li>
             </ul>
           </section>
 

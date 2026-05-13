@@ -42,22 +42,26 @@ export async function POST(req: Request) {
 
     if (!instance) return jsonError('Class not found', 404)
 
-    // Find this member's booking for the class
+    // Find this member's booking for the class.
+    // `attended` is a boolean column — not a status value — so we select it
+    // separately for the idempotency check below.
     const { data: booking } = await supabase
       .from('bookings')
-      .select('id, status')
+      .select('id, status, attended')
       .eq('instance_id', instanceId)
       .eq('user_id', auth.userId)
       .in('status', ['confirmed', 'pending_confirmation'])
       .maybeSingle()
 
     if (!booking) return jsonError('You don\'t have a confirmed booking for this class', 400)
-    if (booking.status === 'attended') return jsonOk({ already: true, message: 'Already checked in!' })
+    if ((booking as { attended: boolean | null }).attended) {
+      return jsonOk({ already: true, message: 'Already checked in!' })
+    }
 
-    // Mark as attended
+    // Mark as attended (boolean column — status is unchanged by this operation).
     await supabase
       .from('bookings')
-      .update({ status: 'attended' })
+      .update({ attended: true })
       .eq('id', booking.id)
 
     return jsonOk({ success: true, message: 'Checked in successfully!' })

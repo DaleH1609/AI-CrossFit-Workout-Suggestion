@@ -21,7 +21,13 @@ export function validateWorkoutWeek(data: unknown): data is WorkoutWeek {
   )
 }
 
-async function callClaude(prompt: string): Promise<WorkoutWeek | null> {
+interface TokenUsage { inputTokens: number; outputTokens: number }
+
+function addUsage(a: TokenUsage, b: TokenUsage): TokenUsage {
+  return { inputTokens: a.inputTokens + b.inputTokens, outputTokens: a.outputTokens + b.outputTokens }
+}
+
+async function callClaude(prompt: string): Promise<{ result: WorkoutWeek | null; usage: TokenUsage }> {
   const client = getClient()
   const message = await client.messages.create({
     model: 'claude-opus-4-6',
@@ -29,25 +35,26 @@ async function callClaude(prompt: string): Promise<WorkoutWeek | null> {
     messages: [{ role: 'user', content: prompt }],
   })
 
+  const usage: TokenUsage = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
   const raw = message.content[0].type === 'text' ? message.content[0].text : ''
   const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
   try {
     const parsed = JSON.parse(cleaned)
-    if (!Array.isArray(parsed)) return null
-    if (validateWorkoutWeek(parsed)) return parsed
+    if (!Array.isArray(parsed)) return { result: null, usage }
+    if (validateWorkoutWeek(parsed)) return { result: parsed, usage }
     // Accept partial results — keep individually-valid days, weekend fallback fills gaps
     const validDays = parsed.filter((d: unknown) =>
       typeof d === 'object' && d !== null &&
       typeof (d as Record<string, unknown>).day === 'string' &&
       Array.isArray((d as Record<string, unknown>).parts)
     )
-    return validDays.length >= 5 ? validDays as WorkoutWeek : null
+    return { result: validDays.length >= 5 ? validDays as WorkoutWeek : null, usage }
   } catch {
-    return null
+    return { result: null, usage }
   }
 }
 
-export async function generateScaling(week: WorkoutWeek): Promise<WorkoutWeek> {
+export async function generateScaling(week: WorkoutWeek): Promise<{ workouts: WorkoutWeek; usage: TokenUsage }> {
   const client = getClient()
   const prompt = `You are a CrossFit and fitness scaling expert. Given the following 7-day workout week as JSON, return the exact same JSON array with a "scaling" object added to each day. The "scaling" object must have three fields: "rx" (Rx/as-prescribed version), "scaled" (scaled version for intermediate athletes), and "beginner" (beginner-friendly version). Each field should be a plain text string describing the scaling adjustments.
 
@@ -62,6 +69,7 @@ Return ONLY a valid JSON array with the same structure but each day having an ad
     messages: [{ role: 'user', content: prompt }],
   })
 
+  const usage: TokenUsage = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
   const raw = message.content[0].type === 'text' ? message.content[0].text : ''
   // Strip markdown code fences if present
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
@@ -71,10 +79,11 @@ Return ONLY a valid JSON array with the same structure but each day having an ad
   }
   // Only take the scaling field from Claude's response — preserve all original day data
   // This prevents Claude from accidentally stripping parts/content for any day
-  return week.map(day => {
+  const workouts = week.map(day => {
     const scaledDay = (parsed as WorkoutWeek).find(d => d.day === day.day)
     return scaledDay?.scaling ? { ...day, scaling: scaledDay.scaling } : day
   })
+  return { workouts, usage }
 }
 
 export async function generateWorkouts(
@@ -82,23 +91,25 @@ export async function generateWorkouts(
   history: WorkoutWeek[],
   gymType: 'crossfit' | 'hyrox' = 'crossfit',
   editHistory: EditEntry[] = []
-): Promise<WorkoutWeek> {
+): Promise<{ workouts: WorkoutWeek; usage: TokenUsage }> {
   const prompt = buildGenerationPrompt(styleExamples, history, gymType, editHistory)
 
-  const result = await callClaude(prompt)
-  const raw = result ?? await callClaude(prompt)
-  if (!raw) throw new Error('Failed to generate valid workouts after 2 attempts')
+  const first = await callClaude(prompt)
+  if (first.result) return { workouts: first.result, usage: first.usage }
 
-  return raw
+  const second = await callClaude(prompt)
+  if (!second.result) throw new Error('Failed to generate valid workouts after 2 attempts')
+  return { workouts: second.result, usage: addUsage(first.usage, second.usage) }
 }
 
 export async function generateRationale(
   week: WorkoutWeek,
   history: WorkoutWeek[],
   gymType: 'crossfit' | 'hyrox' = 'crossfit'
-): Promise<WorkoutRationale | null> {
+): Promise<{ rationale: WorkoutRationale | null; usage: TokenUsage }> {
   const client = getClient()
   const prompt = buildRationalePrompt(week, history, gymType)
+  const zero: TokenUsage = { inputTokens: 0, outputTokens: 0 }
 
   try {
     const message = await client.messages.create({
@@ -106,6 +117,7 @@ export async function generateRationale(
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     })
+    const usage: TokenUsage = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
     const raw = message.content[0].type === 'text' ? message.content[0].text : ''
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
     const parsed = JSON.parse(cleaned)
@@ -114,16 +126,16 @@ export async function generateRationale(
       parsed.bullets.length >= 2 &&
       typeof parsed.summary === 'string'
     ) {
-      return parsed as WorkoutRationale
+      return { rationale: parsed as WorkoutRationale, usage }
     }
-    return null
+    return { rationale: null, usage }
   } catch {
-    return null
+    return { rationale: null, usage: zero }
   }
 }
 
 
-export async function generateDayScaling(day: WorkoutDay): Promise<WorkoutDay> {
+export async function generateDayScaling(day: WorkoutDay): Promise<{ day: WorkoutDay; usage: TokenUsage }> {
   const client = getClient()
   const prompt = `You are a CrossFit scaling expert. Given this single workout day as JSON, return the exact same object with a "scaling" field added. The "scaling" object must have three fields: "rx" (as-prescribed), "scaled" (intermediate), and "beginner". Each is a plain text string describing the adjustments.
 
@@ -138,13 +150,14 @@ Return ONLY valid JSON of the single day object with the scaling field added. No
     messages: [{ role: 'user', content: prompt }],
   })
 
+  const usage: TokenUsage = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
   const raw = message.content[0].type === 'text' ? message.content[0].text : ''
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
   try {
     const parsed = JSON.parse(text)
-    return parsed?.scaling ? { ...day, scaling: parsed.scaling } : day
+    return { day: parsed?.scaling ? { ...day, scaling: parsed.scaling } : day, usage }
   } catch {
-    return day
+    return { day, usage }
   }
 }
 
@@ -162,7 +175,7 @@ function validateMovementAnalysis(data: unknown): data is MovementAnalysis {
 
 export async function analyseMovementHistory(
   history: RecentWeek[]
-): Promise<MovementAnalysis | null> {
+): Promise<{ analysis: MovementAnalysis | null; usage: TokenUsage }> {
   const client = getClient()
   const prompt = buildMovementAnalysisPrompt(history)
 
@@ -172,11 +185,12 @@ export async function analyseMovementHistory(
     messages: [{ role: 'user', content: prompt }],
   })
 
+  const usage: TokenUsage = { inputTokens: message.usage.input_tokens, outputTokens: message.usage.output_tokens }
   const text = message.content[0].type === 'text' ? message.content[0].text : ''
   try {
     const parsed = JSON.parse(text)
-    return validateMovementAnalysis(parsed) ? parsed : null
+    return { analysis: validateMovementAnalysis(parsed) ? parsed : null, usage }
   } catch {
-    return null
+    return { analysis: null, usage }
   }
 }

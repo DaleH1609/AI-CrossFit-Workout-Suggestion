@@ -5,6 +5,7 @@
 // from the API-contract review.
 
 import { NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import type { Validator, Result } from '@/lib/validation/z'
 
 /**
@@ -32,6 +33,7 @@ export function jsonError(message: string, status = 400, init?: ResponseInit) {
  */
 export function jsonServerError(ctx: string, cause: unknown) {
   console.error(`[${ctx}] server error`, cause)
+  Sentry.captureException(cause, { tags: { ctx } })
   return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
 }
 

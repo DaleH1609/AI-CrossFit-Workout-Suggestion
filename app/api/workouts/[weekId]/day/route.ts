@@ -4,10 +4,9 @@ import { generateDayScaling } from '@/lib/claude/generate-workouts'
 import type { WorkoutDay } from '@/lib/types'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { checkAiLimit, incrementAiCalls } from '@/lib/ai/spend-limit'
+import { UUID_RE } from '@/lib/validation/z'
 
 export const maxDuration = 60
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export async function PATCH(req: Request, props: { params: Promise<{ weekId: string }> }) {
   const params = await props.params;
@@ -58,8 +57,10 @@ export async function PATCH(req: Request, props: { params: Promise<{ weekId: str
     const { limited: atLimit } = await checkAiLimit(userData.gym_id, supabase)
     if (atLimit) return jsonError('Monthly AI generation limit reached. Resets at the start of next month.', 429)
     try {
-      dayToSave = await generateDayScaling(updatedDay)
-      incrementAiCalls(userData.gym_id, supabase).catch(err => console.error('[day/route] incrementAiCalls failed', err))
+      const scaled = await generateDayScaling(updatedDay)
+      dayToSave = scaled.day
+      incrementAiCalls(userData.gym_id, supabase, { inputTokens: scaled.usage.inputTokens, outputTokens: scaled.usage.outputTokens })
+        .catch(err => console.error('[day/route] incrementAiCalls failed', err))
     } catch {
       // Scaling failed — save without it
     }

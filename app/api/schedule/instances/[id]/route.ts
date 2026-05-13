@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { requireOwnerAuth, isNextResponse } from '@/lib/auth-helpers'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+import { UUID_RE } from '@/lib/validation/z'
 
 // PATCH /api/schedule/instances/[id] — update coach assignment
 export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {

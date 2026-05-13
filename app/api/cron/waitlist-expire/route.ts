@@ -59,27 +59,20 @@ export async function GET(req: Request) {
 
   for (const booking of expiredBookings) {
     try {
-      // Idempotent cancel: only affects the row if it's still pending_confirmation.
-      // If a concurrent cron run or manual retrigger already handled this row,
-      // rows.length === 0 and we skip promotion (otherwise we'd double-promote).
-      const { data: cancelRows, error: cancelErr } = await supabase
-        .from('bookings')
-        .update({
-          status: 'cancelled',
-          cancelled_at: new Date().toISOString(),
-          confirmation_expires_at: null,
-          waitlist_position: null,
-        })
-        .eq('id', booking.id)
-        .eq('status', 'pending_confirmation')
-        .select('id')
+      // expire_pending_confirmation RPC (migration 063): idempotent cancel
+      // scoped to pending_confirmation.  If another concurrent cron run or the
+      // confirm route already handled this row, cancelled = false and we skip
+      // promotion — no double-promotion, no duplicate email.
+      const { data: expireResult, error: cancelErr } = await supabase
+        .rpc('expire_pending_confirmation', { p_booking_id: booking.id })
 
       if (cancelErr) {
         errors.push({ bookingId: booking.id, stage: 'cancel', err: cancelErr })
         continue
       }
 
-      if (!cancelRows || cancelRows.length === 0) {
+      const expired = expireResult as { cancelled: boolean; instance_id: string | null }
+      if (!expired?.cancelled) {
         // Already handled by someone else. Don't promote again.
         skipped++
         continue

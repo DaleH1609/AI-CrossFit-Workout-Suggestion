@@ -85,7 +85,7 @@ export default function MembersPage() {
   }
 
   async function handleActionDeletion(requestId: string, memberId: string) {
-    if (!confirm('Have you deleted this member's account? Mark request as actioned?')) return
+    if (!confirm("Have you deleted this member's account? Mark request as actioned?")) return
     await fetch('/api/admin/deletion-requests', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

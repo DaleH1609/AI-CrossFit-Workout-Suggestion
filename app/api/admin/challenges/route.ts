@@ -7,8 +7,9 @@ async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase.from('users').select('gym_id, role').eq('id', user.id).single()
+  const { data } = await supabase.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
   if (!data || !['owner', 'admin'].includes(data.role ?? '')) return null
+  if (data.revoked_at) return null
   return { gymId: data.gym_id as string }
 }
 

@@ -9,9 +9,10 @@ export async function GET() {
   const { data: { user } } = await supabaseUser.auth.getUser()
   if (!user) return jsonError('Unauthorized', 401)
 
-  const { data: userData } = await supabaseUser.from('users').select('gym_id, role').eq('id', user.id).single()
-  const u = userData as { gym_id: string; role: string } | null
+  const { data: userData } = await supabaseUser.from('users').select('gym_id, role, revoked_at').eq('id', user.id).single()
+  const u = userData as { gym_id: string; role: string; revoked_at: string | null } | null
   if (!u || !['owner', 'admin', 'coach'].includes(u.role ?? '')) return jsonError('Forbidden', 403)
+  if (u.revoked_at) return jsonError('Forbidden', 403)
 
   try {
     const supabase = createAdminClient()

@@ -4,6 +4,7 @@ import { requireMemberAuth, isNextResponse } from '@/lib/auth-helpers'
 import { promoteNextWaitlistMember } from '@/lib/bookings/waitlist'
 import { sendBookingConfirmed, sendBookingCancelled } from '@/lib/email/send'
 import { sendPushToUser } from '@/lib/push/send'
+import { dispatchWebhooks } from '@/lib/webhooks/dispatch'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -15,11 +16,12 @@ interface ClassInstance {
   id: string
   starts_at: string
   capacity: number
+  class_slot_templates: { name: string } | null
 }
 
 interface BookingWithInstance {
   id: string
-  class_instances: { starts_at: string; id: string }
+  class_instances: { starts_at: string; id: string; class_slot_templates: { name: string } | null }
 }
 
 interface GymSettings {
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
 
   // Fetch instance + gym settings in parallel
   const [{ data: instance }, { data: gymRaw }] = await Promise.all([
-    supabase.from('class_instances').select('id, starts_at, capacity').eq('id', instanceId).eq('gym_id', userData.gym_id).single<ClassInstance>(),
+    supabase.from('class_instances').select('id, starts_at, capacity, class_slot_templates(name)').eq('id', instanceId).eq('gym_id', userData.gym_id).single<ClassInstance>(),
     supabase.from('gyms').select('cancellation_cutoff_hours, waitlist_enabled, booking_advance_hours, notify_booking_confirmed, contact_email').eq('id', userData.gym_id).single(),
   ])
 
@@ -80,14 +82,11 @@ export async function POST(req: Request) {
     return jsonError('You already have a booking at this time', 409)
   }
 
-  // Check for an existing cancelled booking to pass to the atomic function
-  // (unique constraint on instance_id+user_id means we must UPDATE, not INSERT)
-  const { data: existing } = await supabase.from('bookings')
-    .select('id').eq('instance_id', instanceId).eq('user_id', user.id).eq('status', 'cancelled').maybeSingle()
-
   // Atomic capacity check + insert/update in a single serialised transaction.
   // The DB function holds a FOR UPDATE lock on the class_instances row so
-  // concurrent requests cannot race past the capacity check.
+  // concurrent requests cannot race past the capacity check. The function
+  // also discovers any existing cancelled booking internally (K8: migration
+  // 056), eliminating the pre-RPC SELECT race window.
   const { data: rpcResult, error: rpcError } = await createAdminClient()
     .rpc('insert_booking_atomic', {
       p_gym_id:           userData.gym_id,
@@ -95,7 +94,6 @@ export async function POST(req: Request) {
       p_user_id:          user.id,
       p_waitlist_enabled: waitlistEnabled,
       p_max_waitlist:     10,
-      p_existing_id:      existing?.id ?? null,
     })
 
   if (rpcError || !rpcResult) return jsonServerError('bookings POST', rpcError)
@@ -108,14 +106,19 @@ export async function POST(req: Request) {
 
   const { booking_id, status } = result as { booking_id: string; status: string }
 
-  if (status === 'confirmed' && notifyBookingConfirmed) {
-    try {
-      const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-      const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-      await sendBookingConfirmed(userData.email, userData.name, classDate, classTime, contactEmail)
-    } catch {
-      // Email failure must not roll back the booking
+  const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  const className = instance.class_slot_templates?.name ?? 'class'
+
+  if (status === 'confirmed') {
+    if (notifyBookingConfirmed) {
+      sendBookingConfirmed(userData.email, userData.name, classDate, classTime, contactEmail).catch(() => {})
     }
+    dispatchWebhooks(userData.gym_id, 'booking_confirmed', {
+      memberName: userData.name,
+      className,
+      classTime: `${classDate} ${classTime}`,
+    }).catch(err => console.error('[bookings POST] webhook dispatch failed', err))
   }
 
   return jsonOk({ booking: { id: booking_id, status } })
@@ -131,7 +134,7 @@ export async function DELETE(req: Request) {
   const { bookingId } = parsedDel
 
   const { data: booking } = await supabase.from('bookings')
-    .select('id, class_instances(starts_at, id)')
+    .select('id, class_instances(starts_at, id, class_slot_templates(name))')
     .eq('id', bookingId).eq('user_id', user.id).eq('gym_id', userData.gym_id).single<BookingWithInstance>()
 
   if (!booking) return jsonError('Booking not found', 404)
@@ -153,22 +156,24 @@ export async function DELETE(req: Request) {
     }
   }
 
-  // Use admin client: the narrowed member RLS (migration 053) revokes UPDATE
-  // from authenticated, so the user-scoped client would silently no-op.
-  const { error: cancelError } = await createAdminClient().from('bookings')
-    .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-    .eq('id', bookingId)
-    .eq('user_id', user.id)           // belt-and-braces: still scope to this user
-    .eq('gym_id', userData.gym_id)    // and this gym
+  // Use the cancel_booking RPC (migration 063): encodes the user+gym ownership
+  // check and the valid-status guard in one atomic call via the admin client.
+  // The admin client is required because the narrowed member RLS (migration 053)
+  // revokes direct UPDATE from authenticated users.
+  const { error: cancelError } = await createAdminClient()
+    .rpc('cancel_booking', { p_booking_id: bookingId, p_gym_id: userData.gym_id, p_user_id: user.id })
   if (cancelError) return jsonServerError('bookings DELETE', cancelError)
 
-  try {
-    const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-    const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    await sendBookingCancelled(userData.email, userData.name, classDate, classTime, contactEmail)
-  } catch {
-    // Email failure must not roll back the cancellation
-  }
+  const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const classTime = new Date(instance.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  const className = instance.class_slot_templates?.name ?? 'class'
+
+  sendBookingCancelled(userData.email, userData.name, classDate, classTime, contactEmail).catch(() => {})
+  dispatchWebhooks(userData.gym_id, 'booking_cancelled', {
+    memberName: userData.name,
+    className,
+    classTime: `${classDate} ${classTime}`,
+  }).catch(err => console.error('[bookings DELETE] webhook dispatch failed', err))
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
   // Use admin client: the promotion UPDATE targets another member's row and

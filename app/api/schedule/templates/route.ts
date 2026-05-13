@@ -127,6 +127,36 @@ export async function PATCH(req: Request) {
     .select().single()
 
   if (error) return jsonServerError('schedule/templates PATCH', error)
+
+  // A4: Propagate template changes to future class_instances that store
+  // denormalized copies of these fields.  This keeps instances in sync when
+  // an owner edits the template rather than waiting for the next cron run.
+  //
+  // Capacity propagation is safe here because we already verified above that
+  // the new capacity is not below the peak confirmed-booking count on any
+  // future instance.  name and workout_notes have no booking-count constraint.
+  //
+  // local_time / starts_at are not in patchSchema (changing a class time is a
+  // separate, more destructive operation handled elsewhere), so they are not
+  // propagated here.
+  const instanceUpdates: Record<string, unknown> = {}
+  if (parsed.capacity !== undefined) instanceUpdates.capacity = parsed.capacity
+  if (parsed.name !== undefined) instanceUpdates.name = parsed.name || 'WOD'
+  if (parsed.workout_notes !== undefined) instanceUpdates.workout_notes = parsed.workout_notes || null
+
+  if (Object.keys(instanceUpdates).length > 0) {
+    const { error: propagateErr } = await supabase
+      .from('class_instances')
+      .update(instanceUpdates)
+      .eq('template_id', parsed.id)
+      .gte('starts_at', new Date().toISOString())
+
+    if (propagateErr) {
+      // Non-fatal: template already updated; log and continue.
+      console.error('[schedule/templates PATCH] instance propagation failed', propagateErr)
+    }
+  }
+
   return jsonOk({ template: data })
 }
 

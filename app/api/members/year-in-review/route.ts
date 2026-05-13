@@ -1,6 +1,5 @@
 export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 
 async function requireMember() {
@@ -9,7 +8,7 @@ async function requireMember() {
   if (!user) return null
   const { data } = await supabase.from('users').select('gym_id').eq('id', user.id).single()
   if (!data) return null
-  return { userId: user.id, gymId: data.gym_id as string }
+  return { supabase, userId: user.id, gymId: data.gym_id as string }
 }
 
 // GET /api/members/year-in-review?year=2026
@@ -23,7 +22,7 @@ export async function GET(req: Request) {
   const yearEnd = `${year + 1}-01-01`
 
   try {
-    const supabase = createAdminClient()
+    const { supabase } = auth
 
     const [{ data: bookings }, { data: userData }] = await Promise.all([
       supabase
