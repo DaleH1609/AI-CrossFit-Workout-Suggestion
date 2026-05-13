@@ -457,7 +457,7 @@ export default function SettingsPage() {
               Give your gym a public URL for your WOD blog and gym info. Share it with prospects and the broader community.
             </p>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm text-secondary whitespace-nowrap">/gyms/</span>
+              <span className="text-sm text-secondary whitespace-nowrap">/gym/</span>
               <input
                 value={gymSlug}
                 onChange={e => { setGymSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')); setSlugError('') }}
@@ -488,7 +488,7 @@ export default function SettingsPage() {
             {slugError && <p className="text-danger text-xs mt-1">{slugError}</p>}
             {gymSlug && (
               <div className="flex items-center gap-3 mt-3">
-                <a href={`/gyms/${gymSlug}`} target="_blank" rel="noopener noreferrer"
+                <a href={`/gym/${gymSlug}`} target="_blank" rel="noopener noreferrer"
                   className="text-xs text-accent hover:underline">
                   View public page ↗
                 </a>

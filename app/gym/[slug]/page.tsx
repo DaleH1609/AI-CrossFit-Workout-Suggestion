@@ -1,4 +1,4 @@
-// app/gyms/[slug]/page.tsx
+// app/gym/[slug]/page.tsx
 // Public gym profile + WOD blog — no auth required
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
