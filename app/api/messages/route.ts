@@ -5,6 +5,8 @@ import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 interface Message {
   id: string
   conversation_id: string
@@ -33,7 +35,7 @@ async function getDualRoleUser() {
 
   const { data: userData } = await supabase
     .from('users')
-    .select('gym_id, role, name, email, revoked_at')
+    .select('gym_id, role, revoked_at')
     .eq('id', user.id)
     .single()
 
@@ -42,8 +44,6 @@ async function getDualRoleUser() {
   const u = userData as {
     gym_id: string
     role: string
-    name: string
-    email: string
     revoked_at: string | null
   }
 
@@ -121,7 +121,6 @@ export async function POST(req: Request) {
     const { error: upsertError } = await supabase
       .from('conversations')
       .insert({ gym_id: userData.gym_id, member_id: user.id })
-      .throwOnError()
       // Supabase insert returns an error code for conflicts; we handle below
 
     // Ignore unique constraint violations (conversation already exists)
@@ -138,7 +137,7 @@ export async function POST(req: Request) {
       .single()
 
     if (convSelectError || !conv) {
-      return jsonServerError('messages POST member select conversation', convSelectError)
+      return jsonServerError('messages POST member select conversation', convSelectError ?? new Error('No rows returned'))
     }
 
     conversationId = conv.id
@@ -161,7 +160,7 @@ export async function POST(req: Request) {
 
     // 4. Increment owner's unread count via service-role client (SECURITY DEFINER RPC)
     const { error: rpcError } = await createAdminClient()
-      .rpc('increment_owner_unread' as never, { p_conversation_id: conversationId } as never)
+      .rpc('increment_owner_unread' as never, { conv_id: conversationId } as never)
 
     if (rpcError) {
       // Non-fatal: message was saved; log but don't fail the request
@@ -205,7 +204,7 @@ export async function POST(req: Request) {
 
     // 2. Increment member's unread count via service-role client (SECURITY DEFINER RPC)
     const { error: rpcError } = await createAdminClient()
-      .rpc('increment_member_unread' as never, { p_conversation_id: conversationId } as never)
+      .rpc('increment_member_unread' as never, { conv_id: conversationId } as never)
 
     if (rpcError) {
       // Non-fatal: message was saved; log but don't fail the request
