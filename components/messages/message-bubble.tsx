@@ -21,6 +21,7 @@ interface MessageBubbleProps {
 
 function formatTimestamp(isoString: string): string {
   const date = new Date(isoString)
+  if (isNaN(date.getTime())) return ''
   const now = new Date()
   const isToday =
     date.getFullYear() === now.getFullYear() &&

@@ -13,6 +13,8 @@ interface MessageThreadProps {
 }
 
 export function MessageThread({
+  // conversationId is exposed as a prop for the parent page to pass through;
+  // Realtime subscriptions are set up at the page level, not within this component.
   conversationId: _conversationId,
   currentUserId,
   initialMessages,
@@ -20,16 +22,20 @@ export function MessageThread({
   disabled,
 }: MessageThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
+  const isFirstRender = useRef(true)
 
-  // Scroll to bottom on mount and whenever messages change
+  // Scroll to bottom on mount (instant) and whenever messages change (smooth)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({
+      behavior: isFirstRender.current ? 'instant' : 'smooth',
+    })
+    isFirstRender.current = false
   }, [initialMessages])
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Scrollable message list */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1" aria-live="polite">
         {initialMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-secondary text-sm">

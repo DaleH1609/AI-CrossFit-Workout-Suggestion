@@ -19,6 +19,7 @@ export function MessageInput({
 }: MessageInputProps) {
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const isDisabled = disabled || sending
@@ -28,17 +29,19 @@ export function MessageInput({
 
   const handleSend = useCallback(async () => {
     const trimmed = body.trim()
-    if (!trimmed || isDisabled) return
+    if (!trimmed || disabled || sending) return
 
     setSending(true)
     try {
       await onSend(trimmed)
       setBody('')
       textareaRef.current?.focus()
+    } catch {
+      setError('Failed to send. Try again.')
     } finally {
       setSending(false)
     }
-  }, [body, isDisabled, onSend])
+  }, [body, disabled, sending, onSend])
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -57,8 +60,12 @@ export function MessageInput({
           <textarea
             ref={textareaRef}
             value={body}
-            onChange={(e) => setBody(e.target.value.slice(0, MAX_CHARS))}
+            onChange={(e) => {
+              setBody(e.target.value.slice(0, MAX_CHARS))
+              setError(null)
+            }}
             onKeyDown={handleKeyDown}
+            aria-label={placeholder ?? 'Message'}
             placeholder={placeholder}
             disabled={isDisabled}
             rows={2}
@@ -109,9 +116,10 @@ export function MessageInput({
           )}
         </button>
       </div>
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       <div className="flex items-center justify-between px-0.5">
         <p className="text-[11px] text-secondary">
-          {sending ? 'Sending…' : 'Cmd+Enter to send'}
+          {sending ? 'Sending…' : 'Ctrl/Cmd+Enter to send'}
         </p>
         {showCharCount && (
           <p className={cn('text-[11px]', atLimit ? 'text-danger' : 'text-secondary')}>
