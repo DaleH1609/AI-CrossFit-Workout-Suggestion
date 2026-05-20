@@ -1,9 +1,9 @@
 // app/api/messages/route.ts
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { z } from '@/lib/validation/z'
 import { parseBody, jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { NextResponse } from 'next/server'
+import { requireMessagingAuth, isNextResponse } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,38 +26,11 @@ const postOwnerSchema = z.object({
 })
 
 // ---------------------------------------------------------------------------
-// Dual-role auth helper
-// ---------------------------------------------------------------------------
-async function getDualRoleUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: jsonError('Unauthorized', 401) } as const
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('gym_id, role, revoked_at')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) return { error: jsonError('Unauthorized', 401) } as const
-
-  const u = userData as {
-    gym_id: string
-    role: string
-    revoked_at: string | null
-  }
-
-  if (u.revoked_at) return { error: jsonError('Revoked', 403) } as const
-
-  return { supabase, user, userData: u } as const
-}
-
-// ---------------------------------------------------------------------------
 // GET /api/messages?conversationId=<uuid>
 // ---------------------------------------------------------------------------
 export async function GET(req: Request) {
-  const auth = await getDualRoleUser()
-  if ('error' in auth) return auth.error
+  const auth = await requireMessagingAuth()
+  if (isNextResponse(auth)) return auth
 
   const { supabase, user, userData } = auth
 
@@ -103,8 +76,8 @@ export async function GET(req: Request) {
 // POST /api/messages
 // ---------------------------------------------------------------------------
 export async function POST(req: Request) {
-  const auth = await getDualRoleUser()
-  if ('error' in auth) return auth.error
+  const auth = await requireMessagingAuth()
+  if (isNextResponse(auth)) return auth
 
   const { supabase, user, userData } = auth
 

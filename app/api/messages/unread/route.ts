@@ -1,42 +1,15 @@
 // app/api/messages/unread/route.ts
-import { createClient } from '@/lib/supabase/server'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
+import { requireMessagingAuth, isNextResponse } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
-
-// ---------------------------------------------------------------------------
-// Dual-role auth helper (mirrors the pattern in app/api/messages/route.ts)
-// ---------------------------------------------------------------------------
-async function getDualRoleUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: jsonError('Unauthorized', 401) } as const
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('gym_id, role, revoked_at')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) return { error: jsonError('Unauthorized', 401) } as const
-
-  const u = userData as {
-    gym_id: string
-    role: string
-    revoked_at: string | null
-  }
-
-  if (u.revoked_at) return { error: jsonError('Revoked', 403) } as const
-
-  return { supabase, user, userData: u } as const
-}
 
 // ---------------------------------------------------------------------------
 // GET /api/messages/unread — get unread count(s)
 // ---------------------------------------------------------------------------
 export async function GET() {
-  const auth = await getDualRoleUser()
-  if ('error' in auth) return auth.error
+  const auth = await requireMessagingAuth()
+  if (isNextResponse(auth)) return auth
 
   const { supabase, user, userData } = auth
 

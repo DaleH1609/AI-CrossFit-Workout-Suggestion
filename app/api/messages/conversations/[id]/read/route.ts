@@ -1,37 +1,10 @@
 // app/api/messages/conversations/[id]/read/route.ts
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jsonOk, jsonError, jsonServerError } from '@/lib/api/response'
 import { z } from '@/lib/validation/z'
+import { requireMessagingAuth, isNextResponse } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
-
-// ---------------------------------------------------------------------------
-// Dual-role auth helper (mirrors the pattern in app/api/messages/route.ts)
-// ---------------------------------------------------------------------------
-async function getDualRoleUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: jsonError('Unauthorized', 401) } as const
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('gym_id, role, revoked_at')
-    .eq('id', user.id)
-    .single()
-
-  if (!userData) return { error: jsonError('Unauthorized', 401) } as const
-
-  const u = userData as {
-    gym_id: string
-    role: string
-    revoked_at: string | null
-  }
-
-  if (u.revoked_at) return { error: jsonError('Revoked', 403) } as const
-
-  return { supabase, user, userData: u } as const
-}
 
 // ---------------------------------------------------------------------------
 // PATCH /api/messages/conversations/[id]/read — mark conversation as read
@@ -40,8 +13,8 @@ export async function PATCH(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getDualRoleUser()
-  if ('error' in auth) return auth.error
+  const auth = await requireMessagingAuth()
+  if (isNextResponse(auth)) return auth
 
   const { supabase, user, userData } = auth
 
