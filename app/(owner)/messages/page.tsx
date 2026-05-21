@@ -39,8 +39,8 @@ export default function OwnerMessagesPage() {
           setFetchError('Failed to load conversations.')
           return
         }
-        const data = (await res.json()) as ConversationWithMember[]
-        setConversations(data)
+        const data = (await res.json()) as { conversations: ConversationWithMember[] }
+        setConversations(data.conversations)
       } finally {
         setLoading(false)
       }
@@ -122,10 +122,10 @@ export default function OwnerMessagesPage() {
     // Fetch messages for this conversation
     const res = await fetch(`/api/messages?conversationId=${conversationId}`)
     if (res.ok) {
-      const data = (await res.json()) as Message[]
+      const data = (await res.json()) as { messages: Message[] }
       // Only update if user hasn't selected a different conversation since fetch started
       if (selectedConvIdRef.current !== conversationId) return
-      setMessages(data)
+      setMessages(data.messages)
     }
   }
 
@@ -139,7 +139,7 @@ export default function OwnerMessagesPage() {
         body: JSON.stringify({ body, conversationId: selectedConversationId }),
       })
       if (res.ok) {
-        const newMsg = (await res.json()) as Message
+        const { message: newMsg } = (await res.json()) as { message: Message }
         // Append optimistically (Realtime dedup will handle duplicates)
         setMessages((prev) => [...prev, newMsg])
         // Update conversation preview + timestamp

@@ -77,8 +77,8 @@ export function MemberNav() {
       try {
         const res = await fetch('/api/messages/unread')
         if (res.ok) {
-          const data = await res.json() as { member_unread?: number }
-          setMemberUnread(data.member_unread ?? 0)
+          const data = await res.json() as { unread?: number }
+          setMemberUnread(data.unread ?? 0)
         }
       } catch {
         // silently ignore

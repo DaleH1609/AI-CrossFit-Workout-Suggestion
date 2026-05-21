@@ -118,8 +118,8 @@ export function OwnerSidebar() {
       try {
         const res = await fetch('/api/messages/unread')
         if (res.ok) {
-          const data = await res.json() as { owner_unread?: number }
-          setOwnerUnread(data.owner_unread ?? 0)
+          const data = await res.json() as { unread?: number }
+          setOwnerUnread(data.unread ?? 0)
         }
       } catch { /* silent */ }
     }
