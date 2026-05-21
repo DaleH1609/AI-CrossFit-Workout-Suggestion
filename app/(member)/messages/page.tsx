@@ -12,24 +12,21 @@ export default function MemberMessagesPage() {
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [sendingMessage, setSendingMessage] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   // Keep a stable ref for use inside Realtime callbacks
   const conversationIdRef = useRef<string | null>(null)
   conversationIdRef.current = conversationId
-
-  // Fetch current user id on mount
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setCurrentUserId(data.user.id)
-    })
-  }, [])
 
   // On mount: discover conversation via unread endpoint, then load messages
   useEffect(() => {
     async function init() {
       setLoading(true)
       try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) setCurrentUserId(user.id)
+
         const unreadRes = await fetch('/api/messages/unread')
         if (!unreadRes.ok) return
 
@@ -51,10 +48,12 @@ export default function MemberMessagesPage() {
 
         // Load messages
         const msgRes = await fetch(`/api/messages?conversationId=${convId}`)
-        if (msgRes.ok) {
-          const msgData = (await msgRes.json()) as { messages: Message[] }
-          setMessages(msgData.messages)
+        if (!msgRes.ok) {
+          setLoadError('Failed to load messages.')
+          return
         }
+        const msgData = (await msgRes.json()) as { messages: Message[] }
+        setMessages(msgData.messages)
 
         // Mark as read
         if (unreadData.unread > 0) {
@@ -120,7 +119,7 @@ export default function MemberMessagesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body }),
       })
-      if (!res.ok) return
+      if (!res.ok) throw new Error('Failed to send')
 
       const data = (await res.json()) as { message: Message }
       const newMsg = data.message
@@ -184,6 +183,11 @@ export default function MemberMessagesPage() {
         )}
       </div>
 
+      {/* Load error */}
+      {loadError && (
+        <p className="text-sm text-red-500 text-center p-4">{loadError}</p>
+      )}
+
       {/* Thread or empty state */}
       <div className="flex-1 overflow-hidden">
         {currentUserId ? (
@@ -192,7 +196,7 @@ export default function MemberMessagesPage() {
             currentUserId={currentUserId}
             initialMessages={messages}
             onSend={handleSend}
-            disabled={sendingMessage}
+            disabled={sendingMessage || loading}
           />
         ) : (
           <div className="flex items-center justify-center h-full">

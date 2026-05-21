@@ -1,3 +1,7 @@
+// Note: This loading.tsx is not shown by Next.js for 'use client' pages.
+// The member messages page handles its own loading state inline.
+// Kept as a placeholder in case the page is refactored to use a server wrapper.
+
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function MemberMessagesLoading() {
