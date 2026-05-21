@@ -70,7 +70,6 @@ const nav = [
 
 export function MemberNav() {
   const path = usePathname()
-  const supabase = createClient()
   const [memberUnread, setMemberUnread] = useState(0)
 
   useEffect(() => {
@@ -91,6 +90,7 @@ export function MemberNav() {
   }, [])
 
   async function signOut() {
+    const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
@@ -105,7 +105,7 @@ export function MemberNav() {
             <Link key={item.href} href={item.href}
               className={cn('relative text-sm transition-colors', path === item.href ? 'text-accent' : 'text-secondary hover:text-foreground')}>
               {item.label}
-              {item.href === '/messages' && memberUnread > 0 && (
+              {item.href === '/messages' && memberUnread > 0 && path !== '/messages' && (
                 <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-accent" />
               )}
             </Link>

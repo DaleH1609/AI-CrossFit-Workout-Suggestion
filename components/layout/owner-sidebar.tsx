@@ -94,40 +94,39 @@ const nav = [
 ]
 
 // ─── Unread badge for Messages ────────────────────────────────────────────────
-function MessagesUnreadBadge({ expanded }: { expanded: boolean }) {
-  const [unread, setUnread] = useState(0)
-
-  useEffect(() => {
-    async function fetchUnread() {
-      try {
-        const res = await fetch('/api/messages/unread')
-        if (res.ok) {
-          const data = await res.json() as { owner_unread?: number }
-          setUnread(data.owner_unread ?? 0)
-        }
-      } catch {
-        // silently ignore
-      }
-    }
-    fetchUnread()
-    const interval = setInterval(fetchUnread, 30_000)
-    return () => clearInterval(interval)
-  }, [])
-
-  if (unread === 0) return null
+function MessagesUnreadBadge({ count, expanded }: { count: number; expanded: boolean }) {
+  if (count === 0) return null
+  const display = count > 99 ? '99+' : String(count)
 
   return (
     <span className={cn(
       'inline-flex items-center justify-center rounded-full bg-accent text-background font-bold leading-none',
       expanded ? 'ml-auto text-[10px] min-w-[18px] h-[18px] px-1' : 'absolute top-1 right-1 text-[9px] min-w-[14px] h-[14px]'
     )}>
-      {unread > 99 ? '99+' : unread}
+      {display}
     </span>
   )
 }
 
 export function OwnerSidebar() {
   const path = usePathname()
+
+  // Unread messages count (single poll shared by mobile and desktop)
+  const [ownerUnread, setOwnerUnread] = useState(0)
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch('/api/messages/unread')
+        if (res.ok) {
+          const data = await res.json() as { owner_unread?: number }
+          setOwnerUnread(data.owner_unread ?? 0)
+        }
+      } catch { /* silent */ }
+    }
+    fetchUnread()
+    const id = setInterval(fetchUnread, 30_000)
+    return () => clearInterval(id)
+  }, [])
 
   // Mobile state
   const [isOpen, setIsOpen] = useState(false)
@@ -190,7 +189,7 @@ export function OwnerSidebar() {
                 )}>
                 <Icon />
                 {label}
-                {isMessages && <MessagesUnreadBadge expanded={true} />}
+                {isMessages && <MessagesUnreadBadge count={ownerUnread} expanded={true} />}
               </Link>
             )
           })}
@@ -249,7 +248,7 @@ export function OwnerSidebar() {
               >
                 <span className="shrink-0"><Icon /></span>
                 {expanded && <span className="text-sm">{label}</span>}
-                {isMessages && <MessagesUnreadBadge expanded={expanded} />}
+                {isMessages && <MessagesUnreadBadge count={ownerUnread} expanded={expanded} />}
               </Link>
             )
           })}
