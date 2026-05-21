@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -63,6 +63,13 @@ function IconPencil() {
     </svg>
   )
 }
+function IconChat() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
 function IconFunnel() {
   return (
     <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -80,10 +87,44 @@ const nav = [
   { href: '/members',       label: 'Members',        Icon: IconUsers    },
   { href: '/leads',         label: 'Leads',          Icon: IconFunnel   },
   { href: '/reports',       label: 'Reports',        Icon: IconSparkle  },
-  { href: '/challenges',    label: 'Challenges',     Icon: IconSparkle  },
+  { href: '/manage-challenges', label: 'Challenges', Icon: IconSparkle  },
   { href: '/wod-blog',      label: 'WOD Blog',       Icon: IconPencil   },
+  { href: '/messages',      label: 'Messages',       Icon: IconChat     },
   { href: '/settings',      label: 'Settings',       Icon: IconSettings },
 ]
+
+// ─── Unread badge for Messages ────────────────────────────────────────────────
+function MessagesUnreadBadge({ expanded }: { expanded: boolean }) {
+  const [unread, setUnread] = useState(0)
+
+  useEffect(() => {
+    async function fetchUnread() {
+      try {
+        const res = await fetch('/api/messages/unread')
+        if (res.ok) {
+          const data = await res.json() as { owner_unread?: number }
+          setUnread(data.owner_unread ?? 0)
+        }
+      } catch {
+        // silently ignore
+      }
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 30_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (unread === 0) return null
+
+  return (
+    <span className={cn(
+      'inline-flex items-center justify-center rounded-full bg-accent text-background font-bold leading-none',
+      expanded ? 'ml-auto text-[10px] min-w-[18px] h-[18px] px-1' : 'absolute top-1 right-1 text-[9px] min-w-[14px] h-[14px]'
+    )}>
+      {unread > 99 ? '99+' : unread}
+    </span>
+  )
+}
 
 export function OwnerSidebar() {
   const path = usePathname()
@@ -140,6 +181,7 @@ export function OwnerSidebar() {
         <nav className="flex-1 py-4 px-3 space-y-0.5">
           {nav.map(({ href, label, Icon }) => {
             const isActive = path === href
+            const isMessages = href === '/messages'
             return (
               <Link key={href} href={href} onClick={() => setIsOpen(false)}
                 className={cn(
@@ -148,6 +190,7 @@ export function OwnerSidebar() {
                 )}>
                 <Icon />
                 {label}
+                {isMessages && <MessagesUnreadBadge expanded={true} />}
               </Link>
             )
           })}
@@ -190,13 +233,14 @@ export function OwnerSidebar() {
         <nav className="flex-1 py-3 px-2 space-y-0.5">
           {nav.map(({ href, label, Icon }) => {
             const isActive = path === href
+            const isMessages = href === '/messages'
             return (
               <Link
                 key={href}
                 href={href}
                 title={!expanded ? label : undefined}
                 className={cn(
-                  'flex items-center gap-3 py-2.5 rounded-md transition-colors border-l-2 whitespace-nowrap',
+                  'relative flex items-center gap-3 py-2.5 rounded-md transition-colors border-l-2 whitespace-nowrap',
                   expanded ? 'px-3' : 'justify-center px-0',
                   isActive
                     ? 'border-accent text-accent bg-accent-5'
@@ -205,6 +249,7 @@ export function OwnerSidebar() {
               >
                 <span className="shrink-0"><Icon /></span>
                 {expanded && <span className="text-sm">{label}</span>}
+                {isMessages && <MessagesUnreadBadge expanded={expanded} />}
               </Link>
             )
           })}

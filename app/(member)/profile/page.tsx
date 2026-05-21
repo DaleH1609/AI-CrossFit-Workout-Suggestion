@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { SkillTracker } from '@/components/member/skill-tracker'
 import { MemberBadges } from '@/components/member/badges'
@@ -143,6 +144,18 @@ export default function ProfilePage() {
           </p>
         </div>
       </div>
+
+      {/* Message your gym */}
+      <Link
+        href="/messages"
+        className="flex items-center gap-2 text-sm text-secondary hover:text-foreground transition-colors mb-8 group"
+      >
+        <svg aria-hidden="true" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Message your gym
+        <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+      </Link>
 
       {/* Attendance stats */}
       <div className="grid grid-cols-3 gap-3 mb-8">

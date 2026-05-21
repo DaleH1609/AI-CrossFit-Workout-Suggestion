@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { KovaLogo } from '@/components/ui/kova-logo'
@@ -47,6 +48,15 @@ const nav = [
     ),
   },
   {
+    href: '/messages',
+    label: 'Messages',
+    icon: (
+      <svg aria-hidden="true" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
     href: '/profile',
     label: 'Profile',
     icon: (
@@ -61,6 +71,24 @@ const nav = [
 export function MemberNav() {
   const path = usePathname()
   const supabase = createClient()
+  const [memberUnread, setMemberUnread] = useState(0)
+
+  useEffect(() => {
+    async function fetchUnread() {
+      try {
+        const res = await fetch('/api/messages/unread')
+        if (res.ok) {
+          const data = await res.json() as { member_unread?: number }
+          setMemberUnread(data.member_unread ?? 0)
+        }
+      } catch {
+        // silently ignore
+      }
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 30_000)
+    return () => clearInterval(interval)
+  }, [])
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -75,8 +103,11 @@ export function MemberNav() {
         <div className="flex items-center gap-6">
           {nav.map(item => (
             <Link key={item.href} href={item.href}
-              className={cn('text-sm transition-colors', path === item.href ? 'text-accent' : 'text-secondary hover:text-foreground')}>
+              className={cn('relative text-sm transition-colors', path === item.href ? 'text-accent' : 'text-secondary hover:text-foreground')}>
               {item.label}
+              {item.href === '/messages' && memberUnread > 0 && (
+                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-accent" />
+              )}
             </Link>
           ))}
           <ThemeToggle />
@@ -95,13 +126,19 @@ export function MemberNav() {
         <div className="flex items-center">
           {nav.map(item => {
             const isActive = path === item.href
+            const showUnread = item.href === '/messages' && memberUnread > 0 && !isActive
             return (
               <Link key={item.href} href={item.href}
                 className={cn(
                   'flex-1 flex flex-col items-center gap-1 py-3 transition-colors',
                   isActive ? 'text-accent' : 'text-secondary'
                 )}>
-                {item.icon}
+                <span className="relative">
+                  {item.icon}
+                  {showUnread && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent" />
+                  )}
+                </span>
                 <span className="text-[10px] tracking-wide">{item.label}</span>
                 {isActive && <span className="w-1 h-1 rounded-full bg-accent" />}
               </Link>
