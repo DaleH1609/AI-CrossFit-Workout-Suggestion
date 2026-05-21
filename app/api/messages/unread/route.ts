@@ -17,14 +17,17 @@ export async function GET() {
     // Return member_unread for their own conversation (0 if none exists)
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
-      .select('member_unread')
+      .select('id, member_unread')
       .eq('gym_id', userData.gym_id)
       .eq('member_id', user.id)
       .maybeSingle()
 
     if (convError) return jsonServerError('unread GET member lookup', convError)
 
-    return jsonOk({ unread: conversation?.member_unread ?? 0 })
+    return jsonOk({
+      unread: conversation?.member_unread ?? 0,
+      conversation_id: conversation?.id ?? null,
+    })
 
   } else if (userData.role === 'owner') {
     // Return sum of owner_unread across all conversations in their gym
