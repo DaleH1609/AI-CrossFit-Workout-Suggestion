@@ -15,6 +15,7 @@ export default function OwnerMessagesPage() {
   const [loading, setLoading] = useState(true)
   const [sendingMessage, setSendingMessage] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   // Keep a ref to selectedConversationId for use inside Realtime callbacks
   const selectedConvIdRef = useRef<string | null>(null)
@@ -34,10 +35,12 @@ export default function OwnerMessagesPage() {
       setLoading(true)
       try {
         const res = await fetch('/api/messages/conversations')
-        if (res.ok) {
-          const data = (await res.json()) as ConversationWithMember[]
-          setConversations(data)
+        if (!res.ok) {
+          setFetchError('Failed to load conversations.')
+          return
         }
+        const data = (await res.json()) as ConversationWithMember[]
+        setConversations(data)
       } finally {
         setLoading(false)
       }
@@ -45,9 +48,11 @@ export default function OwnerMessagesPage() {
     loadConversations()
   }, [])
 
+  // Derive gymId for the Realtime subscription
+  const gymId = conversations[0]?.gym_id ?? null
+
   // Set up Supabase Realtime after conversations are loaded
   useEffect(() => {
-    const gymId = conversations[0]?.gym_id
     if (!gymId) return
 
     const supabase = createClient()
@@ -79,6 +84,7 @@ export default function OwnerMessagesPage() {
             prev.map((conv) => {
               if (conv.id !== newMsg.conversation_id) return conv
               const isSelected = newMsg.conversation_id === currentSelected
+              // TODO: skip own messages to avoid incrementing owner_unread for self-sent messages
               return {
                 ...conv,
                 last_message_at: newMsg.created_at,
@@ -94,9 +100,10 @@ export default function OwnerMessagesPage() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [conversations.length > 0 ? conversations[0]?.gym_id : null]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [gymId])
 
   async function handleSelectConversation(conversationId: string) {
+    selectedConvIdRef.current = conversationId
     setSelectedConversationId(conversationId)
     setMessages([])
 
@@ -116,6 +123,8 @@ export default function OwnerMessagesPage() {
     const res = await fetch(`/api/messages?conversationId=${conversationId}`)
     if (res.ok) {
       const data = (await res.json()) as Message[]
+      // Only update if user hasn't selected a different conversation since fetch started
+      if (selectedConvIdRef.current !== conversationId) return
       setMessages(data)
     }
   }
@@ -190,6 +199,8 @@ export default function OwnerMessagesPage() {
               Loading conversations…
             </div>
           </div>
+        ) : fetchError ? (
+          <p className="text-sm text-red-500 p-4">{fetchError}</p>
         ) : (
           <div className="flex-1 overflow-hidden">
             <ConversationList
