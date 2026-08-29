@@ -351,23 +351,25 @@ export default function HomePage() {
         {/* Change 5: AI Generation hero feature — full-width callout above the grid */}
         <FadeIn>
           <div className="bg-surface border-y border-border">
-            <div className="max-w-6xl mx-auto px-8 py-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="w-full px-6 sm:px-10 lg:px-16 py-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-14 lg:gap-20 items-center">
 
               {/* Copy */}
               <div>
-                <div className="flex items-center gap-2 mb-5">
-                  <Lightning size={14} weight="fill" className="text-accent" />
-                  <span className="text-xs font-bold tracking-widest text-accent uppercase">Signature Feature</span>
+                <div className="flex items-center gap-2.5 mb-6">
+                  <Lightning size={13} weight="fill" className="text-accent" />
+                  <span className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase">Signature Feature</span>
                 </div>
-                <h3 className="font-display text-3xl font-bold text-foreground tracking-tight mb-4">
-                  Your whole week,<br />written by AI.
-                </h3>
-                <p className="text-base text-secondary leading-relaxed mb-6">
+                <RevealText
+                  as="h3"
+                  lines={['Your whole week,', <span key="a" className="text-accent">written by AI.</span>]}
+                  className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)] mb-6"
+                />
+                <p className="text-base text-secondary leading-relaxed mb-8 max-w-md text-pretty">
                   Tell KOVA your gym&apos;s training style once. It generates balanced, intelligent programming — strength cycles, metcons, skill work, and Olympic lifting — that genuinely matches how you coach.
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {['CrossFit', 'Hyrox', 'Strength Focus', 'Skill Bias'].map(tag => (
-                    <span key={tag} className="px-3 py-1.5 text-xs font-semibold rounded-btn bg-accent-10 border border-accent/20 text-accent">
+                    <span key={tag} className="px-4 py-2 font-mono text-[10px] tracking-[0.15em] uppercase rounded-full bg-accent-10 border border-accent/25 text-accent">
                       {tag}
                     </span>
                   ))}
