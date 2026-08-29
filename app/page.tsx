@@ -118,7 +118,7 @@ export default function HomePage() {
               className="hero-fade-up text-base text-secondary leading-relaxed max-w-md mb-10"
               style={{ animationDelay: '0.25s' }}
             >
-              Most coaches spend 3-5 hours a week writing workouts. KOVA generates your full weekly program in under 30 seconds - tailored to your coaching style, with every scaling version included.
+              Most coaches spend hours a week writing workouts. KOVA writes your full week in under 30 seconds.
             </p>
 
             <div
@@ -136,18 +136,6 @@ export default function HomePage() {
               <Link href="/login" className="text-sm text-secondary border-b border-secondary/40 pb-px hover:text-foreground transition-colors">
                 Sign in →
               </Link>
-            </div>
-
-            <div
-              className="hero-fade-up flex flex-wrap gap-x-5 gap-y-2"
-              style={{ animationDelay: '0.45s' }}
-            >
-              {['Members can book online', 'Auto-scaling for all levels', 'Free to get started'].map(b => (
-                <span key={b} className="flex items-center gap-1.5 text-xs text-secondary">
-                  <Check size={12} weight="bold" className="text-accent flex-shrink-0" />
-                  {b}
-                </span>
-              ))}
             </div>
           </div>
 
@@ -168,9 +156,6 @@ export default function HomePage() {
           counting one reads as a measurement. */}
       <div className="bg-[#08080A] pt-24 pb-20">
         <div className="w-full px-6 sm:px-10 lg:px-16">
-          <p className="font-mono text-[11px] tracking-[0.3em] uppercase text-accent mb-14">
-            By the numbers
-          </p>
 
           <div className="divide-y divide-white/[0.07] border-y border-white/[0.07]">
             {STATS.map((s, i) => (
@@ -294,7 +279,6 @@ export default function HomePage() {
           {/* Copy */}
           <FadeIn delay={100}>
             <div className="lg:pt-4">
-              <p className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase mb-6">For Your Members</p>
               <RevealText
                 lines={['Book a class.', <span key="a" className="text-accent">Show up ready.</span>]}
                 className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.5rem,6vw,4.75rem)] mb-7"
@@ -325,7 +309,7 @@ export default function HomePage() {
 
         {/* Section header - hangs off the same left gutter as the hero rather
             than re-centring, so the page has one spine instead of two. */}
-        <div className="w-full px-6 sm:px-10 lg:px-16 pt-28 pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-10 items-end">
+        <div className="w-full px-6 sm:px-10 lg:px-16 pt-28 pb-16">
           <div>
             <p className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase mb-6">What KOVA does</p>
             <RevealText
@@ -333,7 +317,7 @@ export default function HomePage() {
               className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)]"
             />
           </div>
-          <p className="text-sm text-secondary leading-relaxed lg:pb-3 lg:border-l lg:border-border lg:pl-8">
+          <p className="mt-6 max-w-[65ch] text-base text-secondary leading-relaxed">
             Six systems, one place. No plugin marketplace, no per-seat add-ons, no
             half-finished modules you have to work around.
           </p>
@@ -348,7 +332,6 @@ export default function HomePage() {
               <div>
                 <div className="flex items-center gap-2.5 mb-6">
                   <Lightning size={13} weight="fill" className="text-accent" />
-                  <span className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase">Signature Feature</span>
                 </div>
                 <RevealText
                   as="h3"

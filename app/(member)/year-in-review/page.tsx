@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Trophy } from '@phosphor-icons/react'
 
 interface MonthData { month: string; count: number }
 interface YearData {
@@ -113,7 +114,7 @@ export default function YearInReviewPage() {
           {/* Best month callout */}
           {data.bestMonth && data.bestMonth.count > 0 && (
             <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 flex items-center gap-4">
-              <div className="text-3xl">🏆</div>
+              <Trophy size={30} weight="duotone" className="text-accent" />
               <div>
                 <p className="text-sm font-semibold text-foreground">Best month: {formatMonth(data.bestMonth.month)}</p>
                 <p className="text-secondary text-sm">{data.bestMonth.count} classes - your most active month this year</p>

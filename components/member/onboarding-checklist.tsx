@@ -1,4 +1,5 @@
 'use client'
+import { Confetti } from '@phosphor-icons/react'
 // components/member/onboarding-checklist.tsx
 // F11: First class onboarding checklist for new members
 // F37: 6-class Intro to CrossFit progress
@@ -66,7 +67,7 @@ export function OnboardingChecklist({ completedSteps, waiverSignedAt, hasBooking
   if (totalDone === totalSteps) {
     return (
       <div className="rounded-xl border border-accent/30 bg-accent-5 p-5 text-center">
-        <p className="text-2xl mb-1">🎉</p>
+        <Confetti size={26} weight="duotone" className="mb-1 text-accent" />
         <p className="font-semibold text-foreground">Onboarding complete!</p>
         <p className="text-xs text-secondary mt-1">You've finished all 6 intro classes. Welcome to the box!</p>
       </div>

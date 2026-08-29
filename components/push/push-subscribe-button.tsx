@@ -3,6 +3,7 @@
 // Let members opt in/out of browser push notifications
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { BellRinging, BellSlash } from '@phosphor-icons/react'
 
 export function PushSubscribeButton({ className }: { className?: string }) {
   const [state, setState] = useState<'loading' | 'unsupported' | 'denied' | 'subscribed' | 'unsubscribed'>('loading')
@@ -92,7 +93,13 @@ export function PushSubscribeButton({ className }: { className?: string }) {
         className
       )}
     >
-      {busy ? '…' : state === 'subscribed' ? '🔔 Notifications on' : '🔕 Enable notifications'}
+      {busy ? (
+          'Working…'
+        ) : state === 'subscribed' ? (
+          <><BellRinging size={16} weight="fill" />Notifications on</>
+        ) : (
+          <><BellSlash size={16} />Enable notifications</>
+        )}
     </button>
   )
 }

@@ -7,6 +7,7 @@ import { MemberNotes } from '@/components/admin/member-notes'
 import { MemberPasses } from '@/components/admin/member-passes'
 import { MemberPauses } from '@/components/admin/member-pauses'
 import { MemberScaling } from '@/components/admin/member-scaling'
+import { UsersThree } from '@phosphor-icons/react'
 
 interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null; role?: string; waiver_signed_at: string | null }
 interface GymUserRow { gym_id: string }
@@ -299,7 +300,7 @@ export default function MembersPage() {
       {/* Member table */}
       {members.length === 0 ? (
         <div className="border border-dashed border-border/60 rounded-xl py-16 px-8 text-center bg-surface/40">
-          <div className="text-4xl mb-4">👥</div>
+          <UsersThree size={40} weight="duotone" className="mx-auto mb-4 text-secondary/50" />
           <p className="text-foreground font-medium mb-1">No members yet</p>
           <p className="text-secondary text-sm">Enter an email address above and hit Invite to add your first member. They'll receive a sign-up link.</p>
         </div>

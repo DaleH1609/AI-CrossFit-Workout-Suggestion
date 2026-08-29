@@ -2,6 +2,7 @@
 // app/(owner)/leads/page.tsx — Lead capture CRM pipeline
 import { useState, useEffect, useCallback } from 'react'
 import { useToast } from '@/components/ui/toast'
+import { ClipboardText } from '@phosphor-icons/react'
 
 type LeadStatus = 'new' | 'contacted' | 'trial_booked' | 'showed_up' | 'joined' | 'lost'
 
@@ -145,7 +146,7 @@ async function submitLead(e) {
         <div className="text-center text-secondary text-sm py-12">Loading…</div>
       ) : filtered.length === 0 ? (
         <div className="border border-dashed border-border/60 rounded-xl py-16 px-8 text-center bg-surface/40">
-          <div className="text-4xl mb-4">📋</div>
+          <ClipboardText size={40} weight="duotone" className="mx-auto mb-4 text-secondary/50" />
           {filterStatus === 'all' ? (
             <>
               <p className="text-foreground font-medium mb-1">No leads yet</p>

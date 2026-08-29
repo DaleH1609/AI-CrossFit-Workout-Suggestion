@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Medal as MedalIcon } from '@phosphor-icons/react'
 
 interface Challenge {
   id: string
@@ -26,9 +27,11 @@ function monthLabel(iso: string) {
 }
 
 function Medal({ rank }: { rank: number }) {
-  if (rank === 1) return <span className="text-base">🥇</span>
-  if (rank === 2) return <span className="text-base">🥈</span>
-  if (rank === 3) return <span className="text-base">🥉</span>
+  // Rank conveyed by glyph + colour rather than emoji, so it renders
+  // identically across platforms and inherits the type scale.
+  if (rank === 1) return <MedalIcon size={18} weight="fill" className="text-accent" aria-label="First place" />
+  if (rank === 2) return <MedalIcon size={18} weight="fill" className="text-secondary" aria-label="Second place" />
+  if (rank === 3) return <MedalIcon size={18} weight="fill" className="text-warning" aria-label="Third place" />
   return <span className="w-5 h-5 rounded-full bg-border flex items-center justify-center text-[10px] text-secondary font-bold inline-flex">{rank}</span>
 }
 
