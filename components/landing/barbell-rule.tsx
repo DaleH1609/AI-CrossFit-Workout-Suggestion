@@ -65,7 +65,7 @@ export function BarbellRule({ label }: { label?: string }) {
   }, [])
 
   return (
-    <div ref={wrapRef} className="relative bg-[#08080A] py-14 overflow-hidden">
+    <div ref={wrapRef} className="relative bg-[#0B0B0C] py-14 overflow-hidden">
       <div className="mx-auto max-w-7xl px-8 flex items-center gap-8">
         <span className="h-px flex-1 bg-white/10" />
 

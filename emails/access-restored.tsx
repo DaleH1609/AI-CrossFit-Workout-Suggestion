@@ -24,12 +24,12 @@ export function AccessRestored({ name, gymName, loginUrl }: AccessRestoredProps)
   )
 }
 
-const body = { backgroundColor: '#0A0A0A', fontFamily: 'Inter, sans-serif' }
+const body = { backgroundColor: '#0B0B0C', fontFamily: 'Inter, sans-serif' }
 const container = { maxWidth: '500px', padding: '32px', color: '#ffffff' }
-const heading = { color: '#D4AF37', fontFamily: 'Georgia, serif', marginTop: 0 }
+const heading = { color: '#C6F24E', fontFamily: 'Georgia, serif', marginTop: 0 }
 const text = { color: '#ffffff', fontSize: '14px', lineHeight: '1.6' }
 const button = {
   display: 'inline-block', marginTop: '16px', padding: '12px 24px',
-  backgroundColor: '#D4AF37', color: '#000000', textDecoration: 'none',
+  backgroundColor: '#C6F24E', color: '#000000', textDecoration: 'none',
   borderRadius: '4px', fontWeight: '600', fontSize: '14px',
 }

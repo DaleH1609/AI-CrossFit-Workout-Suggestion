@@ -86,7 +86,7 @@ export function WhiteboardClient({ gymName, today, timezone, todayWorkout, insta
           <p className="text-white/50 text-lg mt-1">{dayLabel}</p>
         </div>
         <div className="text-right">
-          <p className="text-5xl font-mono font-bold text-[#b8952a]">
+          <p className="text-5xl font-mono font-bold text-[#55730f]">
             <Clock timezone={timezone} />
           </p>
         </div>
@@ -98,7 +98,7 @@ export function WhiteboardClient({ gymName, today, timezone, todayWorkout, insta
           <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase mb-6">
             Today&apos;s Workout
             {todayWorkout?.descriptor && (
-              <span className="ml-3 text-[#b8952a]">- {todayWorkout.descriptor}</span>
+              <span className="ml-3 text-[#55730f]">- {todayWorkout.descriptor}</span>
             )}
           </h2>
 
@@ -140,13 +140,13 @@ export function WhiteboardClient({ gymName, today, timezone, todayWorkout, insta
                     <div
                       key={inst.id}
                       className={`rounded-lg px-4 py-3 border transition-colors ${isNext
-                        ? 'border-[#b8952a]/50 bg-[#b8952a]/10'
+                        ? 'border-[#55730f]/50 bg-[#55730f]/10'
                         : 'border-white/10 bg-white/5'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <p className={`text-lg font-semibold ${isNext ? 'text-[#b8952a]' : 'text-white'}`}>{time}</p>
-                        {isNext && <span className="text-[10px] font-bold tracking-widest text-[#b8952a] uppercase">Next</span>}
+                        <p className={`text-lg font-semibold ${isNext ? 'text-[#55730f]' : 'text-white'}`}>{time}</p>
+                        {isNext && <span className="text-[10px] font-bold tracking-widest text-[#55730f] uppercase">Next</span>}
                       </div>
                       {inst.name && <p className="text-sm text-white/60 mt-0.5">{inst.name}</p>}
                       <div className="flex items-center gap-3 mt-2 text-sm text-white/50">
@@ -156,7 +156,7 @@ export function WhiteboardClient({ gymName, today, timezone, todayWorkout, insta
                       {isNext && checkinCodes[inst.id] && (
                         <div className="mt-3 pt-3 border-t border-white/10">
                           <p className="text-[9px] tracking-[0.2em] text-white/30 uppercase mb-1">Check-in code</p>
-                          <p className="font-mono text-2xl font-bold tracking-[0.3em] text-[#b8952a]">
+                          <p className="font-mono text-2xl font-bold tracking-[0.3em] text-[#55730f]">
                             {checkinCodes[inst.id]}
                           </p>
                           <p className="text-[9px] text-white/20 mt-0.5">Open kova.app/check-in on your phone</p>

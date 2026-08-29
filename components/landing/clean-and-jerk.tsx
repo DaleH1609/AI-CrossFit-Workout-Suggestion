@@ -207,7 +207,7 @@ export function CleanAndJerk() {
     <section
       ref={sectionRef}
       aria-label="Clean and jerk, animated through the phases of the lift as you scroll"
-      className="relative min-h-[100dvh] overflow-hidden bg-[#08080A] flex items-center"
+      className="relative min-h-[100dvh] overflow-hidden bg-[#0B0B0C] flex items-center"
     >
       {/* Floor line - an SVG path so DrawSVG can stroke it on, not a div. */}
       <svg

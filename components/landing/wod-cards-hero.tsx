@@ -56,7 +56,7 @@ export function WodCardsHero() {
         .card-stack:hover .c1 {
           animation: none;
           transform: rotate(-1.5deg);
-          box-shadow: 0 8px 28px rgba(0,0,0,0.09), 0 0 0 1.5px rgba(184,149,42,0.18);
+          box-shadow: 0 8px 28px rgba(0,0,0,0.09), 0 0 0 1.5px rgba(85,115,15,0.18);
         }
 
         /* c2 — fans right */
@@ -64,7 +64,7 @@ export function WodCardsHero() {
           animation: none;
           transform: translateX(148px) rotate(9deg) translateY(-14px);
           opacity: 1;
-          box-shadow: 0 12px 36px rgba(0,0,0,0.09), 0 0 0 1.5px rgba(184,149,42,0.13);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.09), 0 0 0 1.5px rgba(85,115,15,0.13);
           transition-delay: 0.04s;
         }
 
@@ -73,7 +73,7 @@ export function WodCardsHero() {
           animation: none;
           transform: translateX(-148px) rotate(-10deg) translateY(-10px);
           opacity: 1;
-          box-shadow: 0 12px 36px rgba(0,0,0,0.09), 0 0 0 1.5px rgba(184,149,42,0.13);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.09), 0 0 0 1.5px rgba(85,115,15,0.13);
           transition-delay: 0.08s;
         }
 

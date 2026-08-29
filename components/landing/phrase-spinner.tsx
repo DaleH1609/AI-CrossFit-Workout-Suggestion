@@ -47,7 +47,7 @@ export function PhraseSpinner() {
         {/* Subtle gold radial wash */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 50%, var(--color-accent-6, rgba(184,149,42,0.06)) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 50%, var(--color-accent-6, rgba(85,115,15,0.06)) 0%, transparent 70%)' }}
         />
 
         {/* Eyebrow */}

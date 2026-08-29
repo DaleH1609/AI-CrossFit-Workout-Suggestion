@@ -154,7 +154,7 @@ export default function HomePage() {
           eye reads down a column of numerals rather than across a card set.
           Numbers count up on entry - a static figure reads as decoration, a
           counting one reads as a measurement. */}
-      <div className="bg-[#08080A] pt-24 pb-20">
+      <div className="bg-[#0B0B0C] pt-24 pb-20">
         <div className="w-full px-6 sm:px-10 lg:px-16">
 
           <div className="divide-y divide-white/[0.07] border-y border-white/[0.07]">
@@ -412,10 +412,10 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA ─────────────────────────────────────────────────────── */}
-      <section className="bg-[#0A0A0A] py-24 text-center relative overflow-hidden">
+      <section className="bg-[#0B0B0C] py-24 text-center relative overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(212,175,55,0.08) 0%, transparent 65%)' }}
+          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(198,242,78,0.08) 0%, transparent 65%)' }}
         />
         <div className="relative px-6">
           {/* Closing lockup, scaled to match the hero so the page opens and shuts
@@ -428,7 +428,7 @@ export default function HomePage() {
           <Magnetic strength={0.35}>
             <Link
               href="/signup"
-              className="inline-flex h-14 items-center touch-manipulation bg-accent text-black px-11 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+              className="inline-flex h-14 items-center touch-manipulation bg-accent text-black px-11 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]"
             >
               Get Started Free
             </Link>
@@ -438,7 +438,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────── */}
-      <footer className="bg-[#08080A] border-t border-white/[0.07]">
+      <footer className="bg-[#0B0B0C] border-t border-white/[0.07]">
         {/* Shares the page's full-bleed gutter rather than re-centring, and
             closes on the wordmark at display scale so the page ends on the
             same typographic note it opened with. */}

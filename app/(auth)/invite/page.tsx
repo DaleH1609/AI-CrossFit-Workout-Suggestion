@@ -79,7 +79,7 @@ export default function InvitePage() {
         style={{ background: '#050508', position: 'relative', overflow: 'hidden' }}>
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse at 30% 40%, rgba(212,175,55,0.12) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse at 30% 40%, rgba(198,242,78,0.12) 0%, transparent 60%)',
         }} />
         <KovaLogo size="md" />
         <div className="relative">

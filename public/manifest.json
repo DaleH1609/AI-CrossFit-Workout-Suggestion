@@ -4,8 +4,8 @@
   "description": "AI-powered CrossFit programming platform",
   "start_url": "/this-week",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#e85d04",
+  "background_color": "#0B0B0C",
+  "theme_color": "#C6F24E",
   "orientation": "portrait-primary",
   "icons": [
     {

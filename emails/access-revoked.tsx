@@ -21,7 +21,7 @@ export function AccessRevoked({ name }: AccessRevokedProps) {
   )
 }
 
-const body = { backgroundColor: '#0A0A0A', fontFamily: 'Inter, sans-serif' }
+const body = { backgroundColor: '#0B0B0C', fontFamily: 'Inter, sans-serif' }
 const container = { maxWidth: '500px', padding: '32px', color: '#ffffff' }
-const heading = { color: '#D4AF37', fontFamily: 'Georgia, serif', marginTop: 0 }
+const heading = { color: '#C6F24E', fontFamily: 'Georgia, serif', marginTop: 0 }
 const text = { color: '#ffffff', fontSize: '14px', lineHeight: '1.6' }

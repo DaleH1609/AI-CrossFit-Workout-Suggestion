@@ -7,7 +7,7 @@ export function WorkoutCard({ day, onEditScaling, isToday }: { day: WorkoutDay; 
   const [scalingOpen, setScalingOpen] = useState(false)
 
   return (
-    <Card className={`h-full ${isToday ? 'ring-1 ring-accent/40 shadow-[0_0_16px_rgba(212,175,55,0.08)]' : ''}`}>
+    <Card className={`h-full ${isToday ? 'ring-1 ring-accent/40 shadow-[0_0_16px_rgba(198,242,78,0.08)]' : ''}`}>
       <div className="mb-3 pb-3 border-b border-border">
         <h3 className={`font-display text-lg ${isToday ? 'text-accent' : 'text-foreground'}`}>{day.day}</h3>
         {day.descriptor && (

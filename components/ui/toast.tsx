@@ -40,7 +40,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         padding: '12px 16px',
         background: t.type === 'error' ? '#7f1d1d' : t.type === 'success' ? '#14532d' : '#1a1a1a',
         border: `1px solid ${
-          t.type === 'error' ? '#f87171' : t.type === 'success' ? '#4ade80' : '#D4AF37'
+          t.type === 'error' ? '#f87171' : t.type === 'success' ? '#4ade80' : '#C6F24E'
         }`,
         color: '#fff',
         fontSize: 14,

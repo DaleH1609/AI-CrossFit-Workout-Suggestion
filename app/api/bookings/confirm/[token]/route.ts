@@ -70,11 +70,11 @@ export async function GET(_req: Request, props: { params: Promise<{ token: strin
       padding: 40px; max-width: 400px; width: 100%; text-align: center;
     }
     .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
-      text-transform: uppercase; color: #b8952a; margin-bottom: 28px; }
+      text-transform: uppercase; color: #c6f24e; margin-bottom: 28px; }
     h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 10px; }
     p { font-size: 14px; color: #888; line-height: 1.6; margin-bottom: 32px; }
     button {
-      width: 100%; padding: 14px; background: #b8952a; color: #000;
+      width: 100%; padding: 14px; background: #c6f24e; color: #000;
       font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
       text-transform: uppercase; border: none; border-radius: 8px; cursor: pointer;
     }

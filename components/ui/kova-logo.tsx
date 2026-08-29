@@ -10,7 +10,7 @@ const sizes: Record<KovaLogoSize, { slashW: number; slashH: number; fontSize: nu
 
 export function KovaLogo({ size = 'md', variant = 'light' }: { size?: KovaLogoSize; variant?: 'light' | 'dark' }) {
   const { slashW, slashH, fontSize, letterSpacing, gap } = sizes[size]
-  const textColor = variant === 'dark' ? '#0A0A0A' : '#FFFFFF'
+  const textColor = variant === 'dark' ? '#0B0B0C' : '#FFFFFF'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap }}>
       <svg
@@ -23,8 +23,8 @@ export function KovaLogo({ size = 'md', variant = 'light' }: { size?: KovaLogoSi
       >
         <defs>
           <linearGradient id="slash-grad" x1="0" y1="0" x2="18" y2="34" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#F5D060" />
-            <stop offset="100%" stopColor="#B8952A" />
+            <stop offset="0%" stopColor="#E4FF8F" />
+            <stop offset="100%" stopColor="#55730F" />
           </linearGradient>
         </defs>
         <polygon points="5,0 18,0 13,34 0,34" fill="url(#slash-grad)" />

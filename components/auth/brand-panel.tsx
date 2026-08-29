@@ -25,7 +25,7 @@ export function AuthBrandPanel() {
             width: 420, height: 420,
             top: -120, left: -80,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212,175,55,0.28) 0%, rgba(212,175,55,0.06) 55%, transparent 75%)',
+            background: 'radial-gradient(circle, rgba(198,242,78,0.28) 0%, rgba(198,242,78,0.06) 55%, transparent 75%)',
             filter: 'blur(48px)',
             mixBlendMode: 'multiply',
             animation: 'kova-blob 9s ease-fluid infinite alternate',
