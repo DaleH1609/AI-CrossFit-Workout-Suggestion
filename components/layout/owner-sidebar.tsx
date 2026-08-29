@@ -6,91 +6,30 @@ import { cn } from '@/lib/utils'
 import { KovaLogo } from '@/components/ui/kova-logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { createClient } from '@/lib/supabase/client'
+// Phosphor, matching the landing page. The hand-rolled SVGs below were
+// duplicated across destinations — Sparkle appeared on three different
+// items, Calendar on two — so the icon carried no wayfinding information.
+import {
+  CalendarBlank, SquaresFour, Sparkle, Clock, Users, Funnel,
+  ChartBar, Trophy, Article, ChatCircle, Gear, SignOut as SignOutIcon,
+} from '@phosphor-icons/react'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
-function IconCalendar() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="4" width="18" height="18" rx="2"/>
-      <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round"/>
-    </svg>
-  )
-}
-function IconSparkle() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <path d="M12 3v3m0 12v3M3 12h3m12 0h3m-3.5-6.5-2 2m-7 7-2 2m11 0-2-2m-7-7-2-2" strokeLinecap="round"/>
-    </svg>
-  )
-}
-function IconClock() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="12" r="9"/>
-      <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-function IconUsers() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M3 21v-1a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v1" strokeLinecap="round"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-1a4 4 0 0 0-3-3.85" strokeLinecap="round"/>
-    </svg>
-  )
-}
-function IconSettings() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" strokeLinecap="round"/>
-    </svg>
-  )
-}
-function IconSignOut() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
 
-function IconPencil() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-function IconChat() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-function IconFunnel() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-      <path d="M3 4h18l-7 8v6l-4-2V12L3 4z" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 const nav = [
-  { href: '/dashboard',     label: 'Weekly Program', Icon: IconCalendar },
-  { href: '/calendar',      label: 'Macro View',     Icon: IconCalendar },
-  { href: '/style-profile', label: 'Style Profile',  Icon: IconSparkle  },
-  { href: '/schedule',      label: 'Class Schedule', Icon: IconClock    },
-  { href: '/members',       label: 'Members',        Icon: IconUsers    },
-  { href: '/leads',         label: 'Leads',          Icon: IconFunnel   },
-  { href: '/reports',       label: 'Reports',        Icon: IconSparkle  },
-  { href: '/manage-challenges', label: 'Challenges', Icon: IconSparkle  },
-  { href: '/wod-blog',      label: 'WOD Blog',       Icon: IconPencil   },
-  { href: '/messages',      label: 'Messages',       Icon: IconChat     },
-  { href: '/settings',      label: 'Settings',       Icon: IconSettings },
+  { href: '/dashboard',         label: 'Weekly Program', Icon: CalendarBlank, group: 'Program' },
+  { href: '/calendar',          label: 'Macro View',     Icon: SquaresFour,   group: 'Program' },
+  { href: '/style-profile',     label: 'Style Profile',  Icon: Sparkle,       group: 'Program' },
+  { href: '/schedule',          label: 'Class Schedule', Icon: Clock,         group: 'Program' },
+  { href: '/members',           label: 'Members',        Icon: Users,         group: 'People'  },
+  { href: '/leads',             label: 'Leads',          Icon: Funnel,        group: 'People'  },
+  { href: '/messages',          label: 'Messages',       Icon: ChatCircle,    group: 'People'  },
+  { href: '/reports',           label: 'Reports',        Icon: ChartBar,      group: 'Insight' },
+  { href: '/manage-challenges', label: 'Challenges',     Icon: Trophy,        group: 'Insight' },
+  { href: '/wod-blog',          label: 'WOD Blog',       Icon: Article,       group: 'Insight' },
+  { href: '/settings',          label: 'Settings',       Icon: Gear,          group: 'System'  },
 ]
 
 // ─── Unread badge for Messages ────────────────────────────────────────────────
@@ -200,7 +139,7 @@ export function OwnerSidebar() {
             <ThemeToggle />
           </div>
           <button onClick={signOut} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-secondary hover:text-foreground rounded-md transition-colors">
-            <IconSignOut />
+            <SignOutIcon size={19} />
             Sign out
           </button>
         </div>
@@ -242,12 +181,12 @@ export function OwnerSidebar() {
                   'relative flex items-center gap-3 py-2.5 rounded-md transition-colors border-l-2 whitespace-nowrap',
                   expanded ? 'px-3' : 'justify-center px-0',
                   isActive
-                    ? 'border-accent text-accent bg-accent-5'
+                    ? 'border-accent text-accent bg-accent-10 font-medium'
                     : 'border-transparent text-secondary hover:text-foreground hover:bg-surface-raised'
                 )}
               >
-                <span className="shrink-0"><Icon /></span>
-                {expanded && <span className="text-sm">{label}</span>}
+                <span className="shrink-0"><Icon size={19} weight={isActive ? 'fill' : 'regular'} /></span>
+                {expanded && <span className="font-mono text-[11px] tracking-[0.12em] uppercase">{label}</span>}
                 {isMessages && <MessagesUnreadBadge count={ownerUnread} expanded={expanded} />}
               </Link>
             )
@@ -268,7 +207,7 @@ export function OwnerSidebar() {
               expanded ? 'px-3' : 'justify-center px-0'
             )}
           >
-            <span className="shrink-0"><IconSignOut /></span>
+            <span className="shrink-0"><SignOutIcon size={19} /></span>
             {expanded && <span className="text-sm">Sign out</span>}
           </button>
         </div>
