@@ -11,6 +11,7 @@ import { RevealText } from '@/components/ui/reveal-text'
 import { SplitHeading } from '@/components/ui/split-heading'
 import { Magnetic } from '@/components/ui/magnetic'
 import { CountUp } from '@/components/ui/count-up'
+import { MovementMarquee } from '@/components/landing/movement-marquee'
 // SSR entry — this page is a server component, so the CSR build would force a
 // client boundary for what are static glyphs.
 import {
@@ -147,6 +148,8 @@ export default function HomePage() {
 
       {/* ── PHRASE SPINNER ───────────────────────────────────────────── */}
       <PhraseSpinner />
+
+      <MovementMarquee />
 
       {/* ── STATS ───────────────────────────────────────────────────── */}
       {/* Not a strip of three equal boxes. Each figure is a full-width row
