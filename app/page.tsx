@@ -8,6 +8,7 @@ import { FadeIn } from '@/components/ui/fade-in'
 import { CleanAndJerk } from '@/components/landing/clean-and-jerk'
 import { BarbellRule } from '@/components/landing/barbell-rule'
 import { RevealText } from '@/components/ui/reveal-text'
+import { SplitHeading } from '@/components/ui/split-heading'
 import { Magnetic } from '@/components/ui/magnetic'
 import { CountUp } from '@/components/ui/count-up'
 // SSR entry — this page is a server component, so the CSR build would force a
@@ -103,14 +104,15 @@ export default function HomePage() {
 
             {/* Display lockup: uppercase, near-zero leading, edge-to-edge.
                 The whole hero hangs off this one gesture. */}
-            <RevealText
+            <SplitHeading
               as="h1"
               immediate
               delay={0.15}
-              lines={['Program', 'your gym in', <span key="a" className="text-accent">seconds.</span>]}
               className="font-display uppercase text-foreground mb-10
                          text-[clamp(3.25rem,11vw,9rem)] leading-[0.82] tracking-[-0.02em]"
-            />
+            >
+              <>Program your gym in <span className="text-accent">seconds.</span></>
+            </SplitHeading>
 
             <p
               className="hero-fade-up text-base text-secondary leading-relaxed max-w-md mb-10"

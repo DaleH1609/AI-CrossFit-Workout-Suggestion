@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin'
 
 /**
  * Scroll-driven clean & jerk.
@@ -180,7 +181,20 @@ export function CleanAndJerk() {
       return
     }
 
-    gsap.registerPlugin(ScrollTrigger)
+    gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin)
+    // Floor line draws itself in as the section arrives — DrawSVG animates the
+    // stroke dash offset, which is a real line being drawn rather than a
+    // rectangle scaling up.
+    const floor = section.querySelector('#cj-floor')
+    if (floor) {
+      gsap.fromTo(floor, { drawSVG: '50% 50%' }, {
+        drawSVG: '0% 100%',
+        duration: 1.4,
+        ease: 'expo.out',
+        scrollTrigger: { trigger: section, start: 'top 75%', once: true },
+      })
+    }
+
     const st = ScrollTrigger.create({
       trigger: section,
       start: 'top top',
@@ -200,8 +214,16 @@ export function CleanAndJerk() {
       aria-label="Clean and jerk, animated through the phases of the lift as you scroll"
       className="relative min-h-[100dvh] overflow-hidden bg-[#08080A] flex items-center"
     >
-      {/* Floor line */}
-      <div className="absolute left-0 right-0 top-1/2 mt-[92px] h-px bg-white/10" />
+      {/* Floor line — an SVG path so DrawSVG can stroke it on, not a div. */}
+      <svg
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 right-0 top-1/2 mt-[92px] w-full"
+        height="2"
+        preserveAspectRatio="none"
+        viewBox="0 0 1000 2"
+      >
+        <line id="cj-floor" x1="0" y1="1" x2="1000" y2="1" stroke="white" strokeOpacity="0.14" strokeWidth="2" />
+      </svg>
 
       <div className="relative mx-auto w-full max-w-7xl px-8 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-12 items-center">
         <div className="max-w-lg">
