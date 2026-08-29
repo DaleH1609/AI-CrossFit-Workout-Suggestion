@@ -2,7 +2,27 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdminEmail } from '@/lib/auth-helpers'
 
+// Public files and generated metadata routes. These must never be redirected:
+// a service worker whose script is behind a redirect is refused outright by the
+// browser, a redirected manifest breaks PWA install, and a robots.txt that 307s
+// to /login tells every crawler the site is inaccessible.
+//
+// Matched before any auth work, which also avoids a getUser() round trip per
+// asset request.
+const PUBLIC_FILES = new Set([
+  '/sw.js',
+  '/manifest.json',
+  '/robots.txt',
+  '/sitemap.xml',
+])
+const STATIC_EXT = /\.(?:png|jpe?g|gif|svg|webp|avif|ico|txt|xml|woff2?|ttf|otf|webmanifest)$/i
+
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  if (PUBLIC_FILES.has(pathname) || STATIC_EXT.test(pathname)) {
+    return NextResponse.next()
+  }
+
   const requestHeaders = new Headers(request.headers)
 
   let response = NextResponse.next({ request: { headers: requestHeaders } })
