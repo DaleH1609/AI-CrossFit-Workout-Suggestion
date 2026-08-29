@@ -149,7 +149,7 @@ export async function sendBroadcast(
 }
 
 function broadcastHtml(name: string, bodyHtml: string, gymName: string) {
-  return `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+  return `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
     <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)}</h2>
     <p>Hi ${escapeHtmlInline(name)},</p>
     <div style="margin:16px 0;line-height:1.6">${bodyHtml}</div>
@@ -168,7 +168,7 @@ export async function sendLeadWelcome(to: string, name: string | null, gymName: 
     from: getFrom(),
     subject: `Thanks for your interest in ${gymName}`,
     to,
-    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+    html: `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
       <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)}</h2>
       <p>Hi ${escapeHtmlInline(displayName)},</p>
       <p>Thanks for reaching out! We got your details and someone from our team will be in touch soon to book your first class.</p>
@@ -184,7 +184,7 @@ export async function sendLeadOwnerAlert(to: string, leadName: string | null, le
     from: getFrom(),
     subject: `New lead: ${leadEmail}`,
     to,
-    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+    html: `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
       <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} — New Lead</h2>
       <p>A new lead signed up from your website:</p>
       <ul style="margin:8px 0;padding-left:20px;line-height:2">
@@ -203,7 +203,7 @@ export async function sendLeadTrialBooked(to: string, name: string | null, gymNa
     from: getFrom(),
     subject: `Your trial class is booked — ${gymName}`,
     to,
-    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+    html: `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
       <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)}</h2>
       <p>Hi ${escapeHtmlInline(displayName)},</p>
       <p>Great news — your trial class is booked for <strong>${escapeHtmlInline(dateStr)}</strong>. We can't wait to see you!</p>
@@ -229,7 +229,7 @@ export async function sendDeletionRequestAlert(to: string, memberName: string | 
     from: getFrom(),
     subject: `Account deletion request — ${memberEmail}`,
     to,
-    html: `<div style="font-family:Inter,sans-serif;background:#0A0A0A;color:#fff;padding:32px;max-width:560px">
+    html: `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
       <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} — Deletion Request</h2>
       <p>A member has requested deletion of their account under GDPR Art. 17 (right to erasure):</p>
       <ul style="margin:8px 0;padding-left:20px;line-height:2">

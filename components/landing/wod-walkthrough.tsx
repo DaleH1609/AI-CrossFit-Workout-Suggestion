@@ -197,7 +197,7 @@ export function WodWalkthrough() {
                 {PANELS.map((panel, i) => (
                   <div
                     key={i}
-                    className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                    className={`absolute inset-0 transition-all duration-500 ease-fluid ${
                       active === i
                         ? 'opacity-100 translate-y-0'
                         : 'opacity-0 translate-y-2 pointer-events-none'

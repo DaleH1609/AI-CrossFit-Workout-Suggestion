@@ -28,7 +28,7 @@ export function AuthBrandPanel() {
             background: 'radial-gradient(circle, rgba(212,175,55,0.28) 0%, rgba(212,175,55,0.06) 55%, transparent 75%)',
             filter: 'blur(48px)',
             mixBlendMode: 'multiply',
-            animation: 'kova-blob 9s ease-in-out infinite alternate',
+            animation: 'kova-blob 9s ease-fluid infinite alternate',
           }} />
           <div style={{
             position: 'absolute',
@@ -38,7 +38,7 @@ export function AuthBrandPanel() {
             background: 'radial-gradient(circle, rgba(180,130,30,0.20) 0%, transparent 70%)',
             filter: 'blur(40px)',
             mixBlendMode: 'multiply',
-            animation: 'kova-blob 12s ease-in-out infinite alternate',
+            animation: 'kova-blob 12s ease-fluid infinite alternate',
             animationDelay: '-4s',
           }} />
           <div style={{
@@ -49,7 +49,7 @@ export function AuthBrandPanel() {
             background: 'radial-gradient(circle, rgba(240,200,70,0.18) 0%, transparent 65%)',
             filter: 'blur(52px)',
             mixBlendMode: 'multiply',
-            animation: 'kova-blob 14s ease-in-out infinite alternate',
+            animation: 'kova-blob 14s ease-fluid infinite alternate',
             animationDelay: '-7s',
           }} />
         </div>

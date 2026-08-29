@@ -49,8 +49,27 @@ const config: Config = {
         mono:    ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        card: '8px',
-        btn:  '4px',
+        // Squircle scale. 8px card / 4px btn read as a bootstrap default; the
+        // larger radii are what make a surface feel like an object.
+        card:     '14px',
+        'card-lg':'20px',
+        squircle: 'var(--radius-squircle)',
+        btn:      '10px',
+      },
+      transitionTimingFunction: {
+        fluid: 'var(--ease-fluid)',
+        expo:  'var(--ease-out-expo)',
+        spring:'var(--ease-spring)',
+      },
+      boxShadow: {
+        ambient: 'var(--shadow-ambient)',
+        lift:    'var(--shadow-lift)',
+        'inset-hi': 'var(--shadow-inset-hi)',
+      },
+      transitionDuration: {
+        400: '400ms',
+        600: '600ms',
+        800: '800ms',
       },
     },
   },
