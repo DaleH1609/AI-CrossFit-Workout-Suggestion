@@ -111,7 +111,7 @@ export default function CoachDashboardPage() {
     <div className="space-y-10">
       {/* My Classes */}
       <div>
-        <h1 className="font-display text-3xl text-foreground mb-8">My Classes</h1>
+        <h1 className="font-display text-3xl text-foreground mb-8">My classes</h1>
 
         {classes.length === 0 ? (
           <div className="rounded-xl border border-border bg-surface p-8 text-center text-secondary text-sm">
@@ -263,7 +263,7 @@ export default function CoachDashboardPage() {
       {/* Available subs from other coaches */}
       {claimableRequests.length > 0 && (
         <div>
-          <h2 className="font-display text-xl text-foreground mb-4">Available Subs</h2>
+          <h2 className="font-display text-xl text-foreground mb-4">Available subs</h2>
           <div className="space-y-3">
             {claimableRequests.map(req => {
               const ci = req.class_instances

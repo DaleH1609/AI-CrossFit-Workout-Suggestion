@@ -85,7 +85,7 @@ export default async function AdminOverviewPage() {
   return (
     <div className="space-y-8 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Platform Overview</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Platform overview</h1>
         <p className="text-secondary text-sm mt-1">All gyms, members, and activity across the platform.</p>
       </div>
 
@@ -105,7 +105,7 @@ export default async function AdminOverviewPage() {
       {/* Recently joined gyms */}
       <div className="rounded-lg border border-border overflow-hidden">
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Recently Joined Gyms</h2>
+          <h2 className="text-sm font-semibold text-foreground">Recently joined gyms</h2>
           <Link href="/admin/gyms" className="text-xs text-accent hover:underline">View all →</Link>
         </div>
         <table className="w-full text-sm">

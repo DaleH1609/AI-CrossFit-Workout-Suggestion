@@ -155,9 +155,7 @@ export default function DashboardPage() {
               />
             )}
           </div>
-          <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2.25rem,4.5vw,3.5rem)]">
-            Weekly Program
-          </h1>
+          <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2.25rem,4.5vw,3.5rem)]">Weekly program</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

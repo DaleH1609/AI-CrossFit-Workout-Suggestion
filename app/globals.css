@@ -131,6 +131,53 @@ body {
   --shadow-inset-hi: inset 0 1px 0 rgba(255,255,255,0.07);
 }
 
+@layer base {
+  /* Typographic defaults, applied once rather than as a utility on 200 files.
+
+     balance  — headings. Evens the line lengths so a heading never drops a
+                single orphaned word onto its own line. Costs layout work, so
+                it is limited to short text: the spec caps it around 6 lines.
+     pretty   — body. Cheaper; only prevents orphans and bad breaks, which is
+                the actual problem in paragraphs.
+
+     Both degrade to normal wrapping where unsupported. */
+  h1, h2, h3, h4 { text-wrap: balance; }
+  p, li, dd, figcaption { text-wrap: pretty; }
+
+  /* Audit: "Scroll jumping — anchor clicks jump instantly." */
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+}
+
+@layer components {
+  /* The audit's "generic card look: border + shadow + background" appears 78
+     times across the app, hand-rolled rather than via the Card component (only
+     2 files import it). Rewriting 78 call sites would be churn; this matches
+     the exact signature instead — surface fill + hairline + a card radius —
+     and gives them the same depth the Card component now has.
+
+     Sits in @layer components so any explicit shadow-* utility on the element
+     still wins, since Tailwind orders utilities after components. */
+  .bg-surface.border-border.rounded-card,
+  .bg-surface.border-border.rounded-lg,
+  .bg-surface.border-border.rounded-xl,
+  .bg-surface.border-border.rounded-2xl {
+    box-shadow: var(--shadow-ambient), var(--shadow-inset-hi);
+  }
+
+  /* Exclusions. A skeleton is a placeholder, not an object — elevating it
+     makes loading states look like real content. Inputs are recessed, not
+     raised; giving them a lift shadow reads as a button. */
+  .animate-pulse.bg-surface.border-border,
+  input.bg-surface.border-border,
+  textarea.bg-surface.border-border,
+  select.bg-surface.border-border {
+    box-shadow: none;
+  }
+}
+
 @layer utilities {
   .text-balance { text-wrap: balance; }
 }

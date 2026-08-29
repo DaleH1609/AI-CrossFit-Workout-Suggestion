@@ -96,9 +96,7 @@ export default function InvitePage() {
           <div className="lg:hidden mb-8 flex justify-center auth-field" style={{ animationDelay: '0ms' }}>
             <KovaLogo size="md" />
           </div>
-          <h1 className="auth-field font-display text-2xl font-bold text-foreground mb-2" style={{ animationDelay: '60ms' }}>
-            Set Your Password
-          </h1>
+          <h1 className="auth-field font-display text-2xl font-bold text-foreground mb-2" style={{ animationDelay: '60ms' }}>Set your password</h1>
           <p className="auth-field text-secondary text-sm mb-8" style={{ animationDelay: '100ms' }}>
             Welcome! Set a password to access your gym.
           </p>

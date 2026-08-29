@@ -87,7 +87,7 @@ export default async function AdminUsersPage(
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">User Lookup</h1>
+        <h1 className="text-2xl font-semibold text-foreground">User lookup</h1>
         <p className="text-secondary text-sm mt-1">Search by email address. Read-only.</p>
       </div>
 

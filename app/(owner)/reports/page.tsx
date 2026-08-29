@@ -131,7 +131,7 @@ export default function ReportsPage() {
 
       {/* Lead funnel */}
       <div className="rounded-xl border border-border bg-surface p-5 mb-8">
-        <h2 className="text-sm font-semibold text-foreground mb-4">Lead Funnel</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-4">Lead funnel</h2>
         <div className="flex items-end gap-2">
           {LEAD_STATUSES.map((s, i) => {
             const count = overview?.leadFunnel?.[s] ?? 0
@@ -216,7 +216,7 @@ export default function ReportsPage() {
 
       {/* Audit log */}
       <div className="rounded-xl border border-border bg-surface p-6">
-        <h2 className="font-semibold text-foreground mb-4 text-sm">Activity Log</h2>
+        <h2 className="font-semibold text-foreground mb-4 text-sm">Activity log</h2>
         {auditLog.length === 0 ? (
           <p className="text-secondary text-xs">No activity recorded yet.</p>
         ) : (

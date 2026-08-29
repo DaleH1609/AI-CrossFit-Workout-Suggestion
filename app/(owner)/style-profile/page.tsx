@@ -148,7 +148,7 @@ export default function StyleProfilePage() {
       <div className="mb-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl text-foreground">Style Profile</h1>
+            <h1 className="font-display text-3xl text-foreground">Style profile</h1>
             <p className="text-secondary text-sm mt-1.5 max-w-xl">
               Teach the AI your coaching style by adding real {gymLabel} workouts. The more examples you add, the better the generated programs reflect your approach.
             </p>
@@ -320,9 +320,7 @@ export default function StyleProfilePage() {
       {/* Saved Examples */}
       <div className="mb-10">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-medium text-secondary uppercase tracking-wider">
-            Saved Examples
-          </h2>
+          <h2 className="text-xs font-medium text-secondary uppercase tracking-wider">Saved examples</h2>
           {examples.length > 0 && (
             <span className="text-xs text-secondary tabular-nums">
               {examples.length} {examples.length === 1 ? 'example' : 'examples'}

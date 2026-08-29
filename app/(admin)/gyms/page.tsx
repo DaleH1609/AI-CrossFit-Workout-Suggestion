@@ -60,7 +60,7 @@ export default async function AdminGymsPage() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">All Gyms</h1>
+        <h1 className="text-2xl font-semibold text-foreground">All gyms</h1>
         <p className="text-secondary text-sm mt-1">
           {gyms.length} gym{gyms.length !== 1 ? 's' : ''} on the platform
         </p>

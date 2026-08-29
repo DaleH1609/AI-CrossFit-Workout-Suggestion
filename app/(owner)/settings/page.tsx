@@ -196,7 +196,7 @@ export default function SettingsPage() {
           {/* Gym Info */}
           <section id="gym-info">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-semibold text-foreground">Gym Info</h2>
+              <h2 className="text-sm font-semibold text-foreground">Gym info</h2>
               <SavedIndicator show={saved} />
             </div>
             <form onSubmit={handleSave} className="space-y-4">
@@ -236,7 +236,7 @@ export default function SettingsPage() {
           {/* Gym Type */}
           <section id="gym-type">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-semibold text-foreground">Gym Type</h2>
+              <h2 className="text-sm font-semibold text-foreground">Gym type</h2>
               <SavedIndicator show={gymTypeSaved} />
             </div>
             <div className="space-y-2">
@@ -450,7 +450,7 @@ export default function SettingsPage() {
           {/* Public Page */}
           <section id="public-page">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-semibold text-foreground">Public Page</h2>
+              <h2 className="text-sm font-semibold text-foreground">Public page</h2>
               <SavedIndicator show={slugSaved} />
             </div>
             <p className="text-secondary text-xs mb-4">
@@ -558,7 +558,7 @@ export default function SettingsPage() {
 
           {/* Broadcast email */}
           <section id="broadcast">
-            <h2 className="text-sm font-semibold text-foreground mb-1">Broadcast Email</h2>
+            <h2 className="text-sm font-semibold text-foreground mb-1">Broadcast email</h2>
             <p className="text-secondary text-xs mb-5">Send a one-off email to all active members — announcements, schedule changes, special events.</p>
             <div className="space-y-3">
               <div className="flex gap-2">

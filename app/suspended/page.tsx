@@ -4,7 +4,7 @@ export default function SuspendedPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="max-w-md text-center space-y-4">
-        <h1 className="text-2xl font-semibold text-foreground">Account Suspended</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Account suspended</h1>
         <p className="text-secondary">
           Your gym account has been suspended. Please contact support at{' '}
           {supportEmail !== 'support' ? (

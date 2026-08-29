@@ -66,7 +66,7 @@ export default async function MySchedulePage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-3xl text-foreground">My Schedule</h1>
+        <h1 className="font-display text-3xl text-foreground">My schedule</h1>
         {calendarToken && (
           <a
             href={`/api/calendar/${calendarToken}`}
@@ -132,7 +132,7 @@ export default async function MySchedulePage() {
       {/* Recent past classes — prompt for feedback */}
       {pastBookings.length > 0 && (
         <div className="mt-12 max-w-lg">
-          <h2 className="text-sm font-semibold text-foreground mb-5">Recent Classes</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-5">Recent classes</h2>
           <div className="space-y-4">
             {pastBookings.map(b => {
               const inst = b.class_instances!

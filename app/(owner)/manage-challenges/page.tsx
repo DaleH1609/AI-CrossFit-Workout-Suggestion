@@ -80,7 +80,7 @@ export default function ChallengesPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-3xl text-foreground">Monthly Challenges</h1>
+        <h1 className="font-display text-3xl text-foreground">Monthly challenges</h1>
         <button
           onClick={() => setShowForm(v => !v)}
           className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]"
@@ -91,7 +91,7 @@ export default function ChallengesPage() {
 
       {showForm && (
         <form onSubmit={handleCreate} className="mb-8 border border-border rounded-xl p-6 space-y-4 bg-surface">
-          <h2 className="text-sm font-semibold text-foreground mb-2">Create Challenge</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-2">Create challenge</h2>
           <div>
             <label className="block text-xs text-secondary mb-1">Title *</label>
             <input

@@ -174,7 +174,7 @@ export default function ProfilePage() {
       {/* Name section */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-foreground">Your Name</h2>
+          <h2 className="text-sm font-semibold text-foreground">Your name</h2>
           <SavedBadge show={nameSaved} />
         </div>
         <form onSubmit={handleSaveName} className="space-y-3">
@@ -246,7 +246,7 @@ export default function ProfilePage() {
 
       {/* Skill tracker */}
       <section className="pt-7 pb-7">
-        <h2 className="text-sm font-semibold text-foreground mb-4">My Skills</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-4">My skills</h2>
         <SkillTracker />
       </section>
 
@@ -254,7 +254,7 @@ export default function ProfilePage() {
 
       {/* Body measurements */}
       <section className="pt-7 pb-7">
-        <h2 className="text-sm font-semibold text-foreground mb-4">Body Measurements</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-4">Body measurements</h2>
         <Measurements />
       </section>
 
@@ -279,7 +279,7 @@ export default function ProfilePage() {
 
       {/* Data export */}
       <section className="pt-7 pb-7">
-        <h2 className="text-sm font-semibold text-foreground mb-1">Your Data</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-1">Your data</h2>
         <p className="text-xs text-secondary mb-3">Download a copy of all your personal data stored in KOVA.</p>
         <a
           href="/api/members/export"
@@ -313,7 +313,7 @@ export default function ProfilePage() {
       {/* Email change */}
       <section className="pt-7 pb-7">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-foreground">Email Address</h2>
+          <h2 className="text-sm font-semibold text-foreground">Email address</h2>
         </div>
 
         {!showEmailForm ? (

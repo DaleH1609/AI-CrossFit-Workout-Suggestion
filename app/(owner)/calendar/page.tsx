@@ -79,7 +79,7 @@ export default async function ProgrammingCalendarPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-foreground mb-8">Programming Calendar</h1>
+      <h1 className="font-display text-3xl text-foreground mb-8">Programming calendar</h1>
 
       <div className="space-y-10">
         {months.map(month => (
