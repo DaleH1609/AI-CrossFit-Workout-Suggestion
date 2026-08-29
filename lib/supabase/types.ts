@@ -66,6 +66,64 @@ export type Database = {
       deletion_requests: AnyTable
       // Gym owner audit log (048)
       gym_audit_log: AnyTable
+      // Messages (049)
+      conversations: {
+        Row: {
+          id: string
+          gym_id: string
+          member_id: string
+          created_at: string
+          last_message_at: string
+          owner_unread: number
+          member_unread: number
+        }
+        Insert: {
+          id?: string
+          gym_id: string
+          member_id: string
+          created_at?: string
+          last_message_at?: string
+          owner_unread?: number
+          member_unread?: number
+        }
+        Update: {
+          id?: string
+          gym_id?: string
+          member_id?: string
+          created_at?: string
+          last_message_at?: string
+          owner_unread?: number
+          member_unread?: number
+        }
+        Relationships: any[]
+      }
+      messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          gym_id: string
+          sender_id: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          gym_id: string
+          sender_id: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          gym_id?: string
+          sender_id?: string
+          body?: string
+          created_at?: string
+        }
+        Relationships: any[]
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

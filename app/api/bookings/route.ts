@@ -88,13 +88,13 @@ export async function POST(req: Request) {
   // also discovers any existing cancelled booking internally (K8: migration
   // 056), eliminating the pre-RPC SELECT race window.
   const { data: rpcResult, error: rpcError } = await createAdminClient()
-    .rpc('insert_booking_atomic', {
+    .rpc('insert_booking_atomic' as never, {
       p_gym_id:           userData.gym_id,
       p_instance_id:      instanceId,
       p_user_id:          user.id,
       p_waitlist_enabled: waitlistEnabled,
       p_max_waitlist:     10,
-    })
+    } as never)
 
   if (rpcError || !rpcResult) return jsonServerError('bookings POST', rpcError)
 
@@ -161,7 +161,7 @@ export async function DELETE(req: Request) {
   // The admin client is required because the narrowed member RLS (migration 053)
   // revokes direct UPDATE from authenticated users.
   const { error: cancelError } = await createAdminClient()
-    .rpc('cancel_booking', { p_booking_id: bookingId, p_gym_id: userData.gym_id, p_user_id: user.id })
+    .rpc('cancel_booking' as never, { p_booking_id: bookingId, p_gym_id: userData.gym_id, p_user_id: user.id } as never)
   if (cancelError) return jsonServerError('bookings DELETE', cancelError)
 
   const classDate = new Date(instance.starts_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })

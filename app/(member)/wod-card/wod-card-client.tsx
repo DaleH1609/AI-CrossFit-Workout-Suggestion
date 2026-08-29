@@ -21,7 +21,7 @@ export function WodCardClient({ workout, gymName }: Props) {
 
   async function handleShare() {
     const text = workout
-      ? `Today's WOD at ${gymName} — ${today}\n\n${workout.description ?? ''}`
+      ? `Today's WOD at ${gymName} — ${today}\n\n${workout.descriptor ?? ''}`
       : `WOD at ${gymName} — ${today}`
 
     if (navigator.share) {
@@ -32,17 +32,9 @@ export function WodCardClient({ workout, gymName }: Props) {
     }
   }
 
-  const sections: { label: string; content: string }[] = []
-  if (workout) {
-    if (workout.warmup) sections.push({ label: 'Warm-up', content: workout.warmup })
-    if (workout.strength) sections.push({ label: 'Strength', content: workout.strength })
-    if (workout.wod) sections.push({ label: 'WOD', content: workout.wod })
-    if (workout.notes) sections.push({ label: 'Notes', content: workout.notes })
-    // fallback if using description field
-    if (sections.length === 0 && workout.description) {
-      sections.push({ label: 'WOD', content: workout.description })
-    }
-  }
+  const sections: { label: string; content: string }[] = workout
+    ? workout.parts.map(p => ({ label: p.label ?? p.type, content: p.content }))
+    : []
 
   return (
     <div className="max-w-sm mx-auto">

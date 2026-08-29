@@ -70,7 +70,7 @@ export async function PATCH(req: Request) {
   try {
     const { error } = await createAdminClient()
       .from('monthly_challenges')
-      .update(updates)
+      .update(updates as Record<string, unknown>)
       .eq('id', id)
       .eq('gym_id', auth.gymId)
     if (error) throw error

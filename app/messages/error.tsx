@@ -7,13 +7,13 @@ interface ErrorProps {
   reset: () => void
 }
 
-export default function MemberMessagesError({ error, reset }: ErrorProps) {
+export default function MessagesError({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error('[member/messages] error boundary caught:', error)
+    console.error('[messages] error boundary caught:', error)
   }, [error])
 
   return (
-    <div className="flex flex-col items-center justify-center h-[calc(100vh-160px)] gap-4">
+    <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] -m-8 gap-4">
       <div className="text-center space-y-2">
         <h2 className="font-display text-xl text-foreground">Something went wrong</h2>
         <p className="text-secondary text-sm max-w-xs">

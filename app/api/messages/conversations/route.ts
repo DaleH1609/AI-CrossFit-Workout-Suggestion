@@ -29,11 +29,18 @@ export async function GET() {
 
   const admin = createAdminClient()
 
+  type ConvRow = {
+    id: string; gym_id: string; member_id: string; created_at: string
+    last_message_at: string; owner_unread: number; member_unread: number
+    users: { name: string; email: string } | null
+  }
   const { data: conversations, error: convError } = await admin
     .from('conversations')
     .select('*, users!conversations_member_id_fkey(name, email)')
     .eq('gym_id', userData.gym_id)
-    .order('last_message_at', { ascending: false })
+    .order('last_message_at', { ascending: false }) as unknown as {
+      data: ConvRow[] | null; error: { message: string; code: string } | null
+    }
 
   if (convError) return jsonServerError('conversations GET fetch', convError)
 
@@ -52,7 +59,7 @@ export async function GET() {
     .select('conversation_id, body, created_at')
     .in('conversation_id', convIds)
     .order('created_at', { ascending: false })
-    .limit(convIds.length * 5) // fetch up to 5 per conversation to ensure we get at least 1 each
+    .limit(convIds.length * 5)
 
   // Build a map of conversation_id -> last message body
   const lastMessageMap = new Map<string, string>()
@@ -64,7 +71,7 @@ export async function GET() {
 
   // Build response
   const result = convList.map(conv => {
-    const rawUser = (conv as Record<string, unknown>).users as { name: string; email: string } | null
+    const rawUser = conv.users
     const preview = lastMessageMap.get(conv.id) ?? null
     return {
       id: conv.id,
