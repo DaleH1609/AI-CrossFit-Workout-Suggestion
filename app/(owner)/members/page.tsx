@@ -8,6 +8,7 @@ import { MemberPasses } from '@/components/admin/member-passes'
 import { MemberPauses } from '@/components/admin/member-pauses'
 import { MemberScaling } from '@/components/admin/member-scaling'
 import { UsersThree } from '@phosphor-icons/react'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableBadge } from '@/components/ui/table'
 
 interface MemberRow { id: string; email: string; name: string; created_at: string; revoked_at: string | null; role?: string; waiver_signed_at: string | null }
 interface GymUserRow { gym_id: string }
@@ -305,21 +306,23 @@ export default function MembersPage() {
           <p className="text-secondary text-sm">Enter an email address above and hit Invite to add your first member. They'll receive a sign-up link.</p>
         </div>
       ) : (
-        <div className="border border-border rounded-xl overflow-hidden">
-          {/* Header */}
-          <div className="grid grid-cols-[1fr_140px_90px_80px] px-5 py-2.5 border-b border-border bg-surface-raised">
-            <span className="text-[10px] text-secondary uppercase tracking-widest">Member</span>
-            <span className="text-[10px] text-secondary uppercase tracking-widest">Classes this month</span>
-            <span className="text-[10px] text-secondary uppercase tracking-widest">Status</span>
-            <span />
-          </div>
-
-          {/* Rows */}
+        // Real table semantics. This was a CSS grid faking one, so assistive
+        // tech got a pile of unrelated divs with no column association and no
+        // way to announce "Status: Active" for a given member.
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead scope="col">Member</TableHead>
+              <TableHead scope="col">Classes this month</TableHead>
+              <TableHead scope="col">Status</TableHead>
+              <TableHead scope="col"><span className="sr-only">Actions</span></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {members.map(m => (
-            <div key={m.id}
-              className="group grid grid-cols-[1fr_140px_90px_80px] items-center px-5 py-3.5 border-b border-border last:border-0 hover:bg-surface-raised transition-colors">
+            <TableRow key={m.id} className="group">
 
-              <div className="min-w-0 pr-4">
+              <TableCell className="min-w-0 pr-4 whitespace-normal">
                 <div className="flex items-center gap-2 min-w-0">
                   <p className="text-sm text-foreground truncate">{m.email}</p>
                   {!m.waiver_signed_at && (
@@ -329,22 +332,23 @@ export default function MembersPage() {
                   )}
                 </div>
                 {m.name && <p className="text-xs text-secondary mt-0.5 truncate">{m.name}</p>}
-              </div>
+              </TableCell>
 
-              <div>
+              <TableCell>
                 <AttendanceDots count={attendanceCounts[m.id] ?? 0} />
-              </div>
+              </TableCell>
 
-              <div>
-                {m.revoked_at ? (
-                  <span className="text-xs text-danger">Revoked</span>
-                ) : (
-                  <span className="text-xs text-accent bg-accent-5 border border-accent-20 px-2 py-0.5 rounded-full">Active</span>
-                )}
-              </div>
+              <TableCell>
+                {m.revoked_at
+                  ? <TableBadge tone="danger">Revoked</TableBadge>
+                  : <TableBadge tone="accent">Active</TableBadge>}
+              </TableCell>
 
-              {/* Actions - visible on hover */}
-              <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+              {/* Actions. Revealed on hover for pointer users, but also on
+                  keyboard focus - opacity-0 alone hides them from anyone
+                  tabbing through, which made them unreachable. */}
+              <TableCell className="text-right">
+               <div className="inline-flex items-center justify-end gap-2 opacity-0 transition-opacity duration-200 ease-expo group-hover:opacity-100 group-focus-within:opacity-100">
                 <button
                   onClick={() => handleRoleToggle(m, 'coach')}
                   className="text-xs text-secondary hover:text-accent transition-colors"
@@ -381,10 +385,12 @@ export default function MembersPage() {
                 >
                   ×
                 </button>
-              </div>
-            </div>
+               </div>
+              </TableCell>
+            </TableRow>
           ))}
-        </div>
+          </TableBody>
+        </Table>
       )}
 
       </>}
