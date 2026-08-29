@@ -450,7 +450,13 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                                   ? 'ring-2 ring-white/40 ring-offset-1 ring-offset-background scale-[1.03] z-10 shadow-lg shadow-black/40'
                                   : 'hover:scale-[1.04] hover:z-10 hover:shadow-xl hover:shadow-black/50'
                               }`}
-                              style={{ backgroundColor: color }}
+                              style={{
+                                // 14% tint rather than a solid fill, with the
+                                // full-strength colour kept as a left spine.
+                                backgroundColor: `color-mix(in srgb, ${color} 14%, var(--color-surface))`,
+                                borderLeft: `3px solid ${color}`,
+                                color: 'var(--color-foreground)',
+                              }}
                               onClick={() => handleSlotClick(template, day)}
                               onDoubleClick={() => handleSlotDoubleClick(template)}
                             >
@@ -458,7 +464,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                               <button
                                 type="button"
                                 className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded text-[11px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/20 leading-none"
-                                style={{ color: txt }}
+                                style={{ color: 'var(--color-foreground)' }}
                                 onClick={e => { e.stopPropagation(); callDelete(template.id) }}
                                 onDoubleClick={e => e.stopPropagation()}
                                 title="Remove this slot"
@@ -467,12 +473,12 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                               </button>
 
                               {/* Time inside tile */}
-                              <div className="text-[9px] font-medium leading-none" style={{ color: txt, opacity: 0.72 }}>
+                              <div className="text-[9px] font-medium leading-none" style={{ color: 'var(--color-secondary)' }}>
                                 {formatTime(time)}
                               </div>
 
                               {/* Class name */}
-                              <div className="text-[11px] font-bold truncate leading-tight pr-3" style={{ color: txt }}>
+                              <div className="text-[11px] font-bold truncate leading-tight pr-3" style={{ color }}>
                                 {name}
                               </div>
 
@@ -491,12 +497,12 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                                   onClick={e => e.stopPropagation()}
                                   onDoubleClick={e => e.stopPropagation()}
                                   className="block w-10 text-[9px] font-semibold bg-transparent border-b border-current/40 outline-none"
-                                  style={{ color: txt }}
+                                  style={{ color: 'var(--color-foreground)' }}
                                 />
                               ) : (
                                 <div
                                   className="text-[9px] font-medium cursor-text leading-none"
-                                  style={{ color: txt, opacity: 0.7 }}
+                                  style={{ color: 'var(--color-secondary)' }}
                                   onClick={e => {
                                     e.stopPropagation()
                                     if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = null }
