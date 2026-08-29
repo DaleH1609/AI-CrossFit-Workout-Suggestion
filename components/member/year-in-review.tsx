@@ -81,8 +81,8 @@ export function YearInReview() {
             {[
               { label: 'Classes', value: data.totalClasses },
               { label: 'Longest streak', value: `${data.longestStreak}d` },
-              { label: 'Favourite day', value: data.favouriteDay ?? '—' },
-              { label: 'Best month', value: bestMonthName ?? '—' },
+              { label: 'Favourite day', value: data.favouriteDay ?? '-' },
+              { label: 'Best month', value: bestMonthName ?? '-' },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-lg border border-border bg-surface p-3">
                 <p className="font-display text-xl text-foreground">{value}</p>

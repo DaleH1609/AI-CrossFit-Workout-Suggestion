@@ -84,7 +84,7 @@ export function ClassTile({ instance, confirmedCount, userBooking, bookedMemberN
 
         {/* Right: capacity + status + action */}
         <div className="flex items-center gap-3 shrink-0">
-          {/* Capacity bar — always visible unless booking hasn't opened yet */}
+          {/* Capacity bar - always visible unless booking hasn't opened yet */}
           {!isTooEarly && (
             <CapacityBar count={confirmedCount} capacity={instance.capacity} />
           )}

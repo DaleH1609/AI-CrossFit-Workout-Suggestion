@@ -89,7 +89,7 @@ export default function MfaEnrollPage() {
 
       {!enrolling && qrSvg && (
         <>
-          {/* QR code — SVG comes directly from Supabase, safe to render */}
+          {/* QR code - SVG comes directly from Supabase, safe to render */}
           <div
             className="auth-field mx-auto mb-4 rounded-lg overflow-hidden bg-white p-3 w-fit"
             style={{ animationDelay: '120ms' }}

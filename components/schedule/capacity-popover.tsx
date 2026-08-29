@@ -87,7 +87,7 @@ export function CapacityPopover({
       <div className="mb-3">
         <p className="text-xs text-secondary mb-1">Class type</p>
         {classTypes.length === 0 ? (
-          <p className="text-xs text-secondary italic">No types yet — add them above the grid</p>
+          <p className="text-xs text-secondary italic">No types yet - add them above the grid</p>
         ) : (
           <div className="flex flex-col gap-1">
             {classTypes.map(type => (

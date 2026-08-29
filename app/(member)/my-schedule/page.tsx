@@ -86,7 +86,7 @@ export default async function MySchedulePage() {
 
       {bookings.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-2xl text-border mb-2">—</p>
+          <p className="text-2xl text-border mb-2">-</p>
           <p className="text-secondary text-sm">No upcoming bookings.</p>
           <p className="text-secondary/50 text-xs mt-1">Book a class from This Week to see it here.</p>
         </div>
@@ -129,7 +129,7 @@ export default async function MySchedulePage() {
         </div>
       )}
 
-      {/* Recent past classes — prompt for feedback */}
+      {/* Recent past classes - prompt for feedback */}
       {pastBookings.length > 0 && (
         <div className="mt-12 max-w-lg">
           <h2 className="text-sm font-semibold text-foreground mb-5">Recent classes</h2>

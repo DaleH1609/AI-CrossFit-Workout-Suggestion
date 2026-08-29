@@ -109,7 +109,7 @@ export function OnboardingChecklist({ completedSteps, waiverSignedAt, hasBooking
       {/* Intro CrossFit classes */}
       <div className="border-t border-border pt-4">
         <p className="text-xs font-semibold text-secondary uppercase tracking-widest mb-3">
-          Intro to CrossFit — {introCompleted}/6 classes
+          Intro to CrossFit - {introCompleted}/6 classes
         </p>
         <div className="grid grid-cols-6 gap-1.5">
           {INTRO_CLASSES.map((cls, i) => {

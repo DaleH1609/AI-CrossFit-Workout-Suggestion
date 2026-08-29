@@ -98,7 +98,7 @@ export function WhiteboardClient({ gymName, today, timezone, todayWorkout, insta
           <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase mb-6">
             Today&apos;s Workout
             {todayWorkout?.descriptor && (
-              <span className="ml-3 text-[#b8952a]">— {todayWorkout.descriptor}</span>
+              <span className="ml-3 text-[#b8952a]">- {todayWorkout.descriptor}</span>
             )}
           </h2>
 
@@ -173,7 +173,7 @@ export function WhiteboardClient({ gymName, today, timezone, todayWorkout, insta
           {nextClass && (
             <div>
               <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase mb-4">
-                Next Class — Roster
+                Next Class - Roster
               </h2>
               <div className="space-y-2">
                 {bookings

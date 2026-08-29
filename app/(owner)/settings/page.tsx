@@ -279,7 +279,7 @@ export default function SettingsPage() {
                     patch({ cancellationCutoffHours: num }, setCutoffSaved)
                   }}
                   options={[
-                    { value: '0', label: 'No limit — members can cancel any time' },
+                    { value: '0', label: 'No limit - members can cancel any time' },
                     { value: '1', label: '1 hour before class' },
                     { value: '2', label: '2 hours before class' },
                     { value: '4', label: '4 hours before class' },
@@ -298,7 +298,7 @@ export default function SettingsPage() {
                     patch({ bookingAdvanceHours: num }, setBookingSaved)
                   }}
                   options={[
-                    { value: '0', label: 'Always open — book any time' },
+                    { value: '0', label: 'Always open - book any time' },
                     { value: '12', label: 'Opens 12 hours before class' },
                     { value: '24', label: 'Opens 24 hours before class' },
                     { value: '48', label: 'Opens 48 hours before class' },
@@ -514,7 +514,7 @@ export default function SettingsPage() {
               <textarea
                 value={gymDescription}
                 onChange={e => setGymDescription(e.target.value)}
-                placeholder="Description — tell the public about your gym, community, and approach."
+                placeholder="Description - tell the public about your gym, community, and approach."
                 rows={3}
                 maxLength={2000}
                 className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors resize-none"
@@ -559,7 +559,7 @@ export default function SettingsPage() {
           {/* Broadcast email */}
           <section id="broadcast">
             <h2 className="text-sm font-semibold text-foreground mb-1">Broadcast email</h2>
-            <p className="text-secondary text-xs mb-5">Send a one-off email to all active members — announcements, schedule changes, special events.</p>
+            <p className="text-secondary text-xs mb-5">Send a one-off email to all active members - announcements, schedule changes, special events.</p>
             <div className="space-y-3">
               <div className="flex gap-2">
                 <select
@@ -617,7 +617,7 @@ export default function SettingsPage() {
 
           <div className="border-t border-border" />
 
-          {/* Integrations — Slack/Discord webhooks */}
+          {/* Integrations - Slack/Discord webhooks */}
           <section id="integrations">
             <h2 className="text-sm font-semibold text-foreground mb-2">Integrations</h2>
             <p className="text-secondary text-xs mb-5">Send automatic notifications to Slack or Discord when events happen in your gym.</p>
@@ -690,7 +690,7 @@ export default function SettingsPage() {
                 {webhooks.map(w => (
                   <div key={w.id} className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3 group">
                     <div className="min-w-0">
-                      <p className="text-sm text-foreground capitalize">{w.platform}{w.label ? ` — ${w.label}` : ''}</p>
+                      <p className="text-sm text-foreground capitalize">{w.platform}{w.label ? ` - ${w.label}` : ''}</p>
                       <p className="text-xs text-secondary truncate">{w.url}</p>
                       <p className="text-xs text-secondary mt-0.5">{w.events.map(e => e.replace(/_/g, ' ')).join(', ')}</p>
                     </div>

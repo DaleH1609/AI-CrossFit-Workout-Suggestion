@@ -45,7 +45,7 @@ async function getAllGyms() {
     id: g.id,
     name: g.name,
     gymType: g.gym_type,
-    ownerEmail: g.owner_id ? (ownerMap[g.owner_id] ?? '—') : '—',
+    ownerEmail: g.owner_id ? (ownerMap[g.owner_id] ?? '-') : '-',
     memberCount: memberCounts[g.id] ?? 0,
     bookingCount: bookingData[g.id]?.count ?? 0,
     lastActive: bookingData[g.id]?.lastAt ?? g.created_at, // spec: fallback to gyms.created_at if no bookings

@@ -37,11 +37,11 @@ export function PhraseSpinner() {
 
   return (
     <div className="relative" style={{ height: '350vh' }} aria-hidden="true">
-      {/* Sentinel divs — absolute siblings of the sticky div, not inside it */}
+      {/* Sentinel divs - absolute siblings of the sticky div, not inside it */}
       <div ref={sent1} style={{ position: 'absolute', top: '30%', height: '1px', width: '100%', pointerEvents: 'none' }} />
       <div ref={sent2} style={{ position: 'absolute', top: '60%', height: '1px', width: '100%', pointerEvents: 'none' }} />
 
-      {/* Sticky container — no overflow-hidden so preserve-3d works in Safari */}
+      {/* Sticky container - no overflow-hidden so preserve-3d works in Safari */}
       <div className="sticky top-0 min-h-[100dvh] flex flex-col items-center justify-center bg-background border-t border-b border-border">
 
         {/* Subtle gold radial wash */}

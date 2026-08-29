@@ -35,7 +35,7 @@ function MemberRow({ member }: { member: Member }) {
         onClick={() => setOpen(v => !v)}
       >
         <td className="px-4 py-3 font-medium">
-          {member.name || '—'}
+          {member.name || '-'}
           {member.revoked && (
             <span className="ml-2 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">revoked</span>
           )}

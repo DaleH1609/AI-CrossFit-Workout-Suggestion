@@ -45,7 +45,7 @@ export function useCapacityForm({
   async function save() {
     const cap = overriding ? parseInt(capacity) : null
     if (overriding && (isNaN(cap!) || cap! < 1 || cap! > 200)) {
-      setError('Capacity must be 1–200')
+      setError('Capacity must be 1-200')
       return
     }
     setSaving(true)

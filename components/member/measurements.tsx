@@ -122,7 +122,7 @@ export function Measurements() {
               <div key={f.key}>
                 <label className="block text-[10px] text-secondary uppercase tracking-widest mb-1">{f.label} ({f.unit})</label>
                 <input
-                  type="number" step="0.1" placeholder="—"
+                  type="number" step="0.1" placeholder="-"
                   value={form[f.key] ?? ''}
                   onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                   className="w-full px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent"

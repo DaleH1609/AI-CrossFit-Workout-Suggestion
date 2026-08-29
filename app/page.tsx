@@ -27,15 +27,15 @@ import {
 const FEATURES = [
   { icon: Sparkle,       title: 'AI Workout Generation', desc: "Generate a full week of WODs in seconds. KOVA learns your gym's style and keeps programming consistent." },
   { icon: CalendarBlank, title: 'Class Scheduling',      desc: 'Set up recurring class slots, manage capacity, and let members book directly from their phone.' },
-  { icon: Users,         title: 'Member Management',     desc: "Invite members, track attendance, and manage your gym community — all in one place." },
+  { icon: Users,         title: 'Member Management',     desc: "Invite members, track attendance, and manage your gym community - all in one place." },
   { icon: StackSimple,   title: 'Auto-Scaling',          desc: 'Every WOD automatically scaled to Rx, Scaled, and Beginner. No more writing three versions.' },
-  { icon: Barbell,       title: 'CrossFit & Hyrox',      desc: "Built-in programming logic for both gym types. Switch in settings — the AI adapts instantly." },
-  { icon: PencilLine,    title: 'Full Edit Control',     desc: 'AI generates, you approve. Edit any workout before publishing — structured editor or free text.' },
+  { icon: Barbell,       title: 'CrossFit & Hyrox',      desc: "Built-in programming logic for both gym types. Switch in settings - the AI adapts instantly." },
+  { icon: PencilLine,    title: 'Full Edit Control',     desc: 'AI generates, you approve. Edit any workout before publishing - structured editor or free text.' },
 ]
 
 const MEMBER_BENEFITS = [
   { label: 'Book classes in seconds',  desc: 'Live capacity, one-tap booking, instant confirmation.' },
-  { label: "See today's WOD",          desc: 'Know the workout — and their scaling — before they arrive.' },
+  { label: "See today's WOD",          desc: 'Know the workout - and their scaling - before they arrive.' },
   { label: 'No app download needed',   desc: 'Works from any browser on any device.' },
 ]
 
@@ -48,7 +48,7 @@ const MOCK_CLASSES = [
 // Split into prefix/value/suffix so CountUp can animate the numeral while the
 // surrounding characters stay fixed.
 const STATS = [
-  { prefix: '<',  value: 30,  suffix: 's', label: 'To generate a full week of WODs — start to publishable draft.' },
+  { prefix: '<',  value: 30,  suffix: 's', label: 'To generate a full week of WODs - start to publishable draft.' },
   { prefix: '',   value: 3,   suffix: '×', label: 'Scaling versions written for every workout, automatically. Rx, Scaled, Beginner.' },
   { prefix: '',   value: 100, suffix: '%', label: 'Edit control. Nothing reaches your members until you approve it.' },
 ]
@@ -56,9 +56,9 @@ const STATS = [
 const AI_PREVIEW_WODS = [
   { day: 'Mon', name: 'Back Squat 5×5 + AMRAP 15',    tag: 'Strength'  },
   { day: 'Tue', name: '21-15-9 Thrusters / Pull-ups', tag: 'Metcon'    },
-  { day: 'Wed', name: 'EMOM 20 — Gymnastics Focus',   tag: 'Skill'     },
+  { day: 'Wed', name: 'EMOM 20 - Gymnastics Focus',   tag: 'Skill'     },
   { day: 'Thu', name: 'Clean & Jerk 1RM + RFT',       tag: 'Olympic'   },
-  { day: 'Fri', name: 'Hero WOD — Murph Prep',        tag: 'Endurance' },
+  { day: 'Fri', name: 'Hero WOD - Murph Prep',        tag: 'Endurance' },
 ]
 
 export default function HomePage() {
@@ -71,7 +71,7 @@ export default function HomePage() {
         className="sticky top-0 z-50 h-16 backdrop-blur-md border-b border-border"
         style={{ background: 'color-mix(in srgb, var(--color-background) 90%, transparent)' }}
       >
-        {/* Padding matches the hero's full-bleed gutter, not a centred container —
+        {/* Padding matches the hero's full-bleed gutter, not a centred container -
             a max-w nav over a full-bleed hero is the seam that reads as templated. */}
         <div className="w-full px-6 sm:px-10 lg:px-16 h-full flex items-center justify-between">
           <KovaLogo size="lg" />
@@ -109,7 +109,7 @@ export default function HomePage() {
               immediate
               delay={0.15}
               className="font-display uppercase text-foreground mb-10
-                         text-[clamp(3.25rem,11vw,9rem)] leading-[0.82] tracking-[-0.02em]"
+                         text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.88] tracking-[-0.02em]"
             >
               <>Program your gym in <span className="text-accent">seconds.</span></>
             </SplitHeading>
@@ -118,7 +118,7 @@ export default function HomePage() {
               className="hero-fade-up text-base text-secondary leading-relaxed max-w-md mb-10"
               style={{ animationDelay: '0.25s' }}
             >
-              Most coaches spend 3–5 hours a week writing workouts. KOVA generates your full weekly program in under 30 seconds — tailored to your coaching style, with every scaling version included.
+              Most coaches spend 3-5 hours a week writing workouts. KOVA generates your full weekly program in under 30 seconds - tailored to your coaching style, with every scaling version included.
             </p>
 
             <div
@@ -154,14 +154,6 @@ export default function HomePage() {
           <div className="hero-fade-up" style={{ animationDelay: '0.2s' }}>
             <WodCardsHero />
           </div>
-
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 pointer-events-none">
-            <span className="text-[10px] font-semibold tracking-widest uppercase text-secondary/50">Scroll</span>
-            <svg aria-hidden="true" className="scroll-bounce text-secondary/50" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
         </section>
       </div>
 
@@ -172,7 +164,7 @@ export default function HomePage() {
       {/* Not a strip of three equal boxes. Each figure is a full-width row
           with the number at display scale and the label hung beside it, so the
           eye reads down a column of numerals rather than across a card set.
-          Numbers count up on entry — a static figure reads as decoration, a
+          Numbers count up on entry - a static figure reads as decoration, a
           counting one reads as a measurement. */}
       <div className="bg-[#08080A] pt-24 pb-20">
         <div className="w-full px-6 sm:px-10 lg:px-16">
@@ -185,10 +177,7 @@ export default function HomePage() {
               <FadeIn key={s.label} delay={i * 90}>
                 <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-x-12 gap-y-3 items-baseline py-9 group">
                   <div className="flex items-baseline gap-4">
-                    <span className="font-mono text-[11px] tracking-[0.25em] text-white/20 tabular-nums w-8">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span className="font-display text-white leading-[0.85] tracking-tight text-[clamp(3rem,8vw,6.5rem)] transition-colors duration-300 group-hover:text-accent">
+                    <span className="font-display text-white leading-[0.85] tracking-tight text-[clamp(2.5rem,6vw,4.5rem)] transition-colors duration-300 group-hover:text-accent">
                       {s.prefix}
                       <CountUp to={s.value} suffix={s.suffix} />
                     </span>
@@ -288,10 +277,10 @@ export default function HomePage() {
                   <span className="text-[10px] text-secondary">Strength · 45 min</span>
                 </div>
                 <p className="text-base font-bold text-foreground mb-0.5">Back Squat 5×5</p>
-                <p className="text-xs text-secondary mb-3">@ 80% 1RM — 3 min rest between sets</p>
+                <p className="text-xs text-secondary mb-3">@ 80% 1RM - 3 min rest between sets</p>
                 <div className="border-t border-border pt-3 mb-3">
                   <p className="text-[10px] font-bold tracking-widest text-accent uppercase mb-1.5">AMRAP 15 min</p>
-                  <p className="text-xs text-secondary">10 Pull-ups · 15 Box Jumps · 20 KB Swings</p>
+                  <p className="text-xs text-secondary">10 Pull-ups, 15 Box Jumps, 20 KB Swings</p>
                 </div>
                 <div className="flex gap-2">
                   <span className="px-2.5 py-1 text-[10px] font-bold rounded-btn bg-accent-10 text-accent border border-accent/20">Rx</span>
@@ -311,7 +300,7 @@ export default function HomePage() {
                 className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.5rem,6vw,4.75rem)] mb-7"
               />
               <p className="text-base text-secondary leading-relaxed mb-8">
-                Members get their own view — browse the week&apos;s WODs, reserve a spot, and check their scaling before they arrive. No app download required.
+                Members get their own view - browse the week&apos;s WODs, reserve a spot, and check their scaling before they arrive. No app download required.
               </p>
               <ul className="space-y-5">
                 {MEMBER_BENEFITS.map(b => (
@@ -334,14 +323,14 @@ export default function HomePage() {
       {/* ── FEATURES ────────────────────────────────────────────────── */}
       <section id="features" className="scroll-mt-16">
 
-        {/* Section header — hangs off the same left gutter as the hero rather
+        {/* Section header - hangs off the same left gutter as the hero rather
             than re-centring, so the page has one spine instead of two. */}
         <div className="w-full px-6 sm:px-10 lg:px-16 pt-28 pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-10 items-end">
           <div>
             <p className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase mb-6">What KOVA does</p>
             <RevealText
               lines={['Everything your', 'gym needs.', <span key="a" className="text-accent">Nothing it doesn&apos;t.</span>]}
-              className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.5rem,7vw,5.5rem)]"
+              className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)]"
             />
           </div>
           <p className="text-sm text-secondary leading-relaxed lg:pb-3 lg:border-l lg:border-border lg:pl-8">
@@ -350,7 +339,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Change 5: AI Generation hero feature — full-width callout above the grid */}
+        {/* Change 5: AI Generation hero feature - full-width callout above the grid */}
         <FadeIn>
           <div className="bg-surface border-y border-border">
             <div className="w-full px-6 sm:px-10 lg:px-16 py-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-14 lg:gap-20 items-center">
@@ -367,7 +356,7 @@ export default function HomePage() {
                   className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)] mb-6"
                 />
                 <p className="text-base text-secondary leading-relaxed mb-8 max-w-md text-pretty">
-                  Tell KOVA your gym&apos;s training style once. It generates balanced, intelligent programming — strength cycles, metcons, skill work, and Olympic lifting — that genuinely matches how you coach.
+                  Tell KOVA your gym&apos;s training style once. It generates balanced, intelligent programming - strength cycles, metcons, skill work, and Olympic lifting - that genuinely matches how you coach.
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {['CrossFit', 'Hyrox', 'Strength Focus', 'Skill Bias'].map(tag => (
@@ -423,9 +412,6 @@ export default function HomePage() {
                 className={i === 0 ? 'sm:col-span-2' : undefined}
               >
                 <div className="h-full bg-surface p-9 lg:p-11 hover:bg-surface-raised transition-colors group relative">
-                  <span className="absolute top-5 right-6 font-mono text-[11px] tracking-[0.2em] text-secondary/30 tabular-nums">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
                   <f.icon size={i === 0 ? 34 : 26} weight="duotone" className="mb-6 text-accent" />
                   <h3
                     className={`font-display uppercase tracking-tight text-pretty text-foreground mb-3 group-hover:text-accent transition-colors ${
@@ -453,7 +439,7 @@ export default function HomePage() {
               on the same typographic note. */}
           <RevealText
             lines={['Ready to elevate', <span key="a" className="text-accent">your gym?</span>]}
-            className="font-display uppercase text-white leading-[0.82] tracking-[-0.02em] text-[clamp(3rem,10vw,8rem)] mb-8"
+            className="font-display uppercase text-white leading-[0.82] tracking-[-0.02em] text-[clamp(2.5rem,6vw,4.5rem)] mb-8"
           />
           <p className="text-white/40 text-base mb-10">Start programming smarter today.</p>
           <Magnetic strength={0.35}>

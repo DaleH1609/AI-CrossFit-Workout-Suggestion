@@ -179,7 +179,7 @@ export default function CoachDashboardPage() {
                               )}
                             </button>
                             <span className="text-sm text-foreground flex-1">
-                              {booking.users?.name ?? booking.users?.email ?? '—'}
+                              {booking.users?.name ?? booking.users?.email ?? '-'}
                             </span>
                             <span className="text-[10px] text-secondary capitalize">
                               {booking.status.replace('_', ' ')}
@@ -196,7 +196,7 @@ export default function CoachDashboardPage() {
                     </p>
                   )}
 
-                  {/* Sub request section — future classes only */}
+                  {/* Sub request section - future classes only */}
                   {!isPast && (
                     <div className="mt-3 pt-3 border-t border-border/40">
                       {existingSubReq ? (
@@ -206,7 +206,7 @@ export default function CoachDashboardPage() {
                             <span className={`font-medium ${existingSubReq.status === 'claimed' ? 'text-accent' : 'text-secondary'}`}>
                               {existingSubReq.status}
                             </span>
-                            {existingSubReq.claimed_by && ` — covered by ${existingSubReq.claimed_by.name}`}
+                            {existingSubReq.claimed_by && ` - covered by ${existingSubReq.claimed_by.name}`}
                           </span>
                           {existingSubReq.status === 'open' && (
                             <button

@@ -63,7 +63,7 @@ export function ClassTypesManager({ classTypes, onChange }: Props) {
       }
     } catch (err) {
       console.error('[class-types] delete failed', err)
-      setError('Network error — could not delete')
+      setError('Network error - could not delete')
     }
   }
 
@@ -88,7 +88,7 @@ export function ClassTypesManager({ classTypes, onChange }: Props) {
       if (snapshot !== undefined) {
         onChange(classTypes.map(t => t.id === id ? { ...t, color: snapshot } : t))
       }
-      setError('Network error — could not update colour')
+      setError('Network error - could not update colour')
     }
   }
 

@@ -50,7 +50,7 @@ export async function checkAiLimit(
 
   if (!data) {
     // Row genuinely missing (deleted gym, misconfigured request) — block.
-    console.error('[ai/spend-limit] gym row not found for', gymId, '— blocking AI call')
+    console.error('[ai/spend-limit] gym row not found for', gymId, '- blocking AI call')
     return { limited: true }
   }
 

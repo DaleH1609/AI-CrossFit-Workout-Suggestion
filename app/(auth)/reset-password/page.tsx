@@ -31,7 +31,7 @@ export default function ResetPasswordPage() {
     setLoading(false)
 
     if (error) {
-      setError('Unable to update password. Your reset link may have expired — request a new one.')
+      setError('Unable to update password. Your reset link may have expired - request a new one.')
       return
     }
 

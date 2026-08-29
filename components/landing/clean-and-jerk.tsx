@@ -126,7 +126,6 @@ export function CleanAndJerk() {
   // whole section 60 times a second for what is only ever text and a width.
   const labelRef = useRef<HTMLSpanElement>(null)
   const pctRef = useRef<HTMLSpanElement>(null)
-  const phaseRef = useRef<HTMLSpanElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -169,10 +168,6 @@ export function CleanAndJerk() {
       if (labelRef.current) labelRef.current.textContent = p.label
       if (pctRef.current) pctRef.current.textContent = String(pct).padStart(2, '0')
       if (barRef.current) barRef.current.style.width = `${pct}%`
-      if (phaseRef.current) {
-        const idx = PHASES.findIndex((ph) => ph.label === p.label) + 1
-        phaseRef.current.textContent = `${String(idx).padStart(2, '0')} / ${String(PHASES.length).padStart(2, '0')}`
-      }
     }
 
     if (reduced) {
@@ -214,7 +209,7 @@ export function CleanAndJerk() {
       aria-label="Clean and jerk, animated through the phases of the lift as you scroll"
       className="relative min-h-[100dvh] overflow-hidden bg-[#08080A] flex items-center"
     >
-      {/* Floor line — an SVG path so DrawSVG can stroke it on, not a div. */}
+      {/* Floor line - an SVG path so DrawSVG can stroke it on, not a div. */}
       <svg
         aria-hidden="true"
         className="pointer-events-none absolute left-0 right-0 top-1/2 mt-[92px] w-full"
@@ -228,14 +223,14 @@ export function CleanAndJerk() {
       <div className="relative mx-auto w-full max-w-7xl px-8 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-12 items-center">
         <div className="max-w-lg">
           <p className="font-mono text-[11px] tracking-[0.3em] uppercase text-accent mb-6">
-            The lift · <span ref={phaseRef}>01 / {String(PHASES.length).padStart(2, '0')}</span>
+            The lift
           </p>
-          <h2 className="font-display uppercase text-white leading-[0.85] tracking-tight text-[clamp(3.5rem,9vw,7.5rem)]">
+          <h2 className="font-display uppercase text-white leading-[0.85] tracking-tight text-[clamp(2.5rem,6vw,5rem)]">
             Built for<br />the barbell
           </h2>
           <p className="mt-8 text-white/50 leading-relaxed max-w-sm">
             Olympic lifts, metcons, hero WODs, Hyrox. KOVA knows the difference between
-            a strength day and a engine day — and programs the week accordingly.
+            a strength day and a engine day - and programs the week accordingly.
           </p>
 
           <div className="mt-10 flex items-baseline gap-4">

@@ -85,11 +85,11 @@ export function WodCardsHero() {
         style={{ width: 288, height: 230, overflow: 'visible', cursor: 'pointer' }}
       >
 
-        {/* c3 — Wednesday Skills (back, fans left) */}
+        {/* c3 - Wednesday Skills (back, fans left) */}
         <div className={`wod-card c3 absolute w-[272px] bg-surface border border-border rounded-xl p-4 ${visible ? 'animate-float-c' : ''}`}>
-          <p className="text-xs font-semibold tracking-widest text-secondary uppercase mb-1">Wednesday — Skills</p>
+          <p className="text-xs font-semibold tracking-widest text-secondary uppercase mb-1">Wednesday - Skills</p>
           <p className="text-sm text-foreground font-medium">Gymnastics EMOM</p>
-          <p className="text-xs text-secondary mt-1">20 min — 4 movements</p>
+          <p className="text-xs text-secondary mt-1">20 min - 4 movements</p>
           <div className="border-t border-border my-3" />
           <ul className="space-y-1">
             {['Strict HSPU', 'L-Sit Hold 30s', 'Ring Muscle-ups'].map(m => (
@@ -98,9 +98,9 @@ export function WodCardsHero() {
           </ul>
         </div>
 
-        {/* c2 — Tuesday Metcon (mid, fans right) */}
+        {/* c2 - Tuesday Metcon (mid, fans right) */}
         <div className={`wod-card c2 absolute w-[272px] bg-surface border border-border rounded-xl p-4 ${visible ? 'animate-float-b' : ''}`}>
-          <p className="text-xs font-semibold tracking-widest text-secondary uppercase mb-1">Tuesday — Metcon</p>
+          <p className="text-xs font-semibold tracking-widest text-secondary uppercase mb-1">Tuesday - Metcon</p>
           <p className="text-sm text-foreground font-medium">For Time: 21-15-9</p>
           <p className="text-xs text-secondary mt-1">Thrusters / Pull-ups</p>
           <div className="border-t border-border my-3" />
@@ -111,14 +111,14 @@ export function WodCardsHero() {
           </ul>
         </div>
 
-        {/* c1 — Monday Strength (front, stays put) */}
+        {/* c1 - Monday Strength (front, stays put) */}
         <div className={`wod-card c1 absolute w-[272px] bg-surface border border-border shadow-lg rounded-xl p-5 ${visible ? 'animate-float-a' : ''}`}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold tracking-widest text-accent uppercase">Monday — Strength</span>
+            <span className="text-xs font-semibold tracking-widest text-accent uppercase">Monday - Strength</span>
             <span className="w-2 h-2 rounded-full bg-accent block" />
           </div>
           <p className="text-base font-bold text-foreground mb-0.5">Back Squat 5×5</p>
-          <p className="text-xs text-secondary mb-3">@ 80% 1RM — 3 min rest</p>
+          <p className="text-xs text-secondary mb-3">@ 80% 1RM - 3 min rest</p>
           <div className="border-t border-border mb-3" />
           <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-2">AMRAP 15 MIN</p>
           <ul className="space-y-1">

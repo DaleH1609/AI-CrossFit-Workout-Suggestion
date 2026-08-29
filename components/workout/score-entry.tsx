@@ -34,20 +34,20 @@ const SCORE_TYPE_LABELS: Record<ScoreType, string> = {
 function formatScore(score: ScoreRow): string {
   switch (score.score_type) {
     case 'time': {
-      if (score.score_value == null) return '—'
+      if (score.score_value == null) return '-'
       const secs = Math.round(score.score_value)
       const m = Math.floor(secs / 60)
       const s = secs % 60
       return `${m}:${String(s).padStart(2, '0')}`
     }
-    case 'reps': return score.score_value != null ? `${score.score_value} reps` : '—'
-    case 'weight': return score.score_value != null ? `${score.score_value} kg` : '—'
-    case 'distance': return score.score_value != null ? `${score.score_value} m` : '—'
-    case 'calories': return score.score_value != null ? `${score.score_value} cal` : '—'
-    case 'rounds_reps': return score.score_text ?? '—'
+    case 'reps': return score.score_value != null ? `${score.score_value} reps` : '-'
+    case 'weight': return score.score_value != null ? `${score.score_value} kg` : '-'
+    case 'distance': return score.score_value != null ? `${score.score_value} m` : '-'
+    case 'calories': return score.score_value != null ? `${score.score_value} cal` : '-'
+    case 'rounds_reps': return score.score_text ?? '-'
     case 'pass_fail': return score.score_value === 1 ? 'Pass' : 'Fail'
-    case 'notes_only': return score.notes ?? '—'
-    default: return '—'
+    case 'notes_only': return score.notes ?? '-'
+    default: return '-'
   }
 }
 

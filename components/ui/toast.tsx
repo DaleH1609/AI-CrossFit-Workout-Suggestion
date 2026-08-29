@@ -67,11 +67,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           pointerEvents: 'none',
         }}
       >
-        {/* Assertive region — interrupts the reader for errors. */}
+        {/* Assertive region - interrupts the reader for errors. */}
         <div role="alert" aria-live="assertive" aria-atomic="true" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {errors.map(toastItem)}
         </div>
-        {/* Polite region — queued, for success/info. */}
+        {/* Polite region - queued, for success/info. */}
         <div role="status" aria-live="polite" aria-atomic="true" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {polite.map(toastItem)}
         </div>

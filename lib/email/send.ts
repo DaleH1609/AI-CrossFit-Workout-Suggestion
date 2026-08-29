@@ -50,7 +50,7 @@ export async function sendBookingConfirmed(to: string, name: string, date: strin
 }
 
 export async function sendWaitlistPromotion(to: string, name: string, date: string, time: string, confirmUrl: string, expiresIn: string, contactEmail?: string | null) {
-  await getResend().emails.send({ from: getFrom(), to, subject: 'Spot Available — Confirm Now', html: await waitlistPromotionHtml(name, date, time, confirmUrl, expiresIn), ...withReplyTo(contactEmail) })
+  await getResend().emails.send({ from: getFrom(), to, subject: 'Spot Available - Confirm Now', html: await waitlistPromotionHtml(name, date, time, confirmUrl, expiresIn), ...withReplyTo(contactEmail) })
 }
 
 /**
@@ -185,7 +185,7 @@ export async function sendLeadOwnerAlert(to: string, leadName: string | null, le
     subject: `New lead: ${leadEmail}`,
     to,
     html: `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
-      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} — New Lead</h2>
+      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} - New Lead</h2>
       <p>A new lead signed up from your website:</p>
       <ul style="margin:8px 0;padding-left:20px;line-height:2">
         ${leadName ? `<li><strong>Name:</strong> ${escapeHtmlInline(leadName)}</li>` : ''}
@@ -201,12 +201,12 @@ export async function sendLeadTrialBooked(to: string, name: string | null, gymNa
   const dateStr = trialDate ? new Date(trialDate + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : 'soon'
   await getResend().emails.send({
     from: getFrom(),
-    subject: `Your trial class is booked — ${gymName}`,
+    subject: `Your trial class is booked - ${gymName}`,
     to,
     html: `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
       <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)}</h2>
       <p>Hi ${escapeHtmlInline(displayName)},</p>
-      <p>Great news — your trial class is booked for <strong>${escapeHtmlInline(dateStr)}</strong>. We can't wait to see you!</p>
+      <p>Great news - your trial class is booked for <strong>${escapeHtmlInline(dateStr)}</strong>. We can't wait to see you!</p>
       <p>Wear comfortable workout clothes. Arrive 5-10 minutes early so we can show you around. Bring water.</p>
       <p style="color:#9CA3AF">Any questions? Just reply to this email.</p>
       <p style="color:#6B7280;font-size:11px;margin-top:32px">${escapeHtmlInline(gymName)}</p>
@@ -227,10 +227,10 @@ export async function sendAccessRevoked(to: string, name: string) {
 export async function sendDeletionRequestAlert(to: string, memberName: string | null, memberEmail: string, gymName: string) {
   await getResend().emails.send({
     from: getFrom(),
-    subject: `Account deletion request — ${memberEmail}`,
+    subject: `Account deletion request - ${memberEmail}`,
     to,
     html: `<div style="font-family:Inter,sans-serif;background:#070708;color:#fff;padding:32px;max-width:560px">
-      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} — Deletion Request</h2>
+      <h2 style="color:#D4AF37;font-family:Georgia,serif;margin-top:0">${escapeHtmlInline(gymName)} - Deletion Request</h2>
       <p>A member has requested deletion of their account under GDPR Art. 17 (right to erasure):</p>
       <ul style="margin:8px 0;padding-left:20px;line-height:2">
         ${memberName ? `<li><strong>Name:</strong> ${escapeHtmlInline(memberName)}</li>` : ''}

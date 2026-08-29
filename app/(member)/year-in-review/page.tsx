@@ -99,13 +99,13 @@ export default function YearInReviewPage() {
             <div className="rounded-xl border border-border bg-surface p-4">
               <p className="text-xs text-secondary uppercase tracking-wide mb-1">Favourite day</p>
               <p className="text-xl font-bold text-foreground leading-tight mt-1">
-                {data.favouriteDay ?? '—'}
+                {data.favouriteDay ?? '-'}
               </p>
             </div>
             <div className="rounded-xl border border-border bg-surface p-4">
               <p className="text-xs text-secondary uppercase tracking-wide mb-1">Favourite time</p>
               <p className="text-xl font-bold text-foreground leading-tight mt-1">
-                {formatTime(data.favouriteTime) ?? '—'}
+                {formatTime(data.favouriteTime) ?? '-'}
               </p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function YearInReviewPage() {
               <div className="text-3xl">🏆</div>
               <div>
                 <p className="text-sm font-semibold text-foreground">Best month: {formatMonth(data.bestMonth.month)}</p>
-                <p className="text-secondary text-sm">{data.bestMonth.count} classes — your most active month this year</p>
+                <p className="text-secondary text-sm">{data.bestMonth.count} classes - your most active month this year</p>
               </div>
             </div>
           )}

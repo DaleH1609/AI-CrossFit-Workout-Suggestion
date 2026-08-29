@@ -5,7 +5,7 @@ import { AdminSidebar } from '@/components/layout/admin-sidebar'
 import { ToastProvider } from '@/components/ui/toast'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireAdminAuth() // defence in depth — redirects to /login if not admin
+  await requireAdminAuth() // defence in depth - redirects to /login if not admin
   return (
     <ToastProvider>
       <div className="min-h-screen bg-background">

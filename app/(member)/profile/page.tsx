@@ -160,9 +160,9 @@ export default function ProfilePage() {
       {/* Attendance stats */}
       <div className="grid grid-cols-3 gap-3 mb-8">
         {[
-          { label: 'Total Classes', value: stats?.total ?? '—' },
-          { label: 'Current Streak', value: stats?.current != null ? `${stats.current}d` : '—' },
-          { label: 'Longest Streak', value: stats?.longest != null ? `${stats.longest}d` : '—' },
+          { label: 'Total Classes', value: stats?.total ?? '-' },
+          { label: 'Current Streak', value: stats?.current != null ? `${stats.current}d` : '-' },
+          { label: 'Longest Streak', value: stats?.longest != null ? `${stats.longest}d` : '-' },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-lg border border-border bg-surface p-3 text-center">
             <p className="font-display text-2xl text-foreground">{value}</p>
@@ -361,7 +361,7 @@ export default function ProfilePage() {
 
       <div className="border-t border-border" />
 
-      {/* Password section — collapsible */}
+      {/* Password section - collapsible */}
       <section className="pt-7">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-foreground">Password</h2>

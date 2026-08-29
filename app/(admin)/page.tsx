@@ -61,7 +61,7 @@ async function getRecentGyms() {
     name: g.name,
     gymType: g.gym_type,
     createdAt: g.created_at,
-    ownerEmail: g.owner_id ? ownerMap[g.owner_id] ?? '—' : '—',
+    ownerEmail: g.owner_id ? ownerMap[g.owner_id] ?? '-' : '-',
     memberCount: memberCounts[g.id] ?? 0,
   }))
 }

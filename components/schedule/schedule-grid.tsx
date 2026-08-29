@@ -173,7 +173,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     } catch (err) {
       console.error('[schedule-grid] overwrite failed', err)
       setTemplates(prev => prev.map(t => t.id === snapshot.id ? snapshot : t))
-      toast('Network error — could not update class', 'error')
+      toast('Network error - could not update class', 'error')
     }
   }
 
@@ -195,7 +195,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     } catch (err) {
       console.error('[schedule-grid] delete failed', err)
       if (snapshot) setTemplates(prev => [...prev, snapshot])
-      toast('Network error — could not delete class', 'error')
+      toast('Network error - could not delete class', 'error')
     }
   }
 
@@ -218,7 +218,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     const merged = { ...current, ...patch }
     const cap = merged.overriding ? parseInt(merged.capacity) : null
     if (merged.overriding && (isNaN(cap!) || cap! < 1 || cap! > 200)) {
-      setEditState(prev => prev ? { ...prev, ...patch, error: 'Capacity must be 1–200', saved: false } : null)
+      setEditState(prev => prev ? { ...prev, ...patch, error: 'Capacity must be 1-200', saved: false } : null)
       return
     }
     setEditState(prev => prev ? { ...prev, ...patch, error: '', saved: false } : null)
@@ -395,7 +395,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
         </div>
       )}
 
-      {/* Grid — WAI-ARIA grid role so screen readers recognise the layout */}
+      {/* Grid - WAI-ARIA grid role so screen readers recognise the layout */}
       <div
         role="grid"
         aria-label="Weekly class schedule"
@@ -422,12 +422,12 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
               <Fragment key={time}>
                 <div role="row" className="grid items-start" style={{ gridTemplateColumns: '72px repeat(7, 1fr) 36px' }}>
 
-                  {/* Time label — top-aligned */}
+                  {/* Time label - top-aligned */}
                   <div role="rowheader" className="text-right pr-3 text-xs text-secondary flex justify-end pt-[22px]">
                     {formatTime(time)}
                   </div>
 
-                  {/* Day cells — now support multiple stacked tiles */}
+                  {/* Day cells - now support multiple stacked tiles */}
                   {[1, 2, 3, 4, 5, 6, 7].map(day => {
                     const cellTemplates = getTemplates(day, time)
 
@@ -476,7 +476,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                                 {name}
                               </div>
 
-                              {/* Capacity — click to edit inline */}
+                              {/* Capacity - click to edit inline */}
                               {editingCapacity?.templateId === template.id ? (
                                 <input
                                   autoFocus

@@ -75,7 +75,7 @@ export default function WodBlogPage() {
           <div>
             <label className="text-xs text-secondary mb-1 block">Title</label>
             <input value={title} onChange={e => setTitle(e.target.value)} required
-              placeholder="Tuesday WOD — Fran"
+              placeholder="Tuesday WOD - Fran"
               className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors" />
           </div>
           <div>

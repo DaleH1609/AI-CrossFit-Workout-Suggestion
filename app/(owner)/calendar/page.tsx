@@ -36,9 +36,9 @@ function getMondays(past: number, future: number): string[] {
 const DAY_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
 function extractDayTitle(day: WorkoutDay): string {
-  if (!day.parts || day.parts.length === 0) return day.descriptor ?? '—'
+  if (!day.parts || day.parts.length === 0) return day.descriptor ?? '-'
   const firstLine = day.parts[0].content.split('\n')[0].trim()
-  return firstLine.slice(0, 40) || day.descriptor || '—'
+  return firstLine.slice(0, 40) || day.descriptor || '-'
 }
 
 interface WeekRow {

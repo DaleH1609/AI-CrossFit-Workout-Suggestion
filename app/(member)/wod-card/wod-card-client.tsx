@@ -21,11 +21,11 @@ export function WodCardClient({ workout, gymName }: Props) {
 
   async function handleShare() {
     const text = workout
-      ? `Today's WOD at ${gymName} — ${today}\n\n${workout.descriptor ?? ''}`
-      : `WOD at ${gymName} — ${today}`
+      ? `Today's WOD at ${gymName} - ${today}\n\n${workout.descriptor ?? ''}`
+      : `WOD at ${gymName} - ${today}`
 
     if (navigator.share) {
-      await navigator.share({ title: `WOD — ${today}`, text }).catch(() => {})
+      await navigator.share({ title: `WOD - ${today}`, text }).catch(() => {})
     } else {
       await navigator.clipboard.writeText(text).catch(() => {})
       alert('Copied to clipboard!')
@@ -40,7 +40,7 @@ export function WodCardClient({ workout, gymName }: Props) {
     <div className="max-w-sm mx-auto">
       <h1 className="font-display text-2xl text-foreground mb-6">Today&apos;s WOD Card</h1>
 
-      {/* The card — optimised for screenshot */}
+      {/* The card - optimised for screenshot */}
       <div
         ref={cardRef}
         className="rounded-2xl border-2 border-accent bg-background overflow-hidden shadow-lg"

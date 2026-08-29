@@ -36,7 +36,7 @@ export function CookieBanner() {
       className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-between gap-4 px-6 py-4 bg-surface border-t border-border text-sm text-secondary"
     >
       <p className="max-w-prose">
-        We use essential cookies only — to keep you signed in and protect form submissions. No tracking or advertising cookies.{' '}
+        We use essential cookies only - to keep you signed in and protect form submissions. No tracking or advertising cookies.{' '}
         <Link href="/privacy" className="text-accent hover:underline">
           Privacy policy
         </Link>

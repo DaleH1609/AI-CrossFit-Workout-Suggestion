@@ -147,7 +147,7 @@ export default function MembersPage() {
       toast('Access revoked', 'success')
     } catch (err) {
       console.error('[members] revoke failed', err)
-      toast('Network error — could not revoke access', 'error')
+      toast('Network error - could not revoke access', 'error')
     } finally {
       setRevokeTarget(null)
       await loadMembers()
@@ -169,7 +169,7 @@ export default function MembersPage() {
       toast('Member deleted', 'success')
     } catch (err) {
       console.error('[members] delete failed', err)
-      toast('Network error — could not delete member', 'error')
+      toast('Network error - could not delete member', 'error')
     } finally {
       setDeleteTarget(null)
       await loadMembers()
@@ -191,7 +191,7 @@ export default function MembersPage() {
       toast('Access restored', 'success')
     } catch (err) {
       console.error('[members] restore failed', err)
-      toast('Network error — could not restore access', 'error')
+      toast('Network error - could not restore access', 'error')
     } finally {
       await loadMembers()
     }
@@ -205,9 +205,9 @@ export default function MembersPage() {
           {deletionRequests.map(req => (
             <div key={req.id} className="flex items-center justify-between gap-4 text-xs text-secondary">
               <span>
-                {req.users?.name ?? req.users?.email ?? '—'}
+                {req.users?.name ?? req.users?.email ?? '-'}
                 {req.users?.name && req.users?.email && <span className="text-secondary/60 ml-1">({req.users.email})</span>}
-                {' '}— requested {new Date(req.requested_at).toLocaleDateString('en-GB')}
+                {' '}- requested {new Date(req.requested_at).toLocaleDateString('en-GB')}
               </span>
               <div className="flex gap-2 shrink-0">
                 <button
@@ -342,7 +342,7 @@ export default function MembersPage() {
                 )}
               </div>
 
-              {/* Actions — visible on hover */}
+              {/* Actions - visible on hover */}
               <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                 <button
                   onClick={() => handleRoleToggle(m, 'coach')}

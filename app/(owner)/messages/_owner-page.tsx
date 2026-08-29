@@ -162,7 +162,7 @@ export default function OwnerMessagesPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] -m-8 overflow-hidden">
-      {/* Left panel — conversation list */}
+      {/* Left panel - conversation list */}
       <div
         className={`w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-border bg-background flex flex-col ${
           selectedConversationId ? 'hidden md:flex' : 'flex'
@@ -212,7 +212,7 @@ export default function OwnerMessagesPage() {
         )}
       </div>
 
-      {/* Right panel — message thread */}
+      {/* Right panel - message thread */}
       <div
         className={`flex-1 flex flex-col overflow-hidden bg-background ${
           selectedConversationId ? 'flex' : 'hidden md:flex'

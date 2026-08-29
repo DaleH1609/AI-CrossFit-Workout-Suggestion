@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'KOVA' },
   openGraph: {
-    title: 'KOVA — Train Smarter. Perform Better.',
+    title: 'KOVA - Train Smarter. Perform Better.',
     description: 'AI-powered gym programming for CrossFit and Hyrox gyms.',
     type: 'website',
   },

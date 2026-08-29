@@ -30,7 +30,7 @@ export default function SignupPage() {
       if (!res.ok) { setError(data.error || 'Something went wrong'); return }
       setSubmitted(true)
     } catch {
-      setError('Network error — please try again')
+      setError('Network error - please try again')
     } finally {
       setLoading(false)
     }

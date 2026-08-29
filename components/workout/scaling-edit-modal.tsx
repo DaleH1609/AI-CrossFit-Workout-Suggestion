@@ -58,7 +58,7 @@ export function ScalingEditModal({ day, weekId, onSave, onClose }: ScalingEditMo
       <div className="relative bg-surface border border-border rounded-card w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
-          <h2 className="font-display text-xl text-foreground">Edit Scaling — {day.day}</h2>
+          <h2 className="font-display text-xl text-foreground">Edit Scaling - {day.day}</h2>
           <button className="text-secondary hover:text-foreground transition-colors text-lg leading-none" onClick={onClose}>
             ✕
           </button>

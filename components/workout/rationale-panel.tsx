@@ -24,7 +24,7 @@ export function RationalePanel({ rationale }: RationalePanelProps) {
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>
           <span className="text-sm font-semibold text-accent">Why this week?</span>
-          <span className="text-sm text-secondary hidden sm:inline">— {rationale.summary}</span>
+          <span className="text-sm text-secondary hidden sm:inline">- {rationale.summary}</span>
         </div>
         <svg
           width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"

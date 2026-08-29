@@ -10,7 +10,7 @@ import Link from 'next/link'
 function PasswordUpdatedBanner() {
   const searchParams = useSearchParams()
   if (searchParams.get('message') !== 'password-updated') return null
-  return <p className="text-sm text-accent mb-4">Password updated — please sign in with your new password.</p>
+  return <p className="text-sm text-accent mb-4">Password updated - please sign in with your new password.</p>
 }
 
 function LoginForm() {

@@ -139,7 +139,7 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Header. Previously a text-3xl title and a flat row of four equally
-          weighted buttons — the audit's "no hierarchy" and "headlines lack
+          weighted buttons - the audit's "no hierarchy" and "headlines lack
           presence" cases. Now: an eyebrow badge, a display-scale title, and a
           deliberate primary / secondary / tertiary button ranking. */}
       <header className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -161,7 +161,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center gap-3">
           {week?.status === 'draft' && (
             <>
-              {/* Destructive action demoted to a text link — it should not carry
+              {/* Destructive action demoted to a text link - it should not carry
                   the same visual weight as the action you actually want. */}
               <button
                 onClick={handleDiscard}
@@ -199,12 +199,12 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm font-medium text-foreground">Building your week</p>
             <p className="mt-0.5 text-sm text-secondary text-pretty">
-              Writing strength work, metcons and scaling for all seven days. Usually 15–30 seconds.
+              Writing strength work, metcons and scaling for all seven days. Usually 15-30 seconds.
             </p>
           </div>
         </div>
       )}
-      {/* Inline, not an alert(). Audit: "No error states — add clear, inline
+      {/* Inline, not an alert(). Audit: "No error states - add clear, inline
           error messages for forms. Do not use window.alert()." */}
       {error && (
         <div role="alert" className="mb-8 rounded-card border border-danger/30 bg-danger-10 px-5 py-4">

@@ -11,7 +11,7 @@ type Gym = {
   ownerEmail: string
   memberCount: number
   bookingCount: number
-  lastActive: string   // fallback to createdAt if no bookings — never null
+  lastActive: string   // fallback to createdAt if no bookings - never null
   createdAt: string
   suspended: boolean
 }

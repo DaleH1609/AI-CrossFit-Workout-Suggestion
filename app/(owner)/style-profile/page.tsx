@@ -37,7 +37,7 @@ export default function StyleProfilePage() {
       if (data.gymType) setGymType(data.gymType)
     } catch (err) {
       console.error('[style-profile] load failed', err)
-      toast('Network error — could not load examples', 'error')
+      toast('Network error - could not load examples', 'error')
     }
   }
 
@@ -70,7 +70,7 @@ export default function StyleProfilePage() {
       }
     } catch (err) {
       console.error('[style-profile] delete failed', err)
-      toast('Network error — could not delete example', 'error')
+      toast('Network error - could not delete example', 'error')
     } finally {
       await loadExamples()
     }
@@ -83,11 +83,11 @@ export default function StyleProfilePage() {
         const data = await res.json().catch(() => ({}))
         toast(data.error ?? 'Failed to start new program', 'error')
       } else {
-        toast('Program archived — start adding fresh examples', 'success')
+        toast('Program archived - start adding fresh examples', 'success')
       }
     } catch (err) {
       console.error('[style-profile] new-program failed', err)
-      toast('Network error — could not start new program', 'error')
+      toast('Network error - could not start new program', 'error')
     } finally {
       setShowNewProgramModal(false)
       await loadExamples()
@@ -164,7 +164,7 @@ export default function StyleProfilePage() {
             <span className="text-xs text-secondary uppercase tracking-wider">Training examples</span>
             <span className={`text-xs font-medium tabular-nums ${readyToGenerate ? 'text-accent' : 'text-secondary'}`}>
               {readyToGenerate
-                ? `${examples.length} examples — ready`
+                ? `${examples.length} examples - ready`
                 : `${examples.length} / ${MIN_EXAMPLES} minimum`}
             </span>
           </div>
@@ -184,7 +184,7 @@ export default function StyleProfilePage() {
             Add a workout example
           </label>
           <p className="text-xs text-secondary">
-            Paste a full {gymLabel} session — working sets, conditioning, any coaching notes.
+            Paste a full {gymLabel} session - working sets, conditioning, any coaching notes.
           </p>
         </div>
 
@@ -206,7 +206,7 @@ export default function StyleProfilePage() {
           onChange={e => { setNewText(e.target.value); setAddError('') }}
           placeholder={gymType === 'hyrox'
             ? 'Warm-up: Run 400m, mobility work\n\nMain\nRun 1km\nSki Erg 1000m\nSled Push 50m...'
-            : 'Part A — Strength\nBack Squat 5×5 @ 80%\n\nPart B — Conditioning\n21-15-9\nThrusters 43/30kg\nPull-ups'}
+            : 'Part A - Strength\nBack Squat 5×5 @ 80%\n\nPart B - Conditioning\n21-15-9\nThrusters 43/30kg\nPull-ups'}
           rows={9}
           className="w-full bg-background border border-border rounded-btn p-3 text-foreground text-sm font-mono placeholder-secondary focus:outline-none focus:border-accent resize-none transition-colors duration-150"
         />
@@ -236,7 +236,7 @@ export default function StyleProfilePage() {
         </div>
       </Card>
 
-      {/* AI Generation — only before minimum is reached */}
+      {/* AI Generation - only before minimum is reached */}
       {!readyToGenerate && (
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">

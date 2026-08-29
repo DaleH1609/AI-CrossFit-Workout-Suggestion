@@ -60,7 +60,7 @@ async function searchUsers(q: string) {
     email: u.email,
     role: u.role,
     gymId: u.gym_id,
-    gymName: gymMap[u.gym_id] ?? '—',
+    gymName: gymMap[u.gym_id] ?? '-',
     joinedAt: u.created_at,
     revoked: u.revoked_at !== null,
     recentBookings: (bookingsByUser[u.id] ?? []).map(b => ({

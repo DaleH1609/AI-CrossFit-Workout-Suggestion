@@ -73,7 +73,7 @@ export default function SchedulePage() {
         if (coachesRes.ok) setCoaches(await coachesRes.json() ?? [])
       } catch (err) {
         console.error('[schedule] load failed', err)
-        toast('Network error — could not load schedule', 'error')
+        toast('Network error - could not load schedule', 'error')
       } finally {
         setLoading(false)
       }
@@ -99,7 +99,7 @@ export default function SchedulePage() {
       } catch (err) {
         if (!cancelled) {
           console.error('[schedule] instances load failed', err)
-          toast('Network error — could not load attendance', 'error')
+          toast('Network error - could not load attendance', 'error')
         }
       } finally {
         if (!cancelled) setLoadingInstances(false)
@@ -148,7 +148,7 @@ export default function SchedulePage() {
           ),
         }))
       )
-      toast('Network error — could not update attendance', 'error')
+      toast('Network error - could not update attendance', 'error')
     }
   }
 
@@ -193,7 +193,7 @@ export default function SchedulePage() {
         <p className="text-secondary text-sm mt-1">Weekly recurring schedule and attendance tracking.</p>
       </div>
 
-      {/* Tab bar — WAI-ARIA tabs pattern */}
+      {/* Tab bar - WAI-ARIA tabs pattern */}
       <div ref={tabListRef} role="tablist" aria-label="Schedule sections" className="flex gap-1 mb-8 border-b border-border">
         {(['schedule', 'attendance'] as const).map(tab => {
           const isActive = activeTab === tab
@@ -311,7 +311,7 @@ export default function SchedulePage() {
                               onChange={e => handleCoachAssign(instance.id, e.target.value || null)}
                               className="flex-1 text-xs bg-surface border border-border rounded px-2 py-1 text-foreground focus:outline-none focus:border-accent"
                             >
-                              <option value="">— unassigned —</option>
+                              <option value="">- unassigned -</option>
                               {coaches.map(c => (
                                 <option key={c.id} value={c.id}>{c.name || c.email}</option>
                               ))}
@@ -328,7 +328,7 @@ export default function SchedulePage() {
                                 type="button"
                                 onClick={() => handleAttendanceToggle(booking.id, booking.attended)}
                                 aria-pressed={booking.attended === true}
-                                aria-label={`${booking.name} attendance — ${
+                                aria-label={`${booking.name} attendance - ${
                                   booking.attended === true
                                     ? 'attended'
                                     : booking.attended === false

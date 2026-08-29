@@ -106,7 +106,7 @@ export default async function ThisWeekPage() {
 
   const weekEndFormatted = new Date(weekStart)
   weekEndFormatted.setDate(weekEndFormatted.getDate() + 6)
-  const weekLabel = `${new Date(weekStart + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${weekEndFormatted.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+  const weekLabel = `${new Date(weekStart + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${weekEndFormatted.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
 
   return (
     <div>

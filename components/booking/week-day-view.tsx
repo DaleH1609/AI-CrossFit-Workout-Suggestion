@@ -45,7 +45,7 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
 
   return (
     <div>
-      {/* Day pill selector — horizontally scrollable with a fade-right affordance */}
+      {/* Day pill selector - horizontally scrollable with a fade-right affordance */}
       <div className="relative mb-8">
       <div
         className="flex gap-2 overflow-x-auto pb-1"
@@ -109,7 +109,7 @@ export function WeekDayView({ weekStart, workouts, instances, userBookings, book
         </div>
 
         {!selectedWorkout && selectedInstances.length === 0 ? (
-          <p className="text-secondary-60 text-sm italic">Rest day — no classes scheduled.</p>
+          <p className="text-secondary-60 text-sm italic">Rest day - no classes scheduled.</p>
         ) : (
           <div className="space-y-4">
             {selectedWorkout && (

@@ -51,7 +51,7 @@ export interface GymScheduleDefault {
 
 export interface ScheduleDefaults {
   globalDefault: number
-  dayDefaults: Record<string, number>  // key = day_of_week as string (1–7)
+  dayDefaults: Record<string, number>  // key = day_of_week as string (1-7)
 }
 
 export interface RecentWeek {

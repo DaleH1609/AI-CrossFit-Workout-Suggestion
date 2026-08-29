@@ -36,7 +36,7 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
         }
       } catch (err) {
         console.error('[capacity-defaults] delete failed', err)
-        toast('Network error — could not clear default', 'error')
+        toast('Network error - could not clear default', 'error')
         return
       }
       const updated = { ...defaults.dayDefaults }
@@ -61,7 +61,7 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
       }
     } catch (err) {
       console.error('[capacity-defaults] save failed', err)
-      toast('Network error — could not save default', 'error')
+      toast('Network error - could not save default', 'error')
       return
     }
 
@@ -104,7 +104,7 @@ export function CapacityDefaults({ defaults, onUpdate }: Props) {
                 type="number"
                 min={1}
                 max={200}
-                placeholder="—"
+                placeholder="-"
                 value={dayVals[day]}
                 onChange={e => setDayVals(prev => ({ ...prev, [day]: e.target.value }))}
                 onBlur={() => saveDefault(day, dayVals[day])}

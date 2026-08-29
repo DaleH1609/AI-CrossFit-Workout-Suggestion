@@ -37,7 +37,7 @@ function UserRow({ user }: { user: UserRow }) {
         className="hover:bg-surface-raised transition-colors cursor-pointer"
         onClick={() => setOpen(v => !v)}
       >
-        <td className="px-4 py-3 font-medium">{user.name || '—'}</td>
+        <td className="px-4 py-3 font-medium">{user.name || '-'}</td>
         <td className="px-4 py-3 text-secondary text-xs">{user.email}</td>
         <td className="px-4 py-3">
           <span className={`text-xs px-2 py-0.5 rounded-full ${user.role === 'owner' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>

@@ -15,16 +15,16 @@ const STEPS = [
   {
     num: '03',
     title: 'Publish',
-    benefit: 'One tap — members see it instantly',
+    benefit: 'One tap - members see it instantly',
   },
 ]
 
 const WOD_ROWS = [
   { day: 'Mon', name: 'Back Squat 5×5 + AMRAP 15', tag: 'Strength' },
   { day: 'Tue', name: '21-15-9 Thrusters / Pull-ups', tag: 'Metcon' },
-  { day: 'Wed', name: 'EMOM 20 — Gymnastics Focus', tag: 'Skill' },
+  { day: 'Wed', name: 'EMOM 20 - Gymnastics Focus', tag: 'Skill' },
   { day: 'Thu', name: 'Clean & Jerk 1RM + RFT', tag: 'Olympic' },
-  { day: 'Fri', name: 'Hero WOD — Murph Prep', tag: 'Endurance' },
+  { day: 'Fri', name: 'Hero WOD - Murph Prep', tag: 'Endurance' },
 ]
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -33,7 +33,7 @@ function PanelGenerate() {
   return (
     <div className="h-full flex flex-col p-6 bg-surface rounded-card border border-border">
       <div className="flex items-center justify-between mb-5">
-        <span className="text-xs font-bold tracking-widest text-accent uppercase">This Week · Mon–Fri</span>
+        <span className="text-xs font-bold tracking-widest text-accent uppercase">This Week · Mon-Fri</span>
         <span className="flex items-center gap-1.5 text-xs text-secondary">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse flex-shrink-0" />
           Generating…
@@ -78,7 +78,7 @@ function PanelReview() {
         ))}
       </div>
       <div className="bg-background border border-border rounded-card p-4 mb-4">
-        <div className="text-xs font-bold tracking-widest text-accent uppercase mb-1">Monday — Strength</div>
+        <div className="text-xs font-bold tracking-widest text-accent uppercase mb-1">Monday - Strength</div>
         <div className="text-lg font-bold text-foreground mb-1">Back Squat 5×5</div>
         <div className="text-sm text-secondary">@ 80% 1RM · 3 min rest</div>
       </div>
@@ -158,7 +158,7 @@ export function WodWalkthrough() {
       className="relative scroll-mt-16"
       style={{ height: '550vh' }}
     >
-      {/* Sentinel divs — absolute siblings of the sticky div, not inside it */}
+      {/* Sentinel divs - absolute siblings of the sticky div, not inside it */}
       <div ref={sent1} style={{ position: 'absolute', top: '30%', height: '1px', width: '100%', pointerEvents: 'none' }} />
       <div ref={sent2} style={{ position: 'absolute', top: '60%', height: '1px', width: '100%', pointerEvents: 'none' }} />
 

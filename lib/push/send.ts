@@ -63,7 +63,7 @@ async function deliverAndPrune(
 
 export async function sendPushToGym(gymId: string, payload: PushPayload): Promise<{ sent: number; failed: number }> {
   if (!initWebPush()) {
-    console.warn('[push] VAPID keys not configured — skipping push notifications')
+    console.warn('[push] VAPID keys not configured - skipping push notifications')
     return { sent: 0, failed: 0 }
   }
 

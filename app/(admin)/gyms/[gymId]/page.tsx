@@ -187,7 +187,7 @@ export default async function GymDetailPage(props: { params: Promise<{ gymId: st
       {/* 1. Gym Info */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
-          { label: 'Owner', value: owner?.email ?? '—' },
+          { label: 'Owner', value: owner?.email ?? '-' },
           { label: 'Type', value: gym.gym_type },
           { label: 'Timezone', value: gym.timezone },
           { label: 'Members', value: `${activeMembers} active · ${revokedMembers} revoked` },
@@ -212,13 +212,13 @@ export default async function GymDetailPage(props: { params: Promise<{ gymId: st
           <div className="p-4 rounded-lg border border-border bg-surface">
             <p className="text-xs text-secondary uppercase tracking-wide">Avg Fill Rate</p>
             <p className="text-2xl font-bold text-foreground mt-1">
-              {bookingHealth.fillRate !== null ? `${bookingHealth.fillRate}%` : '—'}
+              {bookingHealth.fillRate !== null ? `${bookingHealth.fillRate}%` : '-'}
             </p>
           </div>
           <div className="p-4 rounded-lg border border-border bg-surface">
             <p className="text-xs text-secondary uppercase tracking-wide">Cancellation Rate</p>
             <p className="text-2xl font-bold text-foreground mt-1">
-              {bookingHealth.cancellationRate !== null ? `${bookingHealth.cancellationRate}%` : '—'}
+              {bookingHealth.cancellationRate !== null ? `${bookingHealth.cancellationRate}%` : '-'}
             </p>
           </div>
         </div>

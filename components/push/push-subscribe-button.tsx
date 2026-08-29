@@ -78,7 +78,7 @@ export function PushSubscribeButton({ className }: { className?: string }) {
   if (state === 'denied') {
     return (
       <p className={cn('text-xs text-secondary', className)}>
-        Notifications blocked — enable in browser settings
+        Notifications blocked - enable in browser settings
       </p>
     )
   }

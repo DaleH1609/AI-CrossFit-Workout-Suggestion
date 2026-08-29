@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const WAIVER_TEXT = `KOVA GYM — LIABILITY WAIVER AND ASSUMPTION OF RISK
+const WAIVER_TEXT = `KOVA GYM - LIABILITY WAIVER AND ASSUMPTION OF RISK
 
 By signing this waiver, I acknowledge and agree that:
 
@@ -86,7 +86,7 @@ export function WaiverGate({ children }: WaiverGateProps) {
             />
             <span className="text-sm text-foreground/80">
               I consent to being photographed or recorded during classes for gym marketing purposes.
-              <span className="text-secondary"> (Optional — you can change this in Profile settings.)</span>
+              <span className="text-secondary"> (Optional - you can change this in Profile settings.)</span>
             </span>
           </label>
         </div>
@@ -96,7 +96,7 @@ export function WaiverGate({ children }: WaiverGateProps) {
           disabled={signing}
           className="w-full py-3 bg-accent text-background font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
         >
-          {signing ? 'Recording signature…' : 'I Agree — Enter KOVA'}
+          {signing ? 'Recording signature…' : 'I Agree - Enter KOVA'}
         </button>
 
         <p className="text-center text-secondary text-xs mt-4">

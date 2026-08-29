@@ -65,7 +65,7 @@ export function MemberBadges() {
       <div>
         <p className="text-xs text-secondary uppercase tracking-wider mb-3">{earned.length} Earned</p>
         {earned.length === 0 ? (
-          <p className="text-secondary-60 text-sm italic">No badges yet — keep showing up!</p>
+          <p className="text-secondary-60 text-sm italic">No badges yet - keep showing up!</p>
         ) : (
           <div className="flex flex-wrap gap-3">
             {earned.map(b => (
