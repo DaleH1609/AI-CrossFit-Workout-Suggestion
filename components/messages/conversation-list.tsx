@@ -1,4 +1,6 @@
 'use client'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
+import { ChatCircle } from '@phosphor-icons/react'
 
 export interface ConversationWithMember {
   id: string
@@ -40,7 +42,17 @@ export default function ConversationList({
   if (conversations.length === 0) {
     return (
       <div className="flex items-center justify-center h-full px-4 py-8">
-        <p className="text-secondary text-sm">No conversations yet.</p>
+        <Empty className="px-4 py-10">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ChatCircle weight="duotone" />
+            </EmptyMedia>
+            <EmptyTitle className="text-lg">No conversations</EmptyTitle>
+            <EmptyDescription>
+              Messages from your members will appear here.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     )
   }

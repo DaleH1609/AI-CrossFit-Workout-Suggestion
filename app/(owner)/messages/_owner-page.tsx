@@ -7,6 +7,8 @@ import ConversationList, {
 } from '@/components/messages/conversation-list'
 import { MessageThread } from '@/components/messages/message-thread'
 import { type Message } from '@/components/messages/message-bubble'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
+import { ChatsCircle } from '@phosphor-icons/react'
 
 export default function OwnerMessagesPage() {
   const [conversations, setConversations] = useState<ConversationWithMember[]>([])
@@ -169,7 +171,7 @@ export default function OwnerMessagesPage() {
         }`}
       >
         <div className="px-4 py-3 border-b border-border">
-          <h1 className="font-display text-xl text-foreground">Messages</h1>
+          <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(1.75rem,3vw,2.5rem)]">Messages</h1>
         </div>
 
         {loading ? (
@@ -246,10 +248,18 @@ export default function OwnerMessagesPage() {
             )}
           </>
         ) : (
-          <div className="flex items-center justify-center flex-1">
-            <p className="text-secondary text-sm">
-              Select a conversation to start messaging.
-            </p>
+          <div className="flex flex-1 items-center justify-center">
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <ChatsCircle weight="duotone" />
+                </EmptyMedia>
+                <EmptyTitle>Nothing selected</EmptyTitle>
+                <EmptyDescription>
+                  Pick a conversation on the left to read it and reply.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           </div>
         )}
       </div>
