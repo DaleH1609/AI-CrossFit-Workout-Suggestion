@@ -9,6 +9,7 @@ import { CleanAndJerk } from '@/components/landing/clean-and-jerk'
 import { BarbellRule } from '@/components/landing/barbell-rule'
 import { RevealText } from '@/components/ui/reveal-text'
 import { Magnetic } from '@/components/ui/magnetic'
+import { CountUp } from '@/components/ui/count-up'
 // SSR entry — this page is a server component, so the CSR build would force a
 // client boundary for what are static glyphs.
 import {
@@ -43,10 +44,12 @@ const MOCK_CLASSES = [
   { time: '5:30 PM', booked: 7,  cap: 16, full: false },
 ]
 
+// Split into prefix/value/suffix so CountUp can animate the numeral while the
+// surrounding characters stay fixed.
 const STATS = [
-  { num: '< 30s', label: 'To generate a full week of WODs' },
-  { num: '3×',    label: 'Scaling versions per workout, automatically' },
-  { num: '100%',  label: 'Edit control before anything goes live' },
+  { prefix: '<',  value: 30,  suffix: 's', label: 'To generate a full week of WODs — start to publishable draft.' },
+  { prefix: '',   value: 3,   suffix: '×', label: 'Scaling versions written for every workout, automatically. Rx, Scaled, Beginner.' },
+  { prefix: '',   value: 100, suffix: '%', label: 'Edit control. Nothing reaches your members until you approve it.' },
 ]
 
 const AI_PREVIEW_WODS = [
@@ -163,18 +166,38 @@ export default function HomePage() {
       {/* ── PHRASE SPINNER ───────────────────────────────────────────── */}
       <PhraseSpinner />
 
-      {/* ── STATS STRIP ─────────────────────────────────────────────── */}
-      {/* Change 7: moved before WodWalkthrough — establishes credibility first */}
-      <div className="bg-[#0A0A0A] py-16">
-        <div className="max-w-6xl mx-auto px-8 grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-white/10 divide-y sm:divide-y-0">
-          {STATS.map((s, i) => (
-            <FadeIn key={s.num} delay={i * 80} className={i > 0 ? 'sm:pl-10' : ''}>
-              <div className="py-8 sm:py-0 text-center sm:text-left">
-                <p className="font-display text-5xl font-bold text-white tracking-tight mb-2">{s.num}</p>
-                <p className="text-sm text-white/40 leading-snug">{s.label}</p>
-              </div>
-            </FadeIn>
-          ))}
+      {/* ── STATS ───────────────────────────────────────────────────── */}
+      {/* Not a strip of three equal boxes. Each figure is a full-width row
+          with the number at display scale and the label hung beside it, so the
+          eye reads down a column of numerals rather than across a card set.
+          Numbers count up on entry — a static figure reads as decoration, a
+          counting one reads as a measurement. */}
+      <div className="bg-[#08080A] pt-24 pb-20">
+        <div className="w-full px-6 sm:px-10 lg:px-16">
+          <p className="font-mono text-[11px] tracking-[0.3em] uppercase text-accent mb-14">
+            By the numbers
+          </p>
+
+          <div className="divide-y divide-white/[0.07] border-y border-white/[0.07]">
+            {STATS.map((s, i) => (
+              <FadeIn key={s.label} delay={i * 90}>
+                <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-x-12 gap-y-3 items-baseline py-9 group">
+                  <div className="flex items-baseline gap-4">
+                    <span className="font-mono text-[11px] tracking-[0.25em] text-white/20 tabular-nums w-8">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="font-display text-white leading-[0.85] tracking-tight text-[clamp(3rem,8vw,6.5rem)] transition-colors duration-300 group-hover:text-accent">
+                      {s.prefix}
+                      <CountUp to={s.value} suffix={s.suffix} />
+                    </span>
+                  </div>
+                  <p className="text-white/45 leading-relaxed max-w-sm md:justify-self-end md:text-right text-pretty">
+                    {s.label}
+                  </p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -280,11 +303,11 @@ export default function HomePage() {
           {/* Copy */}
           <FadeIn delay={100}>
             <div className="lg:pt-4">
-              <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-4">For Your Members</p>
-              <h2 className="font-display text-4xl font-bold text-foreground tracking-tight mb-6">
-                Book a class.<br />
-                <span className="text-accent">Show up ready.</span>
-              </h2>
+              <p className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase mb-6">For Your Members</p>
+              <RevealText
+                lines={['Book a class.', <span key="a" className="text-accent">Show up ready.</span>]}
+                className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.5rem,6vw,4.75rem)] mb-7"
+              />
               <p className="text-base text-secondary leading-relaxed mb-8">
                 Members get their own view — browse the week&apos;s WODs, reserve a spot, and check their scaling before they arrive. No app download required.
               </p>
@@ -442,31 +465,37 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────── */}
-      <footer className="bg-[#0A0A0A] border-t border-white/5">
-        <div className="max-w-6xl mx-auto px-8 pt-14 pb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+      <footer className="bg-[#08080A] border-t border-white/[0.07]">
+        {/* Shares the page's full-bleed gutter rather than re-centring, and
+            closes on the wordmark at display scale so the page ends on the
+            same typographic note it opened with. */}
+        <div className="w-full px-6 sm:px-10 lg:px-16 pt-20 pb-10">
+          <p className="font-display uppercase leading-[0.8] tracking-tight text-white/[0.06] text-[clamp(4rem,18vw,14rem)] select-none pointer-events-none mb-16">
+            KOVA
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
             <div className="col-span-2">
               <KovaLogo size="sm" />
-              <p className="text-xs text-secondary mt-4 max-w-xs leading-relaxed">
+              <p className="text-sm text-white/40 mt-5 max-w-xs leading-relaxed text-pretty">
                 AI-powered gym programming for CrossFit and Hyrox coaches. Less planning, more coaching.
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-white/25 mb-5">Product</p>
+              <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-white/25 mb-6">Product</p>
               <ul className="space-y-3">
                 {[['Features', '#features'], ['How It Works', '#how-it-works']].map(([label, href]) => (
                   <li key={label}>
-                    <a href={href} className="text-sm text-secondary hover:text-white transition-colors">{label}</a>
+                    <a href={href} className="font-mono text-[11px] tracking-[0.15em] uppercase text-white/45 hover:text-accent transition-colors">{label}</a>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-white/25 mb-5">Account</p>
+              <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-white/25 mb-6">Account</p>
               <ul className="space-y-3">
                 {[['Sign In', '/login'], ['Create Gym', '/signup']].map(([label, href]) => (
                   <li key={label}>
-                    <a href={href} className="text-sm text-secondary hover:text-white transition-colors">{label}</a>
+                    <a href={href} className="font-mono text-[11px] tracking-[0.15em] uppercase text-white/45 hover:text-accent transition-colors">{label}</a>
                   </li>
                 ))}
               </ul>
