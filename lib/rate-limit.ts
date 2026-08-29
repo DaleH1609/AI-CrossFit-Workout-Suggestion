@@ -1,14 +1,22 @@
 // lib/rate-limit.ts
 //
-// Upstash Redis-backed rate limiting. Fails open (allows request) when Redis
-// is not configured so the app works in local dev without UPSTASH_* env vars.
+// Two backends, tried in order:
 //
-// Add Upstash via Vercel Marketplace to get the required env vars:
-//   UPSTASH_REDIS_REST_URL
-//   UPSTASH_REDIS_REST_TOKEN
+//   1. Upstash Redis, when UPSTASH_REDIS_REST_URL and _TOKEN are set. Purpose
+//      built for this, sliding window, no database load.
+//   2. Postgres, via the check_rate_limit RPC (migration 069). Fixed window,
+//      one round trip, no extra vendor.
+//
+// The Postgres path exists because requiring a second vendor before the
+// product's main feature works is fragile: Upstash was never provisioned, and
+// because this module correctly refuses to fail open in production, every AI
+// endpoint returned 500 rather than running unthrottled.
+//
+// Dev and preview still fail open so local work needs no configuration.
 
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 let _redis: Redis | null | undefined = undefined
 
@@ -66,16 +74,31 @@ export async function rateLimit(
   const { requests, window } = config[preset]
   const limiter = getLimiter(preset, requests, window)
 
-  if (!limiter) {
-    // In production a missing Redis config is a misconfiguration, not intentional.
-    // Throw so the deployment surfaces it rather than silently disabling all limits.
-    if (process.env.VERCEL_ENV === 'production') {
-      throw new Error('[rate-limit] Upstash Redis not configured in production - refusing to fail open')
-    }
-    // Dev/preview: fail open so local development works without Redis
-    return { limited: false }
+  if (limiter) {
+    const { success, reset } = await limiter.limit(identifier)
+    return { limited: !success, reset: success ? undefined : reset }
   }
 
-  const { success, reset } = await limiter.limit(identifier)
-  return { limited: !success, reset: success ? undefined : reset }
+  // No Redis. Fall back to Postgres rather than throwing, so the feature works.
+  try {
+    const windowSeconds = window === '1 h' ? 3600 : 60
+    const { data, error } = await createAdminClient().rpc('check_rate_limit' as never, {
+      p_identifier:     identifier,
+      p_preset:         preset,
+      p_limit:          requests,
+      p_window_seconds: windowSeconds,
+    } as never)
+
+    if (error) throw error
+    const result = data as unknown as { limited: boolean; reset: number }
+    return { limited: result.limited, reset: result.limited ? result.reset : undefined }
+  } catch (err) {
+    // Both backends unavailable. In production that is still a misconfiguration
+    // and failing open would leave paid AI endpoints unprotected, so refuse.
+    if (process.env.VERCEL_ENV === 'production') {
+      console.error('[rate-limit] no backend available', err)
+      throw new Error('[rate-limit] neither Upstash nor Postgres available - refusing to fail open')
+    }
+    return { limited: false }
+  }
 }
