@@ -42,7 +42,7 @@ export function PhraseSpinner() {
       <div ref={sent2} style={{ position: 'absolute', top: '60%', height: '1px', width: '100%', pointerEvents: 'none' }} />
 
       {/* Sticky container — no overflow-hidden so preserve-3d works in Safari */}
-      <div className="sticky top-0 h-screen flex flex-col items-center justify-center bg-background border-t border-b border-border">
+      <div className="sticky top-0 min-h-[100dvh] flex flex-col items-center justify-center bg-background border-t border-b border-border">
 
         {/* Subtle gold radial wash */}
         <div

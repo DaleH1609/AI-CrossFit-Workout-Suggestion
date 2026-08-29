@@ -198,7 +198,7 @@ export function CleanAndJerk() {
     <section
       ref={sectionRef}
       aria-label="Clean and jerk, animated through the phases of the lift as you scroll"
-      className="relative h-screen overflow-hidden bg-[#08080A] flex items-center"
+      className="relative min-h-[100dvh] overflow-hidden bg-[#08080A] flex items-center"
     >
       {/* Floor line */}
       <div className="absolute left-0 right-0 top-1/2 mt-[92px] h-px bg-white/10" />

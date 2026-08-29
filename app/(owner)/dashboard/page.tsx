@@ -138,48 +138,82 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      {/* Header. Previously a text-3xl title and a flat row of four equally
+          weighted buttons — the audit's "no hierarchy" and "headlines lack
+          presence" cases. Now: an eyebrow badge, a display-scale title, and a
+          deliberate primary / secondary / tertiary button ranking. */}
+      <header className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="font-display text-3xl text-foreground">Weekly Program</h1>
-          <p className="text-secondary text-sm mt-1">Week of {weekStart}</p>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="inline-flex items-center rounded-full border border-border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-secondary">
+              Week of {weekStart}
+            </span>
+            {week?.status && (
+              <Badge
+                variant={week.status as 'draft' | 'published'}
+                label={week.status.charAt(0).toUpperCase() + week.status.slice(1)}
+              />
+            )}
+          </div>
+          <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2.25rem,4.5vw,3.5rem)]">
+            Weekly Program
+          </h1>
         </div>
-        <div className="flex items-center gap-3">
-          {week?.status && <Badge variant={week.status as 'draft' | 'published'} label={week.status.charAt(0).toUpperCase() + week.status.slice(1)} />}
+
+        <div className="flex flex-wrap items-center gap-3">
           {week?.status === 'draft' && (
             <>
-              <Button variant="danger" onClick={handleDiscard} disabled={publishing}>Discard</Button>
-              <Button onClick={handleGenerate} disabled={generating}>
+              {/* Destructive action demoted to a text link — it should not carry
+                  the same visual weight as the action you actually want. */}
+              <button
+                onClick={handleDiscard}
+                disabled={publishing}
+                className="font-mono text-[11px] uppercase tracking-[0.15em] text-secondary underline-offset-4 hover:text-danger hover:underline transition-colors duration-200 ease-expo disabled:opacity-50"
+              >
+                Discard
+              </button>
+              <Button variant="ghost" size="lg" shape="pill" onClick={handleGenerate} disabled={generating}>
                 {generating ? <><Spinner />Regenerating…</> : 'Regenerate'}
               </Button>
-              <Button onClick={() => setShowApproveModal(true)} disabled={publishing}>{publishing ? 'Publishing…' : 'Approve & Publish'}</Button>
+              <Button variant="solid" size="lg" shape="pill" onClick={() => setShowApproveModal(true)} disabled={publishing}>
+                {publishing ? 'Publishing…' : 'Approve & Publish'}
+              </Button>
             </>
           )}
           {(!week || week.status === 'published') && (
             <>
-              <Button variant="ghost" onClick={handleCreateManual} disabled={creatingManual}>
+              <Button variant="ghost" size="lg" shape="pill" onClick={handleCreateManual} disabled={creatingManual}>
                 {creatingManual ? <><Spinner />Creating…</> : 'Create Manually'}
               </Button>
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="inline-flex items-center px-4 py-2 rounded-btn text-sm font-medium bg-accent text-background hover:bg-accent/90 transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
-              >
+              <Button variant="solid" size="lg" shape="pill" onClick={handleGenerate} disabled={generating}>
                 {generating ? <><Spinner />Generating…</> : 'Generate This Week'}
-              </button>
+              </Button>
             </>
           )}
         </div>
-      </div>
+      </header>
 
       <RationalePanel rationale={week?.rationale ?? null} />
       <MovementIntelligencePanel />
       {generating && (
-        <div className="flex items-center gap-2 mb-4 text-secondary text-sm">
+        <div className="mb-8 flex items-center gap-4 rounded-card border border-accent/20 bg-accent-5 px-5 py-4 shadow-inset-hi">
           <Spinner />
-          AI is building your workout program — this usually takes 15–30 seconds…
+          <div>
+            <p className="text-sm font-medium text-foreground">Building your week</p>
+            <p className="mt-0.5 text-sm text-secondary text-pretty">
+              Writing strength work, metcons and scaling for all seven days. Usually 15–30 seconds.
+            </p>
+          </div>
         </div>
       )}
-      {error && <p className="text-danger mb-4">{error}</p>}
+      {/* Inline, not an alert(). Audit: "No error states — add clear, inline
+          error messages for forms. Do not use window.alert()." */}
+      {error && (
+        <div role="alert" className="mb-8 rounded-card border border-danger/30 bg-danger-10 px-5 py-4">
+          <p className="text-sm font-medium text-danger">Couldn&apos;t complete that</p>
+          <p className="mt-0.5 text-sm text-secondary text-pretty">{error}</p>
+        </div>
+      )}
       <WorkoutWeekGrid
         week={week?.workouts ?? null}
         loading={loading || generating}

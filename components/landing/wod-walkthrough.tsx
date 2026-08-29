@@ -162,7 +162,7 @@ export function WodWalkthrough() {
       <div ref={sent1} style={{ position: 'absolute', top: '30%', height: '1px', width: '100%', pointerEvents: 'none' }} />
       <div ref={sent2} style={{ position: 'absolute', top: '60%', height: '1px', width: '100%', pointerEvents: 'none' }} />
 
-      <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
+      <div className="sticky top-0 min-h-[100dvh] flex flex-col justify-center overflow-hidden">
         <div className="max-w-6xl mx-auto w-full px-8 py-12">
           <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-4">How It Works</p>
           <h2 className="font-display text-4xl font-bold text-foreground tracking-tight mb-10">

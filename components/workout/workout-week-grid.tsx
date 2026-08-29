@@ -31,10 +31,25 @@ export function WorkoutWeekGrid({ week, loading, onEdit, onEditScaling }: Workou
   }
   if (!week) {
     return (
-      <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 py-16 px-8 text-center">
-        <div className="text-4xl mb-4">🏋️</div>
-        <p className="text-foreground font-medium mb-1">No workout programmed yet</p>
-        <p className="text-secondary text-sm">Use the buttons above to generate a week of workouts with AI, or create one manually.</p>
+      // Composed empty state rather than an emoji and two lines: it shows the
+      // shape of what will appear here, so the screen reads as "not yet filled"
+      // instead of "broken".
+      <div className="rounded-card-lg border border-dashed border-border bg-surface/30 px-8 py-20 text-center">
+        <div className="mx-auto mb-8 flex max-w-md items-end justify-center gap-2" aria-hidden="true">
+          {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d, i) => (
+            <div key={d} className="flex-1">
+              <div
+                className="rounded-btn border border-border bg-surface-raised/60"
+                style={{ height: `${34 + ((i * 13) % 30)}px` }}
+              />
+              <span className="mt-2 block font-mono text-[9px] uppercase tracking-[0.15em] text-secondary/40">{d}</span>
+            </div>
+          ))}
+        </div>
+        <h3 className="font-display uppercase tracking-tight text-2xl text-foreground">Nothing programmed yet</h3>
+        <p className="mx-auto mt-3 max-w-sm text-sm text-secondary text-pretty">
+          Generate a full week with AI in under 30 seconds, or build it yourself day by day.
+        </p>
       </div>
     )
   }
