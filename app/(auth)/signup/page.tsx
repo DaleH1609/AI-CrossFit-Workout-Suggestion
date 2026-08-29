@@ -5,6 +5,7 @@ import { AuthBrandPanel } from '@/components/auth/brand-panel'
 import { Dropdown } from '@/components/ui/dropdown'
 import Link from 'next/link'
 import { TIMEZONE_OPTIONS } from '@/lib/timezones'
+import { PasswordStrength } from '@/components/ui/password-strength'
 
 const GYM_TYPES = [
   { value: 'crossfit', label: 'CrossFit', description: 'Classic WODs, strength work, and functional fitness' },
@@ -93,11 +94,19 @@ export default function SignupPage() {
               placeholder="Email" required
               className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
             />
-            <input type="password" value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="Password" required
-              className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
-            />
+            <div>
+              <input type="password" value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                placeholder="Password" required
+                autoComplete="new-password" spellCheck={false}
+                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-foreground-50 focus:outline-none focus:border-accent transition-colors"
+              />
+              {/* Only once there is something to rate. Showing four red bars
+                  before a character is typed reads as failure, not guidance. */}
+              {form.password.length > 0 && (
+                <PasswordStrength value={form.password} className="mt-3" />
+              )}
+            </div>
 
             <Dropdown
               value={form.timezone}
