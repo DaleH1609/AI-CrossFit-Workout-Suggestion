@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge'
 import { CancelBookingButton } from '@/components/booking/cancel-booking-button'
 import { ClassFeedback } from '@/components/booking/class-feedback'
 import { ClassRoster } from '@/components/booking/class-roster'
+import { ClassBookingCalendar } from '@/components/booking/class-booking-calendar'
+import { CalendarPlus } from '@phosphor-icons/react/dist/ssr'
 
 type BadgeVariant = 'draft' | 'published' | 'confirmed' | 'waitlisted' | 'pending_confirmation'
 
@@ -66,19 +68,14 @@ export default async function MySchedulePage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-3xl text-foreground">My schedule</h1>
+        <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)]">My schedule</h1>
         {calendarToken && (
           <a
             href={`/api/calendar/${calendarToken}`}
             download
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-btn border border-border text-xs text-secondary hover:text-foreground hover:border-foreground/30 transition-colors"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
+            <CalendarPlus size={13} />
             Add to Calendar
           </a>
         )}
