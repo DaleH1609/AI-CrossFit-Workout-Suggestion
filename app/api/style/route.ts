@@ -46,9 +46,9 @@ export async function POST(req: Request) {
   const gymLabel = gymType === 'hyrox' ? 'Hyrox' : 'CrossFit'
 
   let validationText = ''
+  let validationTokens: { inputTokens?: number; outputTokens?: number } | undefined
   try {
     const client = getAnthropicClient()
-    let validationTokens: { inputTokens?: number; outputTokens?: number } | undefined
     const msg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 10,

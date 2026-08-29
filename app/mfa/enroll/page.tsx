@@ -19,7 +19,7 @@ export default function MfaEnrollPage() {
       // Reuse an existing unverified TOTP factor if one exists (prevents
       // duplicate pending factors when the user refreshes the page).
       const { data: existingFactors } = await supabase.auth.mfa.listFactors()
-      const unverified = existingFactors?.totp?.find(f => f.factor_type === 'totp' && f.status === 'unverified')
+      const unverified = existingFactors?.totp?.find(f => f.factor_type === 'totp' && (f.status as string) === 'unverified')
       if (unverified) {
         // Re-enroll to get a fresh QR code and secret for the existing factor.
         await supabase.auth.mfa.unenroll({ factorId: unverified.id })

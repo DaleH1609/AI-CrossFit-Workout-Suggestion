@@ -64,7 +64,7 @@ export async function GET(req: Request) {
       // confirm route already handled this row, cancelled = false and we skip
       // promotion — no double-promotion, no duplicate email.
       const { data: expireResult, error: cancelErr } = await supabase
-        .rpc('expire_pending_confirmation', { p_booking_id: booking.id })
+        .rpc('expire_pending_confirmation' as never, { p_booking_id: booking.id } as never)
 
       if (cancelErr) {
         errors.push({ bookingId: booking.id, stage: 'cancel', err: cancelErr })

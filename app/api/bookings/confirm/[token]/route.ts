@@ -166,7 +166,7 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
   // we avoid double-promotion if another process beat us.
   if (new Date(booking.confirmation_expires_at!).getTime() < Date.now()) {
     const { data: expireResult, error: expireErr } = await supabase
-      .rpc('expire_pending_confirmation', { p_booking_id: booking.id })
+      .rpc('expire_pending_confirmation' as never, { p_booking_id: booking.id } as never)
 
     if (expireErr) {
       console.error('[confirm] expire_pending_confirmation rpc failed', expireErr)
@@ -185,7 +185,7 @@ export async function POST(req: Request, props: { params: Promise<{ token: strin
   // class_instances row.  Eliminates the TOCTOU between a separate capacity
   // SELECT and the UPDATE that existed before this migration.
   const { data: confirmResult, error: confirmError } = await supabase
-    .rpc('confirm_pending_booking', { p_booking_id: booking.id, p_instance_id: booking.instance_id })
+    .rpc('confirm_pending_booking' as never, { p_booking_id: booking.id, p_instance_id: booking.instance_id } as never)
 
   if (confirmError) {
     console.error('[confirm] confirm_pending_booking rpc failed', confirmError)

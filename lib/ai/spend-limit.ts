@@ -75,10 +75,10 @@ export async function incrementAiCalls(
   supabase: SupabaseClient<Database>,
   tokens?: { inputTokens?: number; outputTokens?: number }
 ): Promise<void> {
-  await supabase.rpc('increment_ai_calls', {
+  await supabase.rpc('increment_ai_calls' as never, {
     p_gym_id:        gymId,
     p_month:         currentMonth(),
     p_input_tokens:  tokens?.inputTokens  ?? 0,
     p_output_tokens: tokens?.outputTokens ?? 0,
-  })
+  } as never)
 }

@@ -68,13 +68,14 @@ export async function sendWorkoutsPublishedEmail(
   const resend = getResend()
   const from = getFrom()
   const extra = withReplyTo(contactEmail)
+  const html = await workoutsPublishedHtml(gymName)
   const results = await Promise.allSettled(
     members.map(m =>
       resend.emails.send({
         from,
         to: m.email,
         subject: "This Week's Workouts Are Live",
-        html: await workoutsPublishedHtml(gymName),
+        html,
         ...extra,
       })
     )

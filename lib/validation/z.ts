@@ -64,7 +64,7 @@ function wrap<T>(parse: (input: unknown, path?: string) => Result<T>): Validator
 
 export const z = {
   string(opts: { min?: number; max?: number; trim?: boolean; pattern?: RegExp } = {}): Validator<string> {
-    let schema = _z.string({ invalid_type_error: 'value must be a string' })
+    let schema = _z.string({ error: 'value must be a string' })
     if (opts.min !== undefined) schema = schema.min(opts.min, `value must be at least ${opts.min} chars`)
     if (opts.max !== undefined) schema = schema.max(opts.max, `value must be at most ${opts.max} chars`)
     if (opts.pattern) schema = schema.regex(opts.pattern, 'value has invalid format')
@@ -77,7 +77,7 @@ export const z = {
   },
 
   number(opts: { min?: number; max?: number; int?: boolean } = {}): Validator<number> {
-    let schema = _z.number({ invalid_type_error: 'value must be a number' })
+    let schema = _z.number({ error: 'value must be a number' })
     if (opts.int) schema = schema.int('value must be an integer')
     if (opts.min !== undefined) schema = schema.min(opts.min, `value must be >= ${opts.min}`)
     if (opts.max !== undefined) schema = schema.max(opts.max, `value must be <= ${opts.max}`)
@@ -85,7 +85,7 @@ export const z = {
   },
 
   boolean(): Validator<boolean> {
-    return fromZod<boolean>(_z.boolean({ invalid_type_error: 'value must be a boolean' }))
+    return fromZod<boolean>(_z.boolean({ error: 'value must be a boolean' }))
   },
 
   uuid(): Validator<string> {
@@ -120,8 +120,7 @@ export const z = {
   enum<T extends readonly string[]>(values: T): Validator<T[number]> {
     return fromZod<T[number]>(
       _z.enum(values as unknown as [string, ...string[]], {
-        invalid_type_error: `value must be one of: ${values.join(', ')}`,
-        required_error: `value must be one of: ${values.join(', ')}`,
+        error: `value must be one of: ${values.join(', ')}`,
       })
     )
   },
