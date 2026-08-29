@@ -2,17 +2,12 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { WodCardClient } from './wod-card-client'
 import type { WorkoutDay } from '@/lib/types'
+import { getMondayOfCurrentWeek } from '@/lib/utils'
 
 interface UserRow { gym_id: string }
 interface WeekData { workouts: WorkoutDay[] }
 interface GymRow { name: string }
 
-function getMondayOfCurrentWeek() {
-  const d = new Date()
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  return new Date(d.setDate(diff)).toISOString().split('T')[0]
-}
 
 export default async function WodCardPage() {
   const supabase = await createClient()

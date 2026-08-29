@@ -3,9 +3,14 @@ import { twMerge } from 'tailwind-merge'
 export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)) }
 
 /**
- * getMondayOfCurrentWeek — returns the ISO date string (YYYY-MM-DD) for
- * the Monday of the current week. Duplicated in dashboard/page.tsx and
- * this-week/page.tsx; centralised here so page files can import it when ready.
+ * Monday of the current week as YYYY-MM-DD, in the viewer's local timezone.
+ *
+ * The date is formatted from local components rather than via toISOString().
+ * toISOString() converts to UTC first, so at any local time earlier than the
+ * UTC offset it rolls the date back a day: in Ireland at 00:26 it returned
+ * 2026-08-23 when the local Monday was 2026-08-24, and the owner was shown
+ * last week's programme. The window is one hour per day at UTC+1 and grows
+ * with the offset.
  */
 export function getMondayOfCurrentWeek(): string {
   const now = new Date()
@@ -13,7 +18,12 @@ export function getMondayOfCurrentWeek(): string {
   const diff = day === 0 ? -6 : 1 - day
   const monday = new Date(now)
   monday.setDate(now.getDate() + diff)
-  return monday.toISOString().split('T')[0]
+  return toLocalISODate(monday)
+}
+
+/** YYYY-MM-DD from local date parts. Never use toISOString() for a calendar date. */
+export function toLocalISODate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 /**

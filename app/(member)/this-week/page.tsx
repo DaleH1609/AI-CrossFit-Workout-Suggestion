@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { WeekDayView } from '@/components/booking/week-day-view'
 import { OnboardingChecklist } from '@/components/member/onboarding-checklist'
 import type { WorkoutDay } from '@/lib/types'
+import { getMondayOfCurrentWeek } from '@/lib/utils'
 
 interface UserRow { gym_id: string; id: string; created_at: string; waiver_signed_at: string | null }
 interface WeekData { workouts: WorkoutDay[] }
@@ -11,12 +12,6 @@ interface ClassInstance { id: string; date: string; local_time: string; starts_a
 interface BookingRow { id: string; instance_id: string; status: string }
 interface BookingWithUser { instance_id: string; status: string; users: { name: string } | null }
 
-function getMondayOfCurrentWeek() {
-  const d = new Date()
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  return new Date(d.setDate(diff)).toISOString().split('T')[0]
-}
 
 export default async function ThisWeekPage() {
   const supabase = await createClient()

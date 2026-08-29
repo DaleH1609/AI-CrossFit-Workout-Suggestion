@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Modal } from '@/components/ui/modal'
 import type { WorkoutDay, WorkoutWeek } from '@/lib/types'
+import { getMondayOfCurrentWeek } from '@/lib/utils'
 
 function Spinner() {
   return (
@@ -21,12 +22,6 @@ function Spinner() {
   )
 }
 
-function getMondayOfCurrentWeek() {
-  const d = new Date()
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  return new Date(d.setDate(diff)).toISOString().split('T')[0]
-}
 
 export default function DashboardPage() {
   const [week, setWeek] = useState<{ id: string; workouts: WorkoutWeek; status: string; rationale?: WorkoutRationale | null } | null>(null)
