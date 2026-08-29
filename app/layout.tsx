@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Bebas_Neue, DM_Sans } from 'next/font/google'
+import { Bebas_Neue, DM_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { ServiceWorkerRegister } from '@/components/push/service-worker-register'
@@ -9,6 +9,10 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const bebasNeue = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' })
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
+// Technical labels (phase readouts, section eyebrows, counters) are set in mono.
+// Pinned to a real face so letterspacing is consistent across platforms rather
+// than inheriting whatever ui-monospace resolves to.
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains' })
 
 export const metadata: Metadata = {
   title: { default: 'KOVA', template: '%s | KOVA' },
@@ -36,7 +40,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bebasNeue.variable} ${dmSans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${bebasNeue.variable} ${dmSans.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body className="bg-background text-foreground font-body antialiased">
         <Providers>{children}</Providers>
         <ServiceWorkerRegister />

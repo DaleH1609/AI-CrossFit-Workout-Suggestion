@@ -46,6 +46,7 @@ const config: Config = {
       fontFamily: {
         display: ['var(--font-bebas)', 'sans-serif'],
         body:    ['var(--font-dm-sans)', 'sans-serif'],
+        mono:    ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         card: '8px',

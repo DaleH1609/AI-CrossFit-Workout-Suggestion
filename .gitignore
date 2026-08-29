@@ -39,3 +39,6 @@ next-env.d.ts
 
 # superpowers brainstorm sessions
 .superpowers/
+
+# Supabase CLI local state (link info, versions) — machine-specific
+supabase/.temp/

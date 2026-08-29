@@ -1,5 +1,10 @@
-[functions.generate-class-instances]
-schedule = "0 2 * * *"
+# Project ref for `supabase link`. Previously absent, which is why no CLI
+# command could reach the remote database.
+project_id = "ncpxagtwgaxgbuxmuvmu"
 
-[functions.process-waitlist-expiry]
-schedule = "*/15 * * * *"
+# NOTE: the [functions.generate-class-instances] and
+# [functions.process-waitlist-expiry] blocks that used to live here were
+# removed — both edge functions were deleted and replaced by Vercel cron
+# routes (app/api/cron/generate-instances, app/api/cron/waitlist-expire),
+# scheduled in vercel.json. The config was still declaring functions that no
+# longer exist on disk.

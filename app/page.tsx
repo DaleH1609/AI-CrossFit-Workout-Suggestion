@@ -5,24 +5,30 @@ import { WodCardsHero } from '@/components/landing/wod-cards-hero'
 import { WodWalkthrough } from '@/components/landing/wod-walkthrough'
 import { PhraseSpinner } from '@/components/landing/phrase-spinner'
 import { FadeIn } from '@/components/ui/fade-in'
+import { CleanAndJerk } from '@/components/landing/clean-and-jerk'
+import { BarbellRule } from '@/components/landing/barbell-rule'
+import { RevealText } from '@/components/ui/reveal-text'
+import { Magnetic } from '@/components/ui/magnetic'
+// SSR entry — this page is a server component, so the CSR build would force a
+// client boundary for what are static glyphs.
 import {
-  Sparkles,
-  CalendarDays,
+  Sparkle,
+  CalendarBlank,
   Users,
-  Layers,
-  Dumbbell,
-  PenLine,
+  StackSimple,
+  Barbell,
+  PencilLine,
   Check,
-  Zap,
-} from 'lucide-react'
+  Lightning,
+} from '@phosphor-icons/react/dist/ssr'
 
 const FEATURES = [
-  { icon: Sparkles,    title: 'AI Workout Generation', desc: "Generate a full week of WODs in seconds. KOVA learns your gym's style and keeps programming consistent." },
-  { icon: CalendarDays,title: 'Class Scheduling',      desc: 'Set up recurring class slots, manage capacity, and let members book directly from their phone.' },
-  { icon: Users,       title: 'Member Management',     desc: "Invite members, track attendance, and manage your gym community — all in one place." },
-  { icon: Layers,      title: 'Auto-Scaling',          desc: 'Every WOD automatically scaled to Rx, Scaled, and Beginner. No more writing three versions.' },
-  { icon: Dumbbell,    title: 'CrossFit & Hyrox',      desc: "Built-in programming logic for both gym types. Switch in settings — the AI adapts instantly." },
-  { icon: PenLine,     title: 'Full Edit Control',     desc: 'AI generates, you approve. Edit any workout before publishing — structured editor or free text.' },
+  { icon: Sparkle,       title: 'AI Workout Generation', desc: "Generate a full week of WODs in seconds. KOVA learns your gym's style and keeps programming consistent." },
+  { icon: CalendarBlank, title: 'Class Scheduling',      desc: 'Set up recurring class slots, manage capacity, and let members book directly from their phone.' },
+  { icon: Users,         title: 'Member Management',     desc: "Invite members, track attendance, and manage your gym community — all in one place." },
+  { icon: StackSimple,   title: 'Auto-Scaling',          desc: 'Every WOD automatically scaled to Rx, Scaled, and Beginner. No more writing three versions.' },
+  { icon: Barbell,       title: 'CrossFit & Hyrox',      desc: "Built-in programming logic for both gym types. Switch in settings — the AI adapts instantly." },
+  { icon: PencilLine,    title: 'Full Edit Control',     desc: 'AI generates, you approve. Edit any workout before publishing — structured editor or free text.' },
 ]
 
 const MEMBER_BENEFITS = [
@@ -61,16 +67,18 @@ export default function HomePage() {
         className="sticky top-0 z-50 h-16 backdrop-blur-md border-b border-border"
         style={{ background: 'color-mix(in srgb, var(--color-background) 90%, transparent)' }}
       >
-        <div className="max-w-6xl mx-auto px-8 h-full flex items-center justify-between">
+        {/* Padding matches the hero's full-bleed gutter, not a centred container —
+            a max-w nav over a full-bleed hero is the seam that reads as templated. */}
+        <div className="w-full px-6 sm:px-10 lg:px-16 h-full flex items-center justify-between">
           <KovaLogo size="lg" />
           <div className="flex items-center gap-6">
-            <a href="#features"     className="hidden md:block text-sm text-secondary hover:text-foreground transition-colors">Features</a>
-            <a href="#how-it-works" className="hidden md:block text-sm text-secondary hover:text-foreground transition-colors">How It Works</a>
+            <a href="#features"     className="hidden md:block font-mono text-[11px] tracking-[0.2em] uppercase text-secondary hover:text-foreground transition-colors">Features</a>
+            <a href="#how-it-works" className="hidden md:block font-mono text-[11px] tracking-[0.2em] uppercase text-secondary hover:text-foreground transition-colors">How It Works</a>
             <ThemeToggle />
-            <Link href="/login"  className="hidden sm:block text-sm text-secondary hover:text-foreground transition-colors">Sign In</Link>
+            <Link href="/login"  className="hidden sm:block font-mono text-[11px] tracking-[0.2em] uppercase text-secondary hover:text-foreground transition-colors">Sign In</Link>
             <Link
               href="/signup"
-              className="bg-accent text-background px-5 py-2 text-xs font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors"
+              className="bg-accent text-background px-5 py-2 text-xs font-bold tracking-widest uppercase touch-manipulation rounded-full hover:bg-accent-90 transition-colors"
             >
               Get Started
             </Link>
@@ -80,40 +88,29 @@ export default function HomePage() {
 
       {/* ── HERO ────────────────────────────────────────────────────── */}
       {/* Change 2+3+4+8: full-width dot grid bg, larger H1, pain statement */}
-      <div
-        className="relative"
-        style={{
-          backgroundImage: 'radial-gradient(circle, rgba(184,149,42,0.09) 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
-        }}
-      >
-        {/* Vignette: fades the dot grid at edges */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 90% 75% at 50% 40%, transparent 20%, var(--color-background) 78%)' }}
-        />
-
-        <section className="relative min-h-screen max-w-6xl mx-auto px-8 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
+      <div className="relative">
+        <section className="relative min-h-[92vh] w-full px-6 sm:px-10 lg:px-16 pt-20 pb-24 grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-y-16 gap-x-12 items-center">
+          <div className="max-w-[46rem]">
             <p
-              className="hero-fade-up text-xs font-semibold tracking-widest text-accent uppercase mb-6"
+              className="hero-fade-up font-mono text-[11px] font-medium tracking-[0.3em] text-accent uppercase mb-8"
               style={{ animationDelay: '0.05s' }}
             >
               AI-Powered Gym Programming
             </p>
 
-            {/* Change 2+8: specific, bold headline at larger size */}
-            <h1
-              className="hero-fade-up font-display text-[3.5rem] lg:text-[4.5rem] font-bold leading-[1.05] tracking-tight text-foreground mb-6"
-              style={{ animationDelay: '0.15s' }}
-            >
-              Program your gym<br />
-              <span className="text-accent">in seconds,<br className="hidden lg:block" /> not hours.</span>
-            </h1>
+            {/* Display lockup: uppercase, near-zero leading, edge-to-edge.
+                The whole hero hangs off this one gesture. */}
+            <RevealText
+              as="h1"
+              immediate
+              delay={0.15}
+              lines={['Program', 'your gym in', <span key="a" className="text-accent">seconds.</span>]}
+              className="font-display uppercase text-foreground mb-10
+                         text-[clamp(3.25rem,11vw,9rem)] leading-[0.82] tracking-[-0.02em]"
+            />
 
-            {/* Change 4: lead with the pain, then the solution */}
             <p
-              className="hero-fade-up text-base text-secondary leading-relaxed max-w-md mb-9"
+              className="hero-fade-up text-base text-secondary leading-relaxed max-w-md mb-10"
               style={{ animationDelay: '0.25s' }}
             >
               Most coaches spend 3–5 hours a week writing workouts. KOVA generates your full weekly program in under 30 seconds — tailored to your coaching style, with every scaling version included.
@@ -123,12 +120,14 @@ export default function HomePage() {
               className="hero-fade-up flex items-center gap-5 mb-7"
               style={{ animationDelay: '0.35s' }}
             >
-              <Link
-                href="/signup"
-                className="bg-accent text-background px-7 py-3 text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors"
-              >
-                Create Your Gym
-              </Link>
+              <Magnetic>
+                <Link
+                  href="/signup"
+                  className="inline-flex h-12 items-center touch-manipulation bg-accent text-background px-8 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  Create Your Gym
+                </Link>
+              </Magnetic>
               <Link href="/login" className="text-sm text-secondary border-b border-secondary/40 pb-px hover:text-foreground transition-colors">
                 Sign in →
               </Link>
@@ -140,7 +139,7 @@ export default function HomePage() {
             >
               {['Members can book online', 'Auto-scaling for all levels', 'Free to get started'].map(b => (
                 <span key={b} className="flex items-center gap-1.5 text-xs text-secondary">
-                  <Check size={11} className="text-accent flex-shrink-0" strokeWidth={2.5} />
+                  <Check size={12} weight="bold" className="text-accent flex-shrink-0" />
                   {b}
                 </span>
               ))}
@@ -178,6 +177,13 @@ export default function HomePage() {
           ))}
         </div>
       </div>
+
+      {/* ── THE LIFT ────────────────────────────────────────────────── */}
+      {/* Continues the dark band opened by the stats strip: stats → rule →
+          scroll-driven lift → rule, then back out to light for the product. */}
+      <BarbellRule label="Clean & Jerk" />
+      <CleanAndJerk />
+      <BarbellRule />
 
       {/* ── WOD WALKTHROUGH ─────────────────────────────────────────── */}
       <WodWalkthrough />
@@ -286,7 +292,7 @@ export default function HomePage() {
                 {MEMBER_BENEFITS.map(b => (
                   <li key={b.label} className="flex items-start gap-3">
                     <span className="mt-0.5 w-5 h-5 rounded-full bg-accent-10 border border-accent/20 flex items-center justify-center flex-shrink-0">
-                      <Check size={10} className="text-accent" strokeWidth={2.5} />
+                      <Check size={11} weight="bold" className="text-accent" />
                     </span>
                     <div>
                       <p className="text-sm font-semibold text-foreground">{b.label}</p>
@@ -303,13 +309,20 @@ export default function HomePage() {
       {/* ── FEATURES ────────────────────────────────────────────────── */}
       <section id="features" className="scroll-mt-16">
 
-        {/* Section header */}
-        <div className="max-w-6xl mx-auto px-8 pt-24 pb-14">
-          <p className="text-xs font-semibold tracking-widest text-accent uppercase mb-4">What KOVA does</p>
-          <h2 className="font-display text-4xl font-bold text-foreground tracking-tight">
-            Everything your gym needs.<br />
-            <span className="text-accent">Nothing it doesn&apos;t.</span>
-          </h2>
+        {/* Section header — hangs off the same left gutter as the hero rather
+            than re-centring, so the page has one spine instead of two. */}
+        <div className="w-full px-6 sm:px-10 lg:px-16 pt-28 pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-10 items-end">
+          <div>
+            <p className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase mb-6">What KOVA does</p>
+            <RevealText
+              lines={['Everything your', 'gym needs.', <span key="a" className="text-accent">Nothing it doesn&apos;t.</span>]}
+              className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.5rem,7vw,5.5rem)]"
+            />
+          </div>
+          <p className="text-sm text-secondary leading-relaxed lg:pb-3 lg:border-l lg:border-border lg:pl-8">
+            Six systems, one place. No plugin marketplace, no per-seat add-ons, no
+            half-finished modules you have to work around.
+          </p>
         </div>
 
         {/* Change 5: AI Generation hero feature — full-width callout above the grid */}
@@ -320,7 +333,7 @@ export default function HomePage() {
               {/* Copy */}
               <div>
                 <div className="flex items-center gap-2 mb-5">
-                  <Zap size={14} className="text-accent" strokeWidth={2} />
+                  <Lightning size={14} weight="fill" className="text-accent" />
                   <span className="text-xs font-bold tracking-widest text-accent uppercase">Signature Feature</span>
                 </div>
                 <h3 className="font-display text-3xl font-bold text-foreground tracking-tight mb-4">
@@ -371,15 +384,30 @@ export default function HomePage() {
           </div>
         </FadeIn>
 
-        {/* Feature grid — remaining capabilities */}
-        <div className="max-w-6xl mx-auto px-8 pb-24">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+        {/* Feature grid. Deliberately not a uniform 3-up: the first cell spans
+            two columns and carries a numbered index, so the eye enters at a
+            fixed point instead of scanning six identical tiles. */}
+        <div className="w-full px-6 sm:px-10 lg:px-16 pb-28">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
             {FEATURES.map((f, i) => (
-              <FadeIn key={f.title} delay={i * 60}>
-                <div className="h-full bg-surface p-8 hover:bg-surface-raised transition-colors group">
-                  <f.icon size={20} className="mb-4 text-accent/70 group-hover:text-accent transition-colors" strokeWidth={1.5} />
-                  <h3 className="text-base font-bold text-foreground mb-2 group-hover:text-accent transition-colors">{f.title}</h3>
-                  <p className="text-sm text-secondary leading-relaxed">{f.desc}</p>
+              <FadeIn
+                key={f.title}
+                delay={i * 60}
+                className={i === 0 ? 'sm:col-span-2' : undefined}
+              >
+                <div className="h-full bg-surface p-9 lg:p-11 hover:bg-surface-raised transition-colors group relative">
+                  <span className="absolute top-5 right-6 font-mono text-[11px] tracking-[0.2em] text-secondary/30 tabular-nums">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <f.icon size={i === 0 ? 34 : 26} weight="duotone" className="mb-6 text-accent" />
+                  <h3
+                    className={`font-display uppercase tracking-tight text-pretty text-foreground mb-3 group-hover:text-accent transition-colors ${
+                      i === 0 ? 'text-3xl lg:text-4xl' : 'text-2xl'
+                    }`}
+                  >
+                    {f.title}
+                  </h3>
+                  <p className={`text-sm text-secondary leading-relaxed ${i === 0 ? 'max-w-md' : ''}`}>{f.desc}</p>
                 </div>
               </FadeIn>
             ))}
@@ -393,19 +421,23 @@ export default function HomePage() {
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(212,175,55,0.08) 0%, transparent 65%)' }}
         />
-        <div className="relative">
-          <h2 className="font-display text-5xl font-bold text-white tracking-tight mb-4">
-            Ready to elevate<br />
-            <span className="text-accent">your gym?</span>
-          </h2>
-          <p className="text-white/40 text-base mb-8">Start programming smarter today.</p>
-          <Link
-            href="/signup"
-            className="inline-block bg-accent text-black px-11 py-4 text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors cta-pulse"
-          >
-            Get Started Free
-          </Link>
-          <p className="mt-4 text-xs text-white/25 tracking-wide">No credit card required</p>
+        <div className="relative px-6">
+          {/* Closing lockup, scaled to match the hero so the page opens and shuts
+              on the same typographic note. */}
+          <RevealText
+            lines={['Ready to elevate', <span key="a" className="text-accent">your gym?</span>]}
+            className="font-display uppercase text-white leading-[0.82] tracking-[-0.02em] text-[clamp(3rem,10vw,8rem)] mb-8"
+          />
+          <p className="text-white/40 text-base mb-10">Start programming smarter today.</p>
+          <Magnetic strength={0.35}>
+            <Link
+              href="/signup"
+              className="inline-flex h-14 items-center touch-manipulation bg-accent text-black px-11 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0A]"
+            >
+              Get Started Free
+            </Link>
+          </Magnetic>
+          <p className="mt-5 font-mono text-[11px] tracking-[0.2em] uppercase text-white/25">No credit card required</p>
         </div>
       </section>
 
