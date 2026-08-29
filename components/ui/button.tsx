@@ -77,7 +77,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           SIZES[size],
           shape === 'pill' ? 'rounded-full' : 'rounded-btn',
           variant === 'primary' && 'border border-accent text-foreground hover:bg-accent hover:text-background',
-          variant === 'solid'   && 'bg-accent text-background hover:bg-accent-90',
+          variant === 'solid'   && 'bg-accent text-on-accent hover:bg-accent-90',
           variant === 'danger'  && 'border border-danger text-danger hover:bg-danger hover:text-foreground',
           variant === 'ghost'   && 'text-secondary hover:text-foreground',
           className

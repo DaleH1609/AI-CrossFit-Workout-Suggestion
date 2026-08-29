@@ -39,7 +39,7 @@ function MessagesUnreadBadge({ count, expanded }: { count: number; expanded: boo
 
   return (
     <span className={cn(
-      'inline-flex items-center justify-center rounded-full bg-accent text-background font-bold leading-none',
+      'inline-flex items-center justify-center rounded-full bg-accent text-on-accent font-bold leading-none',
       expanded ? 'ml-auto text-[10px] min-w-[18px] h-[18px] px-1' : 'absolute top-1 right-1 text-[9px] min-w-[14px] h-[14px]'
     )}>
       {display}

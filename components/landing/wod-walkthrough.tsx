@@ -69,7 +69,7 @@ function PanelReview() {
             key={day}
             className={`px-3 py-1.5 text-xs font-semibold rounded-btn transition-colors ${
               i === 0
-                ? 'bg-accent text-background'
+                ? 'bg-accent text-on-accent'
                 : 'text-secondary hover:text-foreground'
             }`}
           >
@@ -91,7 +91,7 @@ function PanelReview() {
         </div>
       </div>
       <div className="mt-auto flex items-center justify-between">
-        <button className="px-4 py-2 text-xs font-bold tracking-widest uppercase rounded-btn bg-accent text-background">
+        <button className="px-4 py-2 text-xs font-bold tracking-widest uppercase rounded-btn bg-accent text-on-accent">
           Save Changes
         </button>
         <span className="text-xs text-secondary">← Mon&nbsp;&nbsp;Wed →</span>

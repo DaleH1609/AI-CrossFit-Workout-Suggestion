@@ -246,7 +246,7 @@ async function submitLead(e) {
             <button
               onClick={saveLead}
               disabled={saving}
-              className="w-full py-2.5 bg-accent text-background text-sm font-bold rounded-btn disabled:opacity-50"
+              className="w-full py-2.5 bg-accent text-on-accent text-sm font-bold rounded-btn disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save'}
             </button>

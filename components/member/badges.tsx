@@ -110,7 +110,7 @@ export function MemberBadges() {
             className="flex-1 px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors"
           />
           <button type="submit" disabled={referralSaving}
-            className="px-3 py-2 bg-accent text-background text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 whitespace-nowrap">
+            className="px-3 py-2 bg-accent text-on-accent text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 whitespace-nowrap">
             {referralSaving ? '…' : 'Refer →'}
           </button>
         </form>

@@ -14,6 +14,8 @@ const config: Config = {
         'foreground-10':  'var(--color-foreground-10)',
         secondary:        'var(--color-secondary)',
         accent:           'var(--color-accent)',
+        'on-accent':      'var(--color-on-accent)',
+        'accent-text':    'var(--color-accent-text)',
         'accent-5':       'var(--color-accent-5)',
         'accent-8':       'var(--color-accent-8)',
         'accent-10':      'var(--color-accent-10)',

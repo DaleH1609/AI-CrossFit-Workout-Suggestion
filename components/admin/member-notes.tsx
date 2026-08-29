@@ -50,7 +50,7 @@ export function MemberNotes({ memberId }: { memberId: string }) {
           className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder-secondary resize-none focus:outline-none focus:border-accent transition-colors"
         />
         <button type="submit" disabled={saving || !text.trim()}
-          className="mt-2 px-3 py-1.5 bg-accent text-background text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
+          className="mt-2 px-3 py-1.5 bg-accent text-on-accent text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Add Note'}
         </button>

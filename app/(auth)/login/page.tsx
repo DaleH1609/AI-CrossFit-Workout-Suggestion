@@ -74,7 +74,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="auth-field w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] ring-1 ring-transparent hover:ring-accent/20 disabled:opacity-50"
+          className="auth-field w-full py-2.5 bg-accent text-on-accent text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] ring-1 ring-transparent hover:ring-accent/20 disabled:opacity-50"
           style={{ animationDelay: '200ms' }}
         >
           {loading ? 'Signing in…' : 'Sign In'}

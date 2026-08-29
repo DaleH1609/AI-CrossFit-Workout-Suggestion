@@ -26,7 +26,7 @@ export default function MessagesError({ error, reset }: ErrorProps) {
       <button
         type="button"
         onClick={reset}
-        className="inline-flex items-center px-4 py-2 rounded-btn text-sm font-medium bg-accent text-background hover:bg-accent/90 transition-all duration-200 active:scale-[0.97]"
+        className="inline-flex items-center px-4 py-2 rounded-btn text-sm font-medium bg-accent text-on-accent hover:bg-accent/90 transition-all duration-200 active:scale-[0.97]"
       >
         Try again
       </button>

@@ -58,7 +58,7 @@ export default function SignupPage() {
             <p className="text-secondary text-sm leading-relaxed mb-8">
               Click the link in the email to verify your account. You&apos;ll be able to sign in once your email is confirmed.
             </p>
-            <Link href="/login" className="inline-block w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors text-center">
+            <Link href="/login" className="inline-block w-full py-2.5 bg-accent text-on-accent text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors text-center">
               Go to Sign In
             </Link>
             <p className="mt-4 text-xs text-secondary">
@@ -135,7 +135,7 @@ export default function SignupPage() {
 
             {error && <p className="text-danger text-sm">{error}</p>}
             <button type="submit" disabled={loading}
-              className="w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] ring-1 ring-transparent hover:ring-accent/20 disabled:opacity-50">
+              className="w-full py-2.5 bg-accent text-on-accent text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] ring-1 ring-transparent hover:ring-accent/20 disabled:opacity-50">
               {loading ? 'Creating…' : 'Create Account'}
             </button>
           </form>

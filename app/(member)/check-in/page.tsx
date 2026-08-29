@@ -69,7 +69,7 @@ export default function CheckInPage() {
             <button
               onClick={handleSubmit}
               disabled={submitting || code.length !== 6}
-              className="w-full py-3 bg-accent text-background font-bold rounded-xl hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
+              className="w-full py-3 bg-accent text-on-accent font-bold rounded-xl hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
             >
               {submitting ? 'Checking in…' : 'Check In'}
             </button>

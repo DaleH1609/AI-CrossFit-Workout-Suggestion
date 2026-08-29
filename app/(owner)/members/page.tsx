@@ -230,7 +230,7 @@ export default function MembersPage() {
           {(['members', 'coaches'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-3 py-1.5 text-xs font-medium capitalize rounded transition-colors ${
-                tab === t ? 'bg-accent text-background' : 'text-secondary hover:text-foreground'
+                tab === t ? 'bg-accent text-on-accent' : 'text-secondary hover:text-foreground'
               }`}>{t} {t === 'coaches' && coaches.length > 0 && `(${coaches.length})`}
             </button>
           ))}
@@ -286,7 +286,7 @@ export default function MembersPage() {
         <button
           type="submit"
           disabled={inviting}
-          className="px-4 py-2.5 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 whitespace-nowrap active:scale-[0.98]"
+          className="px-4 py-2.5 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 whitespace-nowrap active:scale-[0.98]"
         >
           {inviting ? 'Sending…' : 'Send Invite →'}
         </button>
@@ -406,7 +406,7 @@ export default function MembersPage() {
               {(['notes', 'passes', 'pauses', 'scaling'] as const).map(t => (
                 <button key={t} onClick={() => setMemberPanel(t)}
                   className={`flex-1 py-1.5 text-xs font-medium capitalize rounded transition-colors ${
-                    memberPanel === t ? 'bg-accent text-background' : 'text-secondary hover:text-foreground'
+                    memberPanel === t ? 'bg-accent text-on-accent' : 'text-secondary hover:text-foreground'
                   }`}>{t}</button>
               ))}
             </div>

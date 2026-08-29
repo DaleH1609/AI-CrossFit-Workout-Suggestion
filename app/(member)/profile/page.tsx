@@ -192,7 +192,7 @@ export default function ProfilePage() {
             </div>
           )}
           <button type="submit"
-            className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
+            className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
             Save Name
           </button>
         </form>
@@ -347,7 +347,7 @@ export default function ProfilePage() {
             )}
             <div className="flex items-center gap-3">
               <button type="submit" disabled={emailWorking}
-                className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] disabled:opacity-50">
+                className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] disabled:opacity-50">
                 {emailWorking ? 'Sending…' : 'Send Verification'}
               </button>
               <button type="button" onClick={() => { setShowEmailForm(false); setNewEmail(''); setEmailError(''); setEmailMessage('') }}
@@ -395,7 +395,7 @@ export default function ProfilePage() {
             )}
             <div className="flex items-center gap-3">
               <button type="submit"
-                className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
+                className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
                 Update Password
               </button>
               <button type="button" onClick={() => { setShowPasswordForm(false); setPassword(''); setPasswordError('') }}

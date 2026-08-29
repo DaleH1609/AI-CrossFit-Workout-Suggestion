@@ -119,7 +119,7 @@ export default function InvitePage() {
             <button
               type="submit"
               disabled={loading || success}
-              className="auth-field w-full py-2.5 bg-accent text-background text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] disabled:opacity-70"
+              className="auth-field w-full py-2.5 bg-accent text-on-accent text-sm font-bold tracking-widest uppercase rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98] disabled:opacity-70"
               style={{ animationDelay: '180ms' }}
             >
               {success ? 'Welcome to Kova →' : loading ? 'Setting…' : 'Set Password & Enter'}

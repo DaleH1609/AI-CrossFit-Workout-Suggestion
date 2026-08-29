@@ -225,7 +225,7 @@ export default function SettingsPage() {
                 <p className="text-secondary text-xs mt-1.5">Used as reply-to on all outgoing emails.</p>
               </div>
               <button type="submit"
-                className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
+                className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]">
                 Save Changes
               </button>
             </form>
@@ -433,7 +433,7 @@ export default function SettingsPage() {
                       href={`/whiteboard/${whiteboardToken}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-2 text-xs bg-accent text-background rounded-btn hover:bg-accent-90 transition-colors whitespace-nowrap font-semibold"
+                      className="px-3 py-2 text-xs bg-accent text-on-accent rounded-btn hover:bg-accent-90 transition-colors whitespace-nowrap font-semibold"
                     >
                       Open ↗
                     </a>
@@ -480,7 +480,7 @@ export default function SettingsPage() {
                     setSlugSaved(true); setTimeout(() => setSlugSaved(false), 2000)
                   }
                 }}
-                className="px-4 py-2.5 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors whitespace-nowrap"
+                className="px-4 py-2.5 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors whitespace-nowrap"
               >
                 Save
               </button>
@@ -547,7 +547,7 @@ export default function SettingsPage() {
                   })
                   if (res.ok) { setPublicProfileSaved(true); setTimeout(() => setPublicProfileSaved(false), 2000) }
                 }}
-                className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors"
+                className="px-4 py-2 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors"
               >
                 Save Profile
               </button>
@@ -608,7 +608,7 @@ export default function SettingsPage() {
                   else { setBroadcastResult(data); setBroadcast(f => ({ ...f, subject: '', body: '' })) }
                   setBroadcastSending(false)
                 }}
-                className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
+                className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
               >
                 {broadcastSending ? 'Sending…' : 'Send Email'}
               </button>
@@ -677,7 +677,7 @@ export default function SettingsPage() {
                     setWebhookSaving(false)
                   }}
                   disabled={webhookSaving || !webhookForm.url || webhookForm.events.length === 0}
-                  className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
                 >
                   {webhookSaving ? 'Adding…' : 'Add Webhook'}
                 </button>

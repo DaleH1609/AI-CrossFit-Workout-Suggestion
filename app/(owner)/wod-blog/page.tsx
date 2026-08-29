@@ -63,7 +63,7 @@ export default function WodBlogPage() {
         <h1 className="font-display text-3xl text-foreground">WOD Blog</h1>
         <button
           onClick={() => setCreating(!creating)}
-          className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors"
+          className="px-4 py-2 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors"
         >
           {creating ? 'Cancel' : '+ New Post'}
         </button>
@@ -90,7 +90,7 @@ export default function WodBlogPage() {
               className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors resize-y font-mono" />
           </div>
           <button type="submit" disabled={saving}
-            className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50">
+            className="px-4 py-2 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50">
             {saving ? 'Publishing…' : 'Publish Post'}
           </button>
         </form>

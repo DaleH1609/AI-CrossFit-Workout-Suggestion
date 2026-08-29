@@ -83,7 +83,7 @@ export default function HomePage() {
             <Link href="/login"  className="hidden sm:block font-mono text-[11px] tracking-[0.2em] uppercase text-secondary hover:text-foreground transition-colors">Sign In</Link>
             <Link
               href="/signup"
-              className="bg-accent text-background px-5 py-2 text-xs font-bold tracking-widest uppercase touch-manipulation rounded-full hover:bg-accent-90 transition-colors"
+              className="bg-accent text-on-accent px-5 py-2 text-xs font-bold tracking-widest uppercase touch-manipulation rounded-full hover:bg-accent-90 transition-colors"
             >
               Get Started
             </Link>
@@ -129,7 +129,7 @@ export default function HomePage() {
               <Magnetic>
                 <Link
                   href="/signup"
-                  className="inline-flex h-12 items-center touch-manipulation bg-accent text-background px-8 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="inline-flex h-12 items-center touch-manipulation bg-accent text-on-accent px-8 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   Create Your Gym
                 </Link>

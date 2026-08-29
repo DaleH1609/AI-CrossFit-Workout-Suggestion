@@ -50,7 +50,7 @@ export function MemberScaling({ memberId }: Props) {
       <button
         onClick={handleGenerate}
         disabled={loading || !workoutText.trim()}
-        className="w-full py-2.5 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
+        className="w-full py-2.5 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
       >
         {loading ? 'Generating…' : '✦ Generate Scaling'}
       </button>

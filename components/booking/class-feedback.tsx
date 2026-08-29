@@ -84,7 +84,7 @@ export function ClassFeedback({ instanceId, classTime }: ClassFeedbackProps) {
         <button
           onClick={handleSubmit}
           disabled={!rating || saving}
-          className="px-3 py-1.5 bg-accent text-background text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 bg-accent text-on-accent text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
         >
           {saving ? 'Submitting…' : 'Submit'}
         </button>

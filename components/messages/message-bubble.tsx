@@ -44,7 +44,7 @@ export function MessageBubble({ message, currentUserId }: MessageBubbleProps) {
       <div
         className={`max-w-[75%] px-3 py-2 rounded-card text-sm leading-relaxed ${
           isSelf
-            ? 'bg-accent text-background'
+            ? 'bg-accent text-on-accent'
             : 'bg-surface-raised text-foreground border border-border'
         }`}
       >

@@ -83,7 +83,7 @@ export default function ChallengesPage() {
         <h1 className="font-display text-3xl text-foreground">Monthly challenges</h1>
         <button
           onClick={() => setShowForm(v => !v)}
-          className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]"
+          className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]"
         >
           {showForm ? 'Cancel' : '+ New Challenge'}
         </button>
@@ -150,7 +150,7 @@ export default function ChallengesPage() {
           <button
             type="submit"
             disabled={creating}
-            className="px-4 py-2 bg-accent text-background text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
+            className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 active:scale-[0.98]"
           >
             {creating ? 'Creating…' : 'Create Challenge'}
           </button>

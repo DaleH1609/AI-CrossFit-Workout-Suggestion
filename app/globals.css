@@ -12,7 +12,13 @@
   --color-foreground-50: rgba(10,10,10,0.5);
   --color-foreground-10: rgba(10,10,10,0.1);
   --color-secondary:     #6B6B70;
-  --color-accent:        #55730F;
+  /* Fill colour: vivid in both themes. Label text on top is
+     --color-on-accent, not --color-background, because near-white
+     text on volt fails contrast badly. */
+  --color-accent:        #A9DD1F;
+  --color-on-accent:     #0B0B0C;
+  /* Accent used AS text on the light canvas needs to be darker. */
+  --color-accent-text:   #55730F;
   --color-accent-5:      rgba(85,115,15,0.05);
   --color-accent-8:      rgba(85,115,15,0.08);
   --color-accent-10:      rgba(85,115,15,0.10);
@@ -56,6 +62,8 @@
   --color-foreground-10: rgba(255,255,255,0.1);
   --color-secondary:     #8E8E93;
   --color-accent:        #C6F24E;
+  --color-on-accent:     #0B0B0C;
+  --color-accent-text:   #C6F24E;
   --color-accent-5:      rgba(198,242,78,0.05);
   --color-accent-8:      rgba(198,242,78,0.08);
   --color-accent-10:      rgba(198,242,78,0.10);

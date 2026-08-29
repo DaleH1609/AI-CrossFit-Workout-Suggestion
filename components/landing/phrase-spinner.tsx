@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 const PHRASES = [
-  { num: '01', line1: 'Train ', accent1: 'Smarter.', line2: 'Coach Better.', accent2: '' },
-  { num: '02', line1: 'Your Gym.', accent1: '', line2: '', accent2: 'Your Style.' },
-  { num: '03', line1: 'Less Planning.', accent1: '', line2: '', accent2: 'More Coaching.' },
+  { line1: 'Train ', accent1: 'Smarter.', line2: 'Coach Better.', accent2: '' },
+  { line1: 'Your Gym.', accent1: '', line2: '', accent2: 'Your Style.' },
+  { line1: 'Less Planning.', accent1: '', line2: '', accent2: 'More Coaching.' },
 ]
 
 const NUM_PHRASES = PHRASES.length
@@ -93,7 +93,6 @@ export function PhraseSpinner() {
                   transform: `rotateY(${i * STEP}deg) translateZ(280px)`,
                 }}
               >
-                <p className="text-[9px] font-bold tracking-[0.25em] text-accent mb-4 opacity-60">{phrase.num}</p>
                 <p className="font-display text-[clamp(28px,4.5vw,52px)] font-bold leading-[1.15] text-center tracking-tight text-foreground">
                   {phrase.line1}
                   {phrase.accent1 && <em className="not-italic text-accent">{phrase.accent1}</em>}

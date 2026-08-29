@@ -120,7 +120,7 @@ export default function BenchmarksPage() {
         {(['benchmarks', 'goals'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 text-sm font-medium capitalize rounded transition-colors ${
-              tab === t ? 'bg-accent text-background' : 'text-secondary hover:text-foreground'
+              tab === t ? 'bg-accent text-on-accent' : 'text-secondary hover:text-foreground'
             }`}>{t}</button>
         ))}
       </div>
@@ -145,7 +145,7 @@ export default function BenchmarksPage() {
                       onClick={() => setRx(label === 'Rx')}
                       className={`px-3 py-1.5 text-xs font-semibold rounded-btn border transition-colors ${
                         (label === 'Rx') === rx
-                          ? 'bg-accent text-background border-accent'
+                          ? 'bg-accent text-on-accent border-accent'
                           : 'text-secondary border-border hover:border-accent/50'
                       }`}>{label}</button>
                   ))}
@@ -153,7 +153,7 @@ export default function BenchmarksPage() {
               </div>
               <div className="flex gap-3 mt-4">
                 <button type="submit" disabled={saving}
-                  className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50">
+                  className="px-4 py-2 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50">
                   {saving ? 'Saving…' : 'Save Score'}
                 </button>
                 <button type="button" onClick={() => setSelectedBenchmark(null)}
@@ -209,7 +209,7 @@ export default function BenchmarksPage() {
               <input type="date" value={goalDue} onChange={e => setGoalDue(e.target.value)}
                 className="px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent transition-colors" />
               <button type="submit" disabled={goalSaving}
-                className="px-4 py-2 bg-accent text-background text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50">
+                className="px-4 py-2 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50">
                 {goalSaving ? 'Saving…' : 'Add Goal'}
               </button>
             </form>

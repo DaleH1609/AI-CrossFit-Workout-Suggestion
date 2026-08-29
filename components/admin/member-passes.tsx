@@ -68,7 +68,7 @@ export function MemberPasses({ memberId }: { memberId: string }) {
             placeholder="Expires (optional)"
             className="flex-1 px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent" />
           <button type="submit" disabled={saving}
-            className="px-3 py-2 bg-accent text-background text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 whitespace-nowrap">
+            className="px-3 py-2 bg-accent text-on-accent text-xs font-bold rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50 whitespace-nowrap">
             {saving ? '…' : 'Issue Pass'}
           </button>
         </div>

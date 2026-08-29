@@ -94,7 +94,7 @@ export function WaiverGate({ children }: WaiverGateProps) {
         <button
           onClick={handleSign}
           disabled={signing}
-          className="w-full py-3 bg-accent text-background font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
+          className="w-full py-3 bg-accent text-on-accent font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
         >
           {signing ? 'Recording signature…' : 'I Agree - Enter KOVA'}
         </button>

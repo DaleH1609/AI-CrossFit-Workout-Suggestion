@@ -200,7 +200,7 @@ export function ScoreEntry({ workoutDate, instanceId, onSaved }: ScoreEntryProps
             <button
               onClick={handleSave}
               disabled={saving}
-              className="mt-2 px-4 py-2 bg-accent text-background text-xs font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
+              className="mt-2 px-4 py-2 bg-accent text-on-accent text-xs font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors disabled:opacity-50"
             >
               {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save Score'}
             </button>

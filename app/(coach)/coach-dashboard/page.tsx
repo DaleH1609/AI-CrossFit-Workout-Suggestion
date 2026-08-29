@@ -231,7 +231,7 @@ export default function CoachDashboardPage() {
                             <button
                               onClick={() => handleRequestSub(cls.id)}
                               disabled={subWorking === cls.id}
-                              className="text-xs bg-accent text-background px-3 py-1.5 rounded-btn font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                              className="text-xs bg-accent text-on-accent px-3 py-1.5 rounded-btn font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
                             >
                               {subWorking === cls.id ? 'Sending…' : 'Send request'}
                             </button>
@@ -288,7 +288,7 @@ export default function CoachDashboardPage() {
                   <button
                     onClick={() => handleSubAction(req.id, 'claim')}
                     disabled={subWorking === req.id}
-                    className="shrink-0 text-xs bg-accent text-background px-3 py-1.5 rounded-btn font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                    className="shrink-0 text-xs bg-accent text-on-accent px-3 py-1.5 rounded-btn font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
                   >
                     {subWorking === req.id ? 'Claiming…' : 'Claim'}
                   </button>
