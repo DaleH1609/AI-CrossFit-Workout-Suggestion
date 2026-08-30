@@ -133,26 +133,41 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
       class_type_id: activeType?.id ?? null,
     }
     setTemplates(prev => [...prev, optimistic])
-    const res = await fetch('/api/schedule/templates', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        dayOfWeek: day,
-        localTime: time,
-        capacity: null,
-        classTypeId: activeType?.id ?? null,
-        name: activeType?.name ?? 'WOD',
-      }),
-    })
-    if (!res.ok) {
+
+    // Every failure below must say something. Rolling the optimistic tile back
+    // in silence is indistinguishable from the class spontaneously vanishing a
+    // second after it was placed, which is exactly how this read when the API
+    // was rejecting the request.
+    try {
+      const res = await fetch('/api/schedule/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dayOfWeek: day,
+          localTime: time,
+          capacity: null,
+          classTypeId: activeType?.id ?? null,
+          name: activeType?.name ?? 'WOD',
+        }),
+      })
+      if (!res.ok) {
+        setTemplates(prev => prev.filter(t => t.id !== tempId))
+        const data = await res.json().catch(() => ({}))
+        toast(data.error ?? 'Failed to add class', 'error')
+        return
+      }
+      const { template } = await res.json()
+      if (template) {
+        setTemplates(prev => prev.map(t =>
+          t.id === tempId ? { ...template, local_time: template.local_time.slice(0, 5) } : t
+        ))
+      }
+    } catch (err) {
+      // Without this the tile stayed on screen after a dropped connection and
+      // looked saved, which is worse than losing it.
+      console.error('[schedule-grid] add failed', err)
       setTemplates(prev => prev.filter(t => t.id !== tempId))
-      return
-    }
-    const { template } = await res.json()
-    if (template) {
-      setTemplates(prev => prev.map(t =>
-        t.id === tempId ? { ...template, local_time: template.local_time.slice(0, 5) } : t
-      ))
+      toast('Network error - could not add class', 'error')
     }
   }
 
@@ -245,7 +260,9 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
       }),
     })
     if (!res.ok) {
-      setEditState(prev => prev ? { ...prev, error: 'Failed to save', saved: false } : null)
+      // Surface why, rather than a bare "Failed to save" the user cannot act on.
+      const data = await res.json().catch(() => ({}))
+      setEditState(prev => prev ? { ...prev, error: data.error ?? 'Failed to save', saved: false } : null)
       return
     }
     setTemplates(prev => prev.map(t =>

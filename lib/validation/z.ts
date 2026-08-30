@@ -27,16 +27,33 @@ export interface Validator<T> {
 export type Infer<V> = V extends Validator<infer T> ? T : never
 
 function fromZod<T>(schema: ZodTypeAny): Validator<T> {
+  const parse: Validator<T>['parse'] = (input, path = 'value') => {
+    const r = schema.safeParse(input)
+    if (r.success) return { ok: true, value: r.data as T }
+    const msg = r.error.issues[0]?.message ?? 'Validation failed'
+    // Error messages use 'value' as a placeholder — substitute the real path
+    return { ok: false, error: path !== 'value' ? msg.replace(/^value/, path) : msg }
+  }
   return {
-    parse(input, path = 'value') {
-      const r = schema.safeParse(input)
-      if (r.success) return { ok: true, value: r.data as T }
-      const msg = r.error.issues[0]?.message ?? 'Validation failed'
-      // Error messages use 'value' as a placeholder — substitute the real path
-      return { ok: false, error: path !== 'value' ? msg.replace(/^value/, path) : msg }
-    },
+    parse,
     optional(): Validator<T | undefined> {
-      return fromZod<T | undefined>(schema.optional())
+      // Treat an explicit null exactly like an absent key.
+      //
+      // This previously delegated to Zod's .optional(), which accepts
+      // undefined but rejects null — while wrap()'s optional() below, used by
+      // object and array, has always accepted both. Leaf types (number,
+      // string, uuid, ...) go through this path, so the two disagreed.
+      //
+      // That divergence broke the schedule grid: the client sends
+      // `capacity: null` to mean "no override, inherit the default", and
+      // every POST and PATCH came back 400 "capacity must be a number".
+      // Sending null for "no value" is ordinary JSON, and the object
+      // validator already drops undefined values, so an optional field that
+      // rejects null is a trap rather than a safeguard.
+      return wrap<T | undefined>((input, p) => {
+        if (input === undefined || input === null) return { ok: true, value: undefined }
+        return parse(input, p)
+      })
     },
   }
 }
