@@ -96,9 +96,12 @@ export function Combobox({
         <PopoverPrimitive.Content
           align="start"
           sideOffset={4}
-          // Matching the trigger width keeps the menu reading as part of the
-          // control rather than a floating panel.
-          className="z-[60] w-[var(--radix-popover-trigger-width)] min-w-[10rem] max-h-[min(50vh,18rem)] overflow-hidden rounded-card border border-border bg-surface p-1 shadow-lift"
+          // Match the trigger width so the menu reads as part of the control
+          // rather than a floating panel — but cap it. Some of these triggers
+          // are flex-1 inside a wide row, and a 950px menu listing two short
+          // names looks broken. A native select never did that: its popup
+          // sized to content.
+          className="z-[60] w-[var(--radix-popover-trigger-width)] min-w-[10rem] max-w-xs max-h-[min(50vh,18rem)] overflow-hidden rounded-card border border-border bg-surface p-1 shadow-lift"
         >
           <Command
             // cmdk's own filter is fine; we only need it when search is shown.
