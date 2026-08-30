@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
 import { CaretUpDown, Check, MagnifyingGlass } from '@phosphor-icons/react'
@@ -61,6 +61,10 @@ export function Combobox({
   ariaLabel,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
+  // role="combobox" requires aria-controls pointing at the popup it opens, so
+  // assistive tech can associate the two. Caught by eslint jsx-a11y once
+  // linting was restored.
+  const listId = useId()
   const selected = useMemo(() => options.find(o => o.value === value), [options, value])
   const showSearch = options.length >= SEARCH_THRESHOLD
 
@@ -76,6 +80,7 @@ export function Combobox({
           type="button"
           role="combobox"
           aria-expanded={open}
+          aria-controls={listId}
           aria-label={ariaLabel}
           disabled={disabled}
           className={cn(
@@ -104,6 +109,7 @@ export function Combobox({
           className="z-[60] w-[var(--radix-popover-trigger-width)] min-w-[10rem] max-w-xs max-h-[min(50vh,18rem)] overflow-hidden rounded-card border border-border bg-surface p-1 shadow-lift"
         >
           <Command
+            id={listId}
             // cmdk's own filter is fine; we only need it when search is shown.
             shouldFilter={showSearch}
             className="flex flex-col overflow-hidden"

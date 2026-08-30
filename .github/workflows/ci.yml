@@ -1,0 +1,53 @@
+name: CI
+
+# Runs on every push and every pull request. The point is that nothing reaches
+# main without lint, tests, a type check and a real production build passing —
+# the schedule-grid regression that made class tiles silently vanish would have
+# been caught here.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# A newer push to the same branch makes the in-flight run irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the Node major Vercel builds with, so a green CI run and a
+          # green deploy mean the same thing.
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      # Deliberately before the standalone type check: `next build` generates
+      # .next/types, which the app's own route types depend on. Running tsc
+      # first on a clean checkout would fail on types that do not exist yet.
+      #
+      # No secrets are needed — a production build was verified to succeed with
+      # no .env file present. Keep it that way: if the build ever starts
+      # requiring a real key, that is a sign something is being read at module
+      # scope that should be read per request.
+      - name: Build
+        run: npm run build
+
+      - name: Type check
+        run: npx tsc --noEmit

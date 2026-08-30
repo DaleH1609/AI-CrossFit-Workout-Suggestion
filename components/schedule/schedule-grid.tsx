@@ -6,6 +6,17 @@ import { useToast } from '@/components/ui/toast'
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+/**
+ * DAY_NAMES is zero-indexed; the grid iterates days as ISO numbers, 1 = Monday
+ * through 7 = Sunday. Indexing one with the other shifted every screen-reader
+ * label by a day and made Sunday read "undefined" — a sighted user saw the
+ * right column, so nothing looked wrong. Convert in one named place rather
+ * than repeating `day - 1` at each call site.
+ */
+function dayName(isoDay: number): string {
+  return DAY_NAMES[isoDay - 1] ?? 'Unknown day'
+}
+
 function generateDefaultTimes(): string[] {
   const times: string[] = []
   for (let h = 6; h <= 21; h++) {
@@ -483,7 +494,6 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                           const isEditing = editState?.templateId === template.id
                           const effectiveCapacity = resolveCapacity(template, day, defaults)
                           const color = resolveTypeColor(template)
-                          const txt = textColor(color)
                           const name = resolveTypeName(template)
 
                           return (
@@ -511,7 +521,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                                 style={{ color: 'var(--color-foreground)' }}
                                 onClick={e => { e.stopPropagation(); callDelete(template.id) }}
                                 onDoubleClick={e => e.stopPropagation()}
-                                aria-label={`Remove the ${name} class on ${DAY_NAMES[day]} at ${formatTime(time)}`}
+                                aria-label={`Remove the ${name} class on ${dayName(day)} at ${formatTime(time)}`}
                                 title="Remove this slot"
                               >
                                 ×
@@ -567,7 +577,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                           <button
                             type="button"
                             onClick={() => callPost(day, time)}
-                            aria-label={`Add a class on ${DAY_NAMES[day]} at ${formatTime(time)}`}
+                            aria-label={`Add a class on ${dayName(day)} at ${formatTime(time)}`}
                             className="group/cell w-full h-[60px] rounded border border-transparent text-transparent transition-colors duration-200 ease-expo hover:border-dashed hover:border-accent/50 hover:bg-surface-raised/40 hover:text-accent focus-visible:border-dashed focus-visible:border-accent focus-visible:text-accent focus-visible:outline-none"
                           >
                             +
@@ -579,7 +589,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                           <button
                             type="button"
                             onClick={() => callPost(day, time, true)}
-                            aria-label={`Add another class on ${DAY_NAMES[day]} at ${formatTime(time)}`}
+                            aria-label={`Add another class on ${dayName(day)} at ${formatTime(time)}`}
                             title="Add another class at this time"
                             className="w-full h-[18px] rounded border border-dashed border-border/50 hover:border-accent text-secondary/50 hover:text-accent text-[10px] transition-colors leading-none"
                           >
