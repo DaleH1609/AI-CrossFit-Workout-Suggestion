@@ -70,6 +70,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
   const [newTimeInput, setNewTimeInput] = useState('')
   const [addError, setAddError] = useState('')
   const [confirmingClear, setConfirmingClear] = useState(false)
+  const [showAllTimes, setShowAllTimes] = useState(false)
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { toast } = useToast()
 
@@ -79,6 +80,13 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
     ...customTimes,
     ...Array.from(templateTimes).filter(t => !generateDefaultTimes().includes(t)),
   ])).sort()
+
+  // Rows that actually hold a class on some day. Collapsing to these turns a
+  // 31-row grid into however many the gym really runs; the full range is one
+  // click away for adding a slot at a new time.
+  const usedTimes = allTimes.filter(t => templateTimes.has(t))
+  const visibleTimes = showAllTimes || usedTimes.length === 0 ? allTimes : usedTimes
+  const hiddenCount = allTimes.length - visibleTimes.length
 
   // Returns all templates at a given (day, time) — used for cell rendering
   const getTemplates = useCallback(
@@ -413,9 +421,27 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
           <div role="columnheader" aria-label="Actions" />
         </div>
 
+        {/* Row-collapse control. Empty rows are the bulk of this grid, so
+            hiding them is the difference between scrolling past 31 rows and
+            seeing the handful the gym actually runs. */}
+        {(hiddenCount > 0 || showAllTimes) && (
+          <div className="min-w-[640px] flex justify-end py-2">
+            <button
+              type="button"
+              onClick={() => setShowAllTimes(v => !v)}
+              aria-expanded={showAllTimes}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-secondary underline-offset-4 transition-colors duration-200 ease-expo hover:text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-btn px-2 py-1"
+            >
+              {showAllTimes
+                ? 'Show only scheduled times'
+                : `Show all times (${hiddenCount} hidden)`}
+            </button>
+          </div>
+        )}
+
         {/* Time rows */}
         <div className="min-w-[640px]">
-          {allTimes.map(time => {
+          {visibleTimes.map(time => {
             const isEditingThisRow = editState?.time === time
 
             return (
