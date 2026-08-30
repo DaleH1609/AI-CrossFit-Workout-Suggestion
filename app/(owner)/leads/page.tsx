@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useToast } from '@/components/ui/toast'
 import { ClipboardText } from '@phosphor-icons/react'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 
 type LeadStatus = 'new' | 'contacted' | 'trial_booked' | 'showed_up' | 'joined' | 'lost'
 
@@ -157,27 +158,30 @@ async function submitLead(e) {
           )}
         </div>
       ) : (
-        <div className="border border-border rounded-xl overflow-hidden">
-          <div className="grid grid-cols-[1fr_100px_80px_80px] px-5 py-2.5 border-b border-border bg-surface-raised">
-            <span className="text-[10px] text-secondary uppercase tracking-widest">Lead</span>
-            <span className="text-[10px] text-secondary uppercase tracking-widest">Status</span>
-            <span className="text-[10px] text-secondary uppercase tracking-widest">Source</span>
-            <span />
-          </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead scope="col">Lead</TableHead>
+              <TableHead scope="col">Status</TableHead>
+              <TableHead scope="col">Source</TableHead>
+              <TableHead scope="col"><span className="sr-only">Actions</span></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {filtered.map(lead => {
             const s = statusMap[lead.status]
             return (
-              <div key={lead.id} className="group grid grid-cols-[1fr_100px_80px_80px] items-center px-5 py-3.5 border-b border-border last:border-0 hover:bg-surface-raised transition-colors">
-                <div className="min-w-0 pr-3">
+              <TableRow key={lead.id} className="group">
+                <TableCell className="min-w-0 pr-3 whitespace-normal">
                   <p className="text-sm text-foreground truncate">{lead.name ?? lead.email}</p>
                   {lead.name && <p className="text-xs text-secondary mt-0.5 truncate">{lead.email}</p>}
                   {lead.trial_date && (
                     <p className="text-[10px] text-accent mt-0.5">Trial: {new Date(lead.trial_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
                   )}
-                </div>
+                </TableCell>
 
                 {/* Status dropdown */}
-                <div>
+                <TableCell>
                   <select
                     value={lead.status}
                     onChange={e => moveStatus(lead, e.target.value as LeadStatus)}
@@ -187,13 +191,14 @@ async function submitLead(e) {
                       <option key={opt.key} value={opt.key}>{opt.label}</option>
                     ))}
                   </select>
-                </div>
+                </TableCell>
 
-                <div>
+                <TableCell>
                   <span className="text-[10px] text-secondary capitalize">{lead.source ?? '-'}</span>
-                </div>
+                </TableCell>
 
-                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <TableCell className="text-right">
+                 <div className="inline-flex items-center justify-end gap-2 opacity-0 transition-opacity duration-200 ease-expo group-hover:opacity-100 group-focus-within:opacity-100">
                   <button
                     onClick={() => { setEditLead(lead); setEditNotes(lead.notes ?? ''); setEditTrialDate(lead.trial_date ?? '') }}
                     className="text-xs text-secondary hover:text-foreground transition-colors"
@@ -206,11 +211,13 @@ async function submitLead(e) {
                   >
                     ×
                   </button>
-                </div>
-              </div>
+                 </div>
+                </TableCell>
+              </TableRow>
             )
           })}
-        </div>
+          </TableBody>
+        </Table>
       )}
 
       {/* Notes / trial date slide-over */}

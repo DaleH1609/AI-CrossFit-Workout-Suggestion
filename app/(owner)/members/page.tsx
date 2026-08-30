@@ -247,28 +247,32 @@ export default function MembersPage() {
               <p className="text-secondary text-xs mt-1">Promote a member to coach from the Members tab.</p>
             </div>
           ) : (
-            <div className="border border-border rounded-xl overflow-hidden">
-              <div className="grid grid-cols-[1fr_120px] px-5 py-2.5 border-b border-border bg-surface-raised">
-                <span className="text-[10px] text-secondary uppercase tracking-widest">Coach</span>
-                <span />
-              </div>
-              {coaches.map(c => (
-                <div key={c.id} className="group grid grid-cols-[1fr_120px] items-center px-5 py-3.5 border-b border-border last:border-0 hover:bg-surface-raised transition-colors">
-                  <div>
-                    <p className="text-sm text-foreground">{c.name || c.email}</p>
-                    {c.name && <p className="text-xs text-secondary mt-0.5">{c.email}</p>}
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => handleRoleToggle(c, 'member')}
-                      className="text-xs text-secondary hover:text-danger transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      Demote
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead scope="col">Coach</TableHead>
+                  <TableHead scope="col"><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {coaches.map(c => (
+                  <TableRow key={c.id} className="group">
+                    <TableCell className="whitespace-normal">
+                      <p className="text-sm text-foreground">{c.name || c.email}</p>
+                      {c.name && <p className="text-xs text-secondary mt-0.5">{c.email}</p>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <button
+                        onClick={() => handleRoleToggle(c, 'member')}
+                        className="text-xs text-secondary opacity-0 transition-opacity duration-200 ease-expo hover:text-danger group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
+                      >
+                        Demote
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </div>
       )}
