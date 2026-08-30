@@ -1,40 +1,77 @@
 'use client'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { Sun, Moon } from '@phosphor-icons/react'
 
+/**
+ * Theme switch.
+ *
+ * Both destinations are visible at once and a thumb slides between them, so
+ * the control shows its state rather than only its next action — the previous
+ * icon-only button showed a moon and left you to work out whether that meant
+ * "you are in dark mode" or "press for dark mode".
+ *
+ * role="switch" with aria-checked rather than a bare button: this is a binary
+ * on/off, and a switch is what screen readers announce as one. The label says
+ * "Dark mode" — the thing being switched — not "toggle theme", which describes
+ * the widget instead of the setting.
+ *
+ * The thumb transition is dropped under prefers-reduced-motion; the colour
+ * change alone still communicates the switch.
+ */
 export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
-  if (!mounted) return <div className="w-8 h-8" />
+
+  // Reserve the exact footprint pre-hydration so the header does not shift when
+  // the real control appears.
+  if (!mounted) return <div className="h-7 w-[52px]" aria-hidden="true" />
 
   const isDark = resolvedTheme === 'dark'
 
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={isDark}
+      aria-label="Dark mode"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="p-2 rounded-btn text-secondary hover:text-foreground transition-colors"
-      aria-label="Toggle theme"
+      className={[
+        'group relative inline-flex h-7 w-[52px] shrink-0 items-center rounded-full',
+        'border border-border bg-surface transition-colors duration-200 ease-expo',
+        'hover:border-accent/40',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+      ].join(' ')}
     >
-      {isDark ? (
-        /* Sun icon */
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="4"/>
-          <line x1="12" y1="2" x2="12" y2="6"/>
-          <line x1="12" y1="18" x2="12" y2="22"/>
-          <line x1="4.22" y1="4.22" x2="7.05" y2="7.05"/>
-          <line x1="16.95" y1="16.95" x2="19.78" y2="19.78"/>
-          <line x1="2" y1="12" x2="6" y2="12"/>
-          <line x1="18" y1="12" x2="22" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="7.05" y2="16.95"/>
-          <line x1="16.95" y1="7.05" x2="19.78" y2="4.22"/>
-        </svg>
-      ) : (
-        /* Moon icon */
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      )}
+      {/* Both icons sit in the track. The inactive one stays dim rather than
+          disappearing, so the control reads as a two-position switch. */}
+      {/* Above the thumb, not beneath it: the active icon should sit on the
+          accent fill — which is what text-on-accent is for — while the
+          inactive one stays dim on the track. */}
+      <span className="pointer-events-none absolute inset-0 z-20 flex items-center justify-between px-[7px]">
+        <Sun
+          size={12}
+          weight="fill"
+          aria-hidden="true"
+          className={isDark ? 'text-secondary/50' : 'text-on-accent'}
+        />
+        <Moon
+          size={12}
+          weight="fill"
+          aria-hidden="true"
+          className={isDark ? 'text-on-accent' : 'text-secondary/50'}
+        />
+      </span>
+
+      <span
+        aria-hidden="true"
+        className={[
+          'pointer-events-none relative z-0 ml-[3px] h-[21px] w-[21px] rounded-full bg-accent',
+          'motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-spring',
+          isDark ? 'translate-x-[22px]' : 'translate-x-0',
+        ].join(' ')}
+      />
     </button>
   )
 }
