@@ -100,6 +100,32 @@ describe('z.object', () => {
     }
   })
 
+  it('treats an explicit null on an optional field as absent', () => {
+    // Regression: optional() had two implementations that disagreed. wrap(),
+    // used by object/array, accepted null; fromZod(), used by every leaf type,
+    // delegated to Zod's .optional() and rejected it. The schedule grid sends
+    // `capacity: null` to mean "no override", so every class add and edit
+    // failed with 400 "capacity must be a number" and the tile silently
+    // vanished from the UI.
+    const schema = z.object({
+      instanceId: z.uuid(),
+      capacity: z.number({ int: true, min: 1, max: 500 }).optional(),
+    })
+    const r = schema.parse({
+      instanceId: '550e8400-e29b-41d4-a716-446655440000',
+      capacity: null,
+    })
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.value.capacity).toBeUndefined()
+  })
+
+  it('still rejects a wrong-typed value on an optional field', () => {
+    // Null means "absent"; it must not become a blanket escape hatch.
+    const schema = z.object({ capacity: z.number({ int: true }).optional() })
+    expect(schema.parse({ capacity: 'twelve' }).ok).toBe(false)
+    expect(schema.parse({ capacity: 1.5 }).ok).toBe(false)
+  })
+
   it('reports per-field errors with path', () => {
     const schema = z.object({ id: z.uuid(), capacity: z.number({ int: true }) })
     const r = schema.parse({ id: '550e8400-e29b-41d4-a716-446655440000', capacity: 1.5 })
