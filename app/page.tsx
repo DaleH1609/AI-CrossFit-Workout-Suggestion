@@ -5,7 +5,7 @@ import { WodCardsHero } from '@/components/landing/wod-cards-hero'
 import { WodWalkthrough } from '@/components/landing/wod-walkthrough'
 import { PhraseSpinner } from '@/components/landing/phrase-spinner'
 import { FadeIn } from '@/components/ui/fade-in'
-import { CleanAndJerk } from '@/components/landing/clean-and-jerk'
+import { BarPath } from '@/components/landing/bar-path'
 import { BarbellRule } from '@/components/landing/barbell-rule'
 import { RevealText } from '@/components/ui/reveal-text'
 import { SplitHeading } from '@/components/ui/split-heading'
@@ -184,7 +184,7 @@ export default function HomePage() {
       {/* Continues the dark band opened by the stats strip: stats → rule →
           scroll-driven lift → rule, then back out to light for the product. */}
       <BarbellRule label="Clean & Jerk" />
-      <CleanAndJerk />
+      <BarPath />
       <BarbellRule />
 
       {/* ── WOD WALKTHROUGH ─────────────────────────────────────────── */}

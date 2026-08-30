@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Barbell } from '@phosphor-icons/react'
 
 /**
  * A barbell that spins with the scroll — direction and speed follow the wheel,
@@ -10,7 +11,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
  */
 export function BarbellRule({ label }: { label?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null)
-  const barRef = useRef<SVGGElement>(null)
+  const barRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -69,24 +70,19 @@ export function BarbellRule({ label }: { label?: string }) {
       <div className="mx-auto max-w-7xl px-8 flex items-center gap-8">
         <span className="h-px flex-1 bg-white/10" />
 
-        <svg
-          viewBox="-60 -60 120 120"
+        {/* Phosphor's Barbell rather than the seven hand-placed rects this used
+            to be. The hand-drawn version read as clip-art beside type set in a
+            real typeface; a professionally drawn icon does not, and it inherits
+            currentColor so it stays on the accent token. The wrapper is what
+            spins, since Phosphor renders its own svg. */}
+        <span
+          ref={barRef}
           aria-hidden="true"
-          className="w-16 h-16 flex-shrink-0 overflow-visible"
+          className="flex-shrink-0 text-accent inline-flex"
+          style={{ transformOrigin: 'center' }}
         >
-          <g ref={barRef} style={{ transformOrigin: 'center', transformBox: 'fill-box' }}>
-            {/* shaft */}
-            <rect x="-46" y="-3" width="92" height="6" rx="3" fill="var(--color-accent)" />
-            {/* inner collars */}
-            <rect x="-32" y="-8" width="5" height="16" rx="1.5" fill="var(--color-accent)" opacity="0.7" />
-            <rect x="27" y="-8" width="5" height="16" rx="1.5" fill="var(--color-accent)" opacity="0.7" />
-            {/* plates */}
-            <rect x="-46" y="-22" width="11" height="44" rx="3" fill="var(--color-accent)" />
-            <rect x="35" y="-22" width="11" height="44" rx="3" fill="var(--color-accent)" />
-            <rect x="-56" y="-14" width="8" height="28" rx="2.5" fill="var(--color-accent)" opacity="0.55" />
-            <rect x="48" y="-14" width="8" height="28" rx="2.5" fill="var(--color-accent)" opacity="0.55" />
-          </g>
-        </svg>
+          <Barbell size={48} weight="fill" />
+        </span>
 
         {label ? (
           <span className="font-mono text-[11px] tracking-[0.3em] uppercase text-white/30 flex-shrink-0">
