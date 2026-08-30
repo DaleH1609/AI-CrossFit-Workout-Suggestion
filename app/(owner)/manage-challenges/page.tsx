@@ -80,7 +80,7 @@ export default function ChallengesPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-3xl text-foreground">Monthly challenges</h1>
+        <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)]">Monthly challenges</h1>
         <button
           onClick={() => setShowForm(v => !v)}
           className="px-4 py-2 bg-accent text-on-accent text-sm font-bold tracking-wider rounded-btn hover:bg-accent-90 transition-colors active:scale-[0.98]"

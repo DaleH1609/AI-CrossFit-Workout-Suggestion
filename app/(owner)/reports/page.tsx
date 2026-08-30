@@ -53,7 +53,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="font-display text-3xl text-foreground mb-8">Reports</h1>
+        <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)] mb-8">Reports</h1>
         <div className="text-secondary text-sm">Loading…</div>
       </div>
     )
@@ -84,7 +84,7 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-foreground mb-8">Reports</h1>
+      <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)] mb-8">Reports</h1>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

@@ -96,7 +96,7 @@ export default function ChallengesPage() {
 
   return (
     <div className="max-w-md">
-      <h1 className="font-display text-3xl text-foreground mb-2">Challenges</h1>
+      <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)] mb-2">Challenges</h1>
       <p className="text-secondary text-sm mb-8">Monthly competitions for your gym. Opt in to compete.</p>
 
       {challenges.length === 0 ? (

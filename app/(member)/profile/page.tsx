@@ -126,7 +126,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-md">
-      <h1 className="font-display text-3xl text-foreground mb-8">Profile</h1>
+      <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)] mb-8">Profile</h1>
 
       {/* Avatar + name header */}
       <div className="flex items-center gap-4 mb-10">

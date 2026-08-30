@@ -493,6 +493,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                                 style={{ color: 'var(--color-foreground)' }}
                                 onClick={e => { e.stopPropagation(); callDelete(template.id) }}
                                 onDoubleClick={e => e.stopPropagation()}
+                                aria-label={`Remove the ${name} class on ${DAY_NAMES[day]} at ${formatTime(time)}`}
                                 title="Remove this slot"
                               >
                                 ×
@@ -548,7 +549,8 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                           <button
                             type="button"
                             onClick={() => callPost(day, time)}
-                            className="w-full h-[60px] rounded border border-dashed border-border hover:border-accent text-secondary text-lg transition-colors"
+                            aria-label={`Add a class on ${DAY_NAMES[day]} at ${formatTime(time)}`}
+                            className="group/cell w-full h-[60px] rounded border border-transparent text-transparent transition-colors duration-200 ease-expo hover:border-dashed hover:border-accent/50 hover:bg-surface-raised/40 hover:text-accent focus-visible:border-dashed focus-visible:border-accent focus-visible:text-accent focus-visible:outline-none"
                           >
                             +
                           </button>
@@ -559,6 +561,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                           <button
                             type="button"
                             onClick={() => callPost(day, time, true)}
+                            aria-label={`Add another class on ${DAY_NAMES[day]} at ${formatTime(time)}`}
                             title="Add another class at this time"
                             className="w-full h-[18px] rounded border border-dashed border-border/50 hover:border-accent text-secondary/50 hover:text-accent text-[10px] transition-colors leading-none"
                           >
@@ -574,6 +577,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                     <button
                       type="button"
                       onClick={() => handleFillRow(time)}
+                      aria-label={`Fill every empty slot at ${formatTime(time)}`}
                       title="Fill all empty slots in this row"
                       className="w-6 h-6 rounded border border-border hover:border-accent text-secondary hover:text-accent text-xs transition-colors flex items-center justify-center leading-none"
                     >
@@ -582,6 +586,7 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                     <button
                       type="button"
                       onClick={() => handleClearRow(time)}
+                      aria-label={`Remove every class at ${formatTime(time)}`}
                       title="Remove all slots in this row"
                       className="w-6 h-6 rounded border border-border hover:border-danger/60 text-secondary hover:text-danger text-xs transition-colors flex items-center justify-center leading-none"
                     >

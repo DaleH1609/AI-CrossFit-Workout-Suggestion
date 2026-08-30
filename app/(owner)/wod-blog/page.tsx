@@ -60,7 +60,7 @@ export default function WodBlogPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-3xl text-foreground">WOD Blog</h1>
+        <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)]">WOD Blog</h1>
         <button
           onClick={() => setCreating(!creating)}
           className="px-4 py-2 bg-accent text-on-accent text-sm font-bold rounded-btn hover:bg-accent-90 transition-colors"

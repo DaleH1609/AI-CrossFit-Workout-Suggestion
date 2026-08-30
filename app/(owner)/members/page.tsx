@@ -226,7 +226,7 @@ export default function MembersPage() {
       )}
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-3xl text-foreground">Members</h1>
+        <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)]">Members</h1>
         <div className="flex gap-1 bg-surface border border-border rounded-lg p-1">
           {(['members', 'coaches'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}

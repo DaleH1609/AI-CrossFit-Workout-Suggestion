@@ -113,7 +113,7 @@ export default function BenchmarksPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="font-display text-3xl text-foreground mb-6">Progress</h1>
+      <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)] mb-6">Progress</h1>
 
       {/* Tab switcher */}
       <div className="flex gap-1 mb-8 bg-surface rounded-lg p-1 w-fit">

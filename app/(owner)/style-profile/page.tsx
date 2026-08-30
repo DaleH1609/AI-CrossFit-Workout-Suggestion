@@ -148,7 +148,7 @@ export default function StyleProfilePage() {
       <div className="mb-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl text-foreground">Style profile</h1>
+            <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)]">Style profile</h1>
             <p className="text-secondary text-sm mt-1.5 max-w-xl">
               Teach the AI your coaching style by adding real {gymLabel} workouts. The more examples you add, the better the generated programs reflect your approach.
             </p>

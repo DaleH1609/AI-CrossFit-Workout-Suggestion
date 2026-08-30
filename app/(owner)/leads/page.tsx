@@ -93,7 +93,7 @@ export default function LeadsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-3xl text-foreground">Leads</h1>
+        <h1 className="font-display uppercase text-foreground leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,4vw,3rem)]">Leads</h1>
         <p className="text-xs text-secondary">{leads.length} total</p>
       </div>
 
