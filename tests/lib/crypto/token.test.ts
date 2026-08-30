@@ -1,5 +1,6 @@
 // tests/lib/crypto/token.test.ts
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
+import { createHmac } from 'node:crypto'
 
 // Set the secret before importing the module under test. `getSecret()` reads
 // from env at call time, so we can keep the same import across test cases.
@@ -86,7 +87,6 @@ describe('signToken / verifyToken', () => {
   it('rejects tokens whose payload cannot be JSON-parsed', async () => {
     // Craft a token with a validly-signed payload that isn't valid JSON —
     // i.e. we pass the signature check but fail at JSON.parse.
-    const { createHmac } = await import('crypto')
     const secret = process.env.BOOKING_TOKEN_SECRET!
     const nonJson = 'this is not json at all'
     const encoded = Buffer.from(nonJson, 'utf8')
@@ -106,7 +106,6 @@ describe('signToken / verifyToken', () => {
   it('rejects tokens whose payload decodes to bad shapes', () => {
     // Sign a payload that parses as JSON but doesn't match our schema
     const secret = process.env.BOOKING_TOKEN_SECRET!
-    const { createHmac } = require('crypto')
     const badPayload = JSON.stringify({ b: 42, e: 'not a number' })
     const encoded = Buffer.from(badPayload, 'utf8')
       .toString('base64')

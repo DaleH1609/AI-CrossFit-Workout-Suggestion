@@ -24,4 +24,32 @@ export default [
   },
   ...(Array.isArray(nextCoreWebVitals) ? nextCoreWebVitals : [nextCoreWebVitals]),
   ...(Array.isArray(nextTypescript) ? nextTypescript : [nextTypescript]),
+
+  {
+    // Temporarily warnings, not errors — 30 Aug 2026.
+    //
+    // Lint had been dead for some time (see the header comment), so switching
+    // it back on surfaced 27 errors at once. Twenty of them are these three
+    // rules, and they are not oversights that can be patched line by line:
+    //
+    //   set-state-in-effect (14)  fetch-in-useEffect-then-setState, which is
+    //                             how nearly every screen in this app loads
+    //                             its data. Fixing it properly means moving
+    //                             that work to server components or a data
+    //                             layer, not editing fourteen call sites.
+    //   purity (4)                values read during render that are not pure.
+    //   refs (2)                  refs touched during render.
+    //
+    // Leaving them as errors would mean CI is red on arrival and everyone
+    // learns to ignore it, which is worse than no CI. Deleting the rules would
+    // hide a real backlog. Warnings keep them counted and on screen while the
+    // other 40-odd rules start blocking merges today.
+    //
+    // These should go back to 'error' one rule at a time as each is cleared.
+    rules: {
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/refs': 'warn',
+    },
+  },
 ]

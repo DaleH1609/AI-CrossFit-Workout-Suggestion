@@ -282,7 +282,7 @@ export default function CoachDashboardPage() {
                       <p className="text-xs text-secondary mt-0.5">Requested by {req.requesting_coach.name}</p>
                     )}
                     {req.note && (
-                      <p className="text-xs text-secondary/70 mt-1 italic">"{req.note}"</p>
+                      <p className="text-xs text-secondary/70 mt-1 italic">&ldquo;{req.note}&rdquo;</p>
                     )}
                   </div>
                   <button

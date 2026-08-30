@@ -119,7 +119,7 @@ export default function LeadsPage() {
           Website embed snippet
         </summary>
         <div className="px-4 pb-4 pt-2">
-          <p className="text-xs text-secondary mb-2">Add this form to your gym's website to capture leads:</p>
+          <p className="text-xs text-secondary mb-2">Add this form to your gym&rsquo;s website to capture leads:</p>
           <pre className="text-xs bg-surface-raised border border-border rounded-lg p-3 overflow-x-auto text-foreground/70 whitespace-pre-wrap">
 {`<form onsubmit="submitLead(event)">
   <input name="name" placeholder="Your name" required />

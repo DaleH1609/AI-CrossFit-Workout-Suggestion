@@ -69,7 +69,7 @@ export function OnboardingChecklist({ completedSteps, waiverSignedAt, hasBooking
       <div className="rounded-xl border border-accent/30 bg-accent-5 p-5 text-center">
         <Confetti size={26} weight="duotone" className="mb-1 text-accent" />
         <p className="font-semibold text-foreground">Onboarding complete!</p>
-        <p className="text-xs text-secondary mt-1">You've finished all 6 intro classes. Welcome to the box!</p>
+        <p className="text-xs text-secondary mt-1">You&rsquo;ve finished all 6 intro classes. Welcome to the box!</p>
       </div>
     )
   }
