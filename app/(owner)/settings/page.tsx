@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Dropdown } from '@/components/ui/dropdown'
 import { TIMEZONE_OPTIONS } from '@/lib/timezones'
+import { Combobox } from '@/components/ui/combobox'
 
 const GYM_TYPES = [
   { value: 'crossfit' as const, label: 'CrossFit', description: 'Classic WODs, strength work, and functional fitness' },
@@ -562,14 +563,16 @@ export default function SettingsPage() {
             <p className="text-secondary text-xs mb-5">Send a one-off email to all active members - announcements, schedule changes, special events.</p>
             <div className="space-y-3">
               <div className="flex gap-2">
-                <select
+                <Combobox
+                  ariaLabel="Broadcast audience"
                   value={broadcast.audience}
-                  onChange={e => setBroadcast(f => ({ ...f, audience: e.target.value as 'active' | 'all' }))}
-                  className="px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent"
-                >
-                  <option value="active">Active members only</option>
-                  <option value="all">All members (incl. revoked)</option>
-                </select>
+                  onChange={v => v && setBroadcast(f => ({ ...f, audience: v as 'active' | 'all' }))}
+                  className="px-3 py-2.5 text-sm"
+                  options={[
+                    { value: 'active', label: 'Active members only' },
+                    { value: 'all', label: 'All members (incl. revoked)' },
+                  ]}
+                />
               </div>
               <input
                 type="text"
@@ -627,13 +630,17 @@ export default function SettingsPage() {
               <p className="text-xs font-semibold text-foreground mb-3">Add Webhook</p>
               <div className="space-y-2">
                 <div className="flex gap-2">
-                  <select value={webhookForm.platform}
-                    onChange={e => setWebhookForm(f => ({ ...f, platform: e.target.value }))}
-                    className="px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent">
-                    <option value="slack">Slack</option>
-                    <option value="discord">Discord</option>
-                    <option value="custom">Custom</option>
-                  </select>
+                  <Combobox
+                    ariaLabel="Webhook platform"
+                    value={webhookForm.platform}
+                    onChange={v => v && setWebhookForm(f => ({ ...f, platform: v }))}
+                    className="px-3 py-2 text-sm"
+                    options={[
+                      { value: 'slack', label: 'Slack' },
+                      { value: 'discord', label: 'Discord' },
+                      { value: 'custom', label: 'Custom' },
+                    ]}
+                  />
                   <input value={webhookForm.url} onChange={e => setWebhookForm(f => ({ ...f, url: e.target.value }))}
                     placeholder="https://hooks.slack.com/…"
                     className="flex-1 px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground placeholder-secondary focus:outline-none focus:border-accent transition-colors" />

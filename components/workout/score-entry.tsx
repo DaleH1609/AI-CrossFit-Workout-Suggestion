@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Combobox } from '@/components/ui/combobox'
 
 type ScoreType = 'time' | 'reps' | 'weight' | 'rounds_reps' | 'distance' | 'calories' | 'pass_fail' | 'notes_only'
 
@@ -149,15 +150,15 @@ export function ScoreEntry({ workoutDate, instanceId, onSaved }: ScoreEntryProps
           <div>
             <p className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Log Your Score</p>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              <select
+              <Combobox
+                ariaLabel="Score type"
                 value={scoreType}
-                onChange={e => { setScoreType(e.target.value as ScoreType); setScoreInput('') }}
-                className="col-span-2 px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent"
-              >
-                {(Object.entries(SCORE_TYPE_LABELS) as [ScoreType, string][]).map(([v, l]) => (
-                  <option key={v} value={v}>{l}</option>
+                onChange={v => { if (v) { setScoreType(v as ScoreType); setScoreInput('') } }}
+                className="col-span-2 px-3 py-2 text-sm"
+                options={(Object.entries(SCORE_TYPE_LABELS) as [ScoreType, string][]).map(([v, l]) => (
+                  { value: v, label: l }
                 ))}
-              </select>
+              />
 
               {scoreType !== 'notes_only' && (
                 <>

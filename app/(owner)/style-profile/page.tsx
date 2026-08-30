@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Card } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
+import { Combobox } from '@/components/ui/combobox'
 
 const MIN_EXAMPLES = 3
 
@@ -190,15 +191,15 @@ export default function StyleProfilePage() {
 
         <div className="mb-3">
           <label className="block text-xs text-secondary uppercase tracking-wider mb-1">Day of week</label>
-          <select
+          <Combobox
+            ariaLabel="Day"
             value={selectedDay}
-            onChange={e => setSelectedDay(e.target.value)}
-            className="bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm focus:outline-none focus:border-accent"
-          >
-            {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
-              <option key={d} value={d}>{d}</option>
+            onChange={v => v && setSelectedDay(v)}
+            className="px-3 py-2 text-sm"
+            options={['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
+              { value: d, label: d }
             ))}
-          </select>
+          />
         </div>
 
         <textarea

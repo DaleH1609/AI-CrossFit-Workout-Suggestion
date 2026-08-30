@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import type { WorkoutDay, WorkoutPart } from '@/lib/types'
 import { useWorkoutEditForm } from '@/lib/hooks/use-workout-edit-form'
+import { Combobox } from '@/components/ui/combobox'
 
 const PART_TYPES: WorkoutPart['type'][] = [
   'strength', 'interval', 'amrap', 'fortime', 'partner', 'emom', 'rest',
@@ -156,15 +157,13 @@ export function WorkoutEditModal({ day, weekId, onSave, onClose }: WorkoutEditMo
                     </div>
                     <div>
                       <label className="block text-xs text-secondary mb-1">Type</label>
-                      <select
+                      <Combobox
+                        ariaLabel="Part type"
                         value={part.type}
-                        onChange={e => updatePart(idx, { type: e.target.value as WorkoutPart['type'] })}
-                        className="w-full bg-background border border-border rounded-btn px-3 py-2 text-foreground text-sm focus:outline-none focus:border-accent"
-                      >
-                        {PART_TYPES.map(t => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                        onChange={v => v && updatePart(idx, { type: v as WorkoutPart['type'] })}
+                        className="w-full px-3 py-2 text-sm"
+                        options={PART_TYPES.map(t => ({ value: t, label: t }))}
+                      />
                     </div>
                   </div>
 

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useToast } from '@/components/ui/toast'
+import { Combobox } from '@/components/ui/combobox'
 
 interface Challenge {
   id: string
@@ -126,14 +127,16 @@ export default function ChallengesPage() {
             </div>
             <div>
               <label className="block text-xs text-secondary mb-1">Type</label>
-              <select
+              <Combobox
+                ariaLabel="Challenge type"
                 value={form.type}
-                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                className="w-full px-3 py-2.5 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent transition-colors"
-              >
-                <option value="classes">Most classes</option>
-                <option value="streak">Longest streak</option>
-              </select>
+                onChange={v => v && setForm(f => ({ ...f, type: v }))}
+                className="w-full px-3 py-2.5 text-sm"
+                options={[
+                  { value: 'classes', label: 'Most classes' },
+                  { value: 'streak', label: 'Longest streak' },
+                ]}
+              />
             </div>
             <div>
               <label className="block text-xs text-secondary mb-1">Target (optional)</label>

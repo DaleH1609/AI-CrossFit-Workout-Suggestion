@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Trophy } from '@phosphor-icons/react'
+import { Combobox } from '@/components/ui/combobox'
 
 interface MonthData { month: string; count: number }
 interface YearData {
@@ -61,15 +62,15 @@ export default function YearInReviewPage() {
             </p>
           )}
         </div>
-        <select
-          value={year}
-          onChange={e => setYear(Number(e.target.value))}
-          className="text-sm border border-border rounded px-2 py-1 bg-surface text-foreground"
-        >
-          {Array.from({ length: 3 }, (_, i) => currentYear - i).map(y => (
-            <option key={y} value={y}>{y}</option>
+        <Combobox
+          ariaLabel="Year"
+          value={String(year)}
+          onChange={v => v && setYear(Number(v))}
+          className="px-2 py-1 text-sm"
+          options={Array.from({ length: 3 }, (_, i) => currentYear - i).map(y => (
+            { value: String(y), label: String(y) }
           ))}
-        </select>
+        />
       </div>
 
       {loading && (

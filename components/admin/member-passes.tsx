@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { Combobox } from '@/components/ui/combobox'
 
 interface Pass {
   id: string
@@ -54,11 +55,16 @@ export function MemberPasses({ memberId }: { memberId: string }) {
     <div>
       <form onSubmit={handleAdd} className="mb-4 space-y-2">
         <div className="flex gap-2">
-          <select value={form.passType} onChange={e => setForm(f => ({ ...f, passType: e.target.value }))}
-            className="flex-1 px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent">
-            <option value="dropin">Drop-in</option>
-            <option value="trial">Trial Pass</option>
-          </select>
+          <Combobox
+            ariaLabel="Pass type"
+            value={form.passType}
+            onChange={v => v && setForm(f => ({ ...f, passType: v }))}
+            className="flex-1 px-3 py-2 text-sm"
+            options={[
+              { value: 'dropin', label: 'Drop-in' },
+              { value: 'trial', label: 'Trial Pass' },
+            ]}
+          />
           <input type="number" value={form.usesTotal} onChange={e => setForm(f => ({ ...f, usesTotal: e.target.value }))}
             min="1" max="100" placeholder="Uses"
             className="w-20 px-3 py-2 bg-background border border-border rounded-btn text-sm text-foreground focus:outline-none focus:border-accent" />
