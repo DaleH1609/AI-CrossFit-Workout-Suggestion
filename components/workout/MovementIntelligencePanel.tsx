@@ -3,9 +3,14 @@ import { useEffect, useState } from 'react'
 import type { MovementAnalysis } from '@/lib/types'
 
 type PanelState =
+  | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'hidden' }
   | { status: 'ready'; data: MovementAnalysis }
+
+// Survives navigating away and back within a session, so returning to the
+// dashboard does not pay for the same analysis twice.
+const CACHE_KEY = 'kova:movement-analysis'
 
 const BALANCE_KEYS = ['push', 'pull', 'squat', 'hinge', 'carry'] as const
 const BALANCE_MAX = 10
@@ -30,30 +35,65 @@ function BalanceBar({ label, value }: { label: string; value: number }) {
 }
 
 export function MovementIntelligencePanel() {
-  const [state, setState] = useState<PanelState>({ status: 'loading' })
+  /**
+   * This used to fetch in a bare useEffect on mount, which meant every visit to
+   * the dashboard fired an Anthropic call — uncached, and counted against the
+   * gym's monthly AI quota. Simply navigating around could exhaust the budget
+   * and start failing the generate button that people actually pressed.
+   *
+   * It is now explicit. The panel still advertises itself, but the spend only
+   * happens when someone asks for the analysis, and the result is held for the
+   * rest of the session.
+   */
+  const [state, setState] = useState<PanelState>({ status: 'idle' })
 
+  // Read the session cache in an effect, not in the useState initialiser: that
+  // initialiser also runs during SSR, where sessionStorage does not exist, and
+  // a server 'idle' against a client 'ready' is a hydration mismatch.
   useEffect(() => {
-    const controller = new AbortController()
-    type AnalysisResponse = MovementAnalysis & { insufficient_data?: boolean; error?: string | boolean }
-    fetch('/api/workouts/movement-analysis', { signal: controller.signal })
-      .then(async (r): Promise<AnalysisResponse | { error: true }> => {
-        if (!r.ok) return { error: true }
-        return r.json() as Promise<AnalysisResponse>
-      })
-      .then((data) => {
-        if ('insufficient_data' in data && data.insufficient_data) {
-          setState({ status: 'hidden' })
-        } else if (data.error) {
-          setState({ status: 'hidden' })
-        } else {
-          setState({ status: 'ready', data: data as MovementAnalysis })
-        }
-      })
-      .catch((err: Error) => {
-        if (err.name !== 'AbortError') setState({ status: 'hidden' })
-      })
-    return () => controller.abort()
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY)
+      if (cached) setState({ status: 'ready', data: JSON.parse(cached) as MovementAnalysis })
+    } catch {
+      // Private mode, blocked storage, or malformed JSON — stay idle.
+    }
   }, [])
+
+  async function run() {
+    setState({ status: 'loading' })
+    try {
+      const r = await fetch('/api/workouts/movement-analysis')
+      if (!r.ok) return setState({ status: 'hidden' })
+      const data = await r.json()
+      if (data.insufficient_data || data.error) return setState({ status: 'hidden' })
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(data)) } catch { /* non-fatal */ }
+      setState({ status: 'ready', data: data as MovementAnalysis })
+    } catch {
+      setState({ status: 'hidden' })
+    }
+  }
+
+  if (state.status === 'idle') {
+    return (
+      <div className="mb-6 p-5 bg-surface rounded-card border border-border flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-secondary text-xs font-semibold uppercase tracking-widest mb-1">
+            Movement Intelligence
+          </p>
+          <p className="text-secondary text-sm">
+            Check the last few weeks for movement gaps and overuse.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={run}
+          className="text-xs text-accent border border-border rounded-btn px-3 py-1.5 hover:border-accent transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+        >
+          Run analysis
+        </button>
+      </div>
+    )
+  }
 
   if (state.status === 'hidden') return null
 

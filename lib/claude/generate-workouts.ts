@@ -2,6 +2,7 @@
 import { buildGenerationPrompt, buildRationalePrompt, buildMovementAnalysisPrompt, type EditEntry } from './prompts'
 import { getAnthropicClient as getClient } from './client'
 import type { WorkoutDay, WorkoutWeek, MovementAnalysis, RecentWeek, WorkoutRationale } from '@/lib/types'
+import { MODEL_REASONING, MODEL_SUMMARY } from './models'
 
 export function validateWorkoutWeek(data: unknown): data is WorkoutWeek {
   if (!Array.isArray(data)) return false
@@ -30,7 +31,7 @@ function addUsage(a: TokenUsage, b: TokenUsage): TokenUsage {
 async function callClaude(prompt: string): Promise<{ result: WorkoutWeek | null; usage: TokenUsage }> {
   const client = getClient()
   const message = await client.messages.create({
-    model: 'claude-opus-4-6',
+    model: MODEL_REASONING,
     max_tokens: 8192,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -64,7 +65,7 @@ ${JSON.stringify(week, null, 2)}
 Return ONLY a valid JSON array with the same structure but each day having an added "scaling" field. No markdown, no explanation, just the JSON.`
 
   const message = await client.messages.create({
-    model: 'claude-opus-4-6',
+    model: MODEL_REASONING,
     max_tokens: 4096,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -113,7 +114,7 @@ export async function generateRationale(
 
   try {
     const message = await client.messages.create({
-      model: 'claude-opus-4-6',
+      model: MODEL_SUMMARY,
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     })
@@ -145,7 +146,7 @@ ${JSON.stringify(day, null, 2)}
 Return ONLY valid JSON of the single day object with the scaling field added. No markdown, no explanation.`
 
   const message = await client.messages.create({
-    model: 'claude-opus-4-6',
+    model: MODEL_REASONING,
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -180,7 +181,7 @@ export async function analyseMovementHistory(
   const prompt = buildMovementAnalysisPrompt(history)
 
   const message = await client.messages.create({
-    model: 'claude-opus-4-6',
+    model: MODEL_SUMMARY,
     max_tokens: 4096,
     messages: [{ role: 'user', content: prompt }],
   })
