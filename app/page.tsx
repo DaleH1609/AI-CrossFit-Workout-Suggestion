@@ -146,6 +146,125 @@ export default function HomePage() {
         </section>
       </div>
 
+      {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
+      {/* Directly after the hero, deliberately. This used to sit ten screens
+          down, behind the phrase spinner, the marquee, the stats and the
+          pinned bar-path section — so a visitor scrolled through 8,000px of
+          atmosphere before finding out how the product actually works. The
+          mood-setting sections still earn their place, but they are what you
+          see once you already understand what you are looking at. */}
+      <WodWalkthrough />
+
+      {/* Features follow how-it-works, because that is the order the questions
+          arrive in: what is this, how does it work, what do I get. This block
+          used to sit at roughly screen seventeen of twenty. */}
+      {/* ── FEATURES ────────────────────────────────────────────────── */}
+      <section id="features" className="scroll-mt-16">
+
+        {/* Section header - hangs off the same left gutter as the hero rather
+            than re-centring, so the page has one spine instead of two. */}
+        <div className="w-full px-6 sm:px-10 lg:px-16 pt-28 pb-16">
+          <div>
+            <p className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase mb-6">What KOVA does</p>
+            <RevealText
+              lines={['Everything your', 'gym needs.', <span key="a" className="text-accent">Nothing it doesn&apos;t.</span>]}
+              className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)]"
+            />
+          </div>
+          <p className="mt-6 max-w-[65ch] text-base text-secondary leading-relaxed">
+            Six systems, one place. No plugin marketplace, no per-seat add-ons, no
+            half-finished modules you have to work around.
+          </p>
+        </div>
+
+        {/* Change 5: AI Generation hero feature - full-width callout above the grid */}
+        <FadeIn>
+          <div className="bg-surface border-y border-border">
+            <div className="w-full px-6 sm:px-10 lg:px-16 py-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-14 lg:gap-20 items-center">
+
+              {/* Copy */}
+              <div>
+                <div className="flex items-center gap-2.5 mb-6">
+                  <Lightning size={13} weight="fill" className="text-accent" />
+                </div>
+                <RevealText
+                  as="h3"
+                  lines={['Your whole week,', <span key="a" className="text-accent">written by AI.</span>]}
+                  className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)] mb-6"
+                />
+                <p className="text-base text-secondary leading-relaxed mb-8 max-w-md text-pretty">
+                  Tell KOVA your gym&apos;s training style once. It generates balanced, intelligent programming - strength cycles, metcons, skill work, and Olympic lifting - that genuinely matches how you coach.
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {['CrossFit', 'Hyrox', 'Strength Focus', 'Skill Bias'].map(tag => (
+                    <span key={tag} className="px-4 py-2 font-mono text-[10px] tracking-[0.15em] uppercase rounded-full bg-accent-10 border border-accent/25 text-accent">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Live generation preview */}
+              <div className="bg-background border border-border rounded-card p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-bold tracking-widest text-accent uppercase">Week of 14 Apr</span>
+                  <span className="flex items-center gap-1.5 text-xs text-secondary">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse flex-shrink-0" />
+                    Generating…
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {AI_PREVIEW_WODS.map((row, i) => (
+                    <div
+                      key={row.day}
+                      className="wod-row-in flex items-center gap-3 px-3 py-2 bg-surface border border-border rounded-btn"
+                      style={{ animationDelay: `${i * 0.2}s`, opacity: 0 }}
+                    >
+                      <span className="text-xs font-bold text-accent w-7 flex-shrink-0">{row.day}</span>
+                      <span className="text-xs text-foreground flex-1">{row.name}</span>
+                      <span className="text-[10px] text-secondary bg-background border border-border px-2 py-0.5 rounded flex-shrink-0">
+                        {row.tag}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-3 border-t border-border flex items-center gap-1.5">
+                  <span className="ai-cursor" />
+                  <span className="text-xs text-secondary">AI generating your week</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* Feature grid. Deliberately not a uniform 3-up: the first cell spans
+            two columns and carries a numbered index, so the eye enters at a
+            fixed point instead of scanning six identical tiles. */}
+        <div className="w-full px-6 sm:px-10 lg:px-16 pb-28">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
+            {FEATURES.map((f, i) => (
+              <FadeIn
+                key={f.title}
+                delay={i * 60}
+                className={i === 0 ? 'sm:col-span-2' : undefined}
+              >
+                <div className="h-full bg-surface p-9 lg:p-11 hover:bg-surface-raised transition-colors group relative">
+                  <f.icon size={i === 0 ? 34 : 26} weight="duotone" className="mb-6 text-accent" />
+                  <h3
+                    className={`font-display uppercase tracking-tight text-pretty text-foreground mb-3 group-hover:text-accent transition-colors ${
+                      i === 0 ? 'text-3xl lg:text-4xl' : 'text-2xl'
+                    }`}
+                  >
+                    {f.title}
+                  </h3>
+                  <p className={`text-sm text-secondary leading-relaxed ${i === 0 ? 'max-w-md' : ''}`}>{f.desc}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── PHRASE SPINNER ───────────────────────────────────────────── */}
       <PhraseSpinner />
 
@@ -187,8 +306,6 @@ export default function HomePage() {
       <BarPath />
       <BarbellRule />
 
-      {/* ── WOD WALKTHROUGH ─────────────────────────────────────────── */}
-      <WodWalkthrough />
 
       {/* ── MEMBER SECTION ──────────────────────────────────────────── */}
       {/* Change 6: larger, app-chrome mock that feels immersive */}
@@ -304,113 +421,6 @@ export default function HomePage() {
               </ul>
             </div>
           </FadeIn>
-        </div>
-      </section>
-
-      {/* ── FEATURES ────────────────────────────────────────────────── */}
-      <section id="features" className="scroll-mt-16">
-
-        {/* Section header - hangs off the same left gutter as the hero rather
-            than re-centring, so the page has one spine instead of two. */}
-        <div className="w-full px-6 sm:px-10 lg:px-16 pt-28 pb-16">
-          <div>
-            <p className="font-mono text-[11px] tracking-[0.3em] text-accent uppercase mb-6">What KOVA does</p>
-            <RevealText
-              lines={['Everything your', 'gym needs.', <span key="a" className="text-accent">Nothing it doesn&apos;t.</span>]}
-              className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)]"
-            />
-          </div>
-          <p className="mt-6 max-w-[65ch] text-base text-secondary leading-relaxed">
-            Six systems, one place. No plugin marketplace, no per-seat add-ons, no
-            half-finished modules you have to work around.
-          </p>
-        </div>
-
-        {/* Change 5: AI Generation hero feature - full-width callout above the grid */}
-        <FadeIn>
-          <div className="bg-surface border-y border-border">
-            <div className="w-full px-6 sm:px-10 lg:px-16 py-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-14 lg:gap-20 items-center">
-
-              {/* Copy */}
-              <div>
-                <div className="flex items-center gap-2.5 mb-6">
-                  <Lightning size={13} weight="fill" className="text-accent" />
-                </div>
-                <RevealText
-                  as="h3"
-                  lines={['Your whole week,', <span key="a" className="text-accent">written by AI.</span>]}
-                  className="font-display uppercase text-foreground leading-[0.85] tracking-[-0.02em] text-[clamp(2.25rem,5vw,4rem)] mb-6"
-                />
-                <p className="text-base text-secondary leading-relaxed mb-8 max-w-md text-pretty">
-                  Tell KOVA your gym&apos;s training style once. It generates balanced, intelligent programming - strength cycles, metcons, skill work, and Olympic lifting - that genuinely matches how you coach.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  {['CrossFit', 'Hyrox', 'Strength Focus', 'Skill Bias'].map(tag => (
-                    <span key={tag} className="px-4 py-2 font-mono text-[10px] tracking-[0.15em] uppercase rounded-full bg-accent-10 border border-accent/25 text-accent">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Live generation preview */}
-              <div className="bg-background border border-border rounded-card p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold tracking-widest text-accent uppercase">Week of 14 Apr</span>
-                  <span className="flex items-center gap-1.5 text-xs text-secondary">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse flex-shrink-0" />
-                    Generating…
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {AI_PREVIEW_WODS.map((row, i) => (
-                    <div
-                      key={row.day}
-                      className="wod-row-in flex items-center gap-3 px-3 py-2 bg-surface border border-border rounded-btn"
-                      style={{ animationDelay: `${i * 0.2}s`, opacity: 0 }}
-                    >
-                      <span className="text-xs font-bold text-accent w-7 flex-shrink-0">{row.day}</span>
-                      <span className="text-xs text-foreground flex-1">{row.name}</span>
-                      <span className="text-[10px] text-secondary bg-background border border-border px-2 py-0.5 rounded flex-shrink-0">
-                        {row.tag}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 pt-3 border-t border-border flex items-center gap-1.5">
-                  <span className="ai-cursor" />
-                  <span className="text-xs text-secondary">AI generating your week</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-
-        {/* Feature grid. Deliberately not a uniform 3-up: the first cell spans
-            two columns and carries a numbered index, so the eye enters at a
-            fixed point instead of scanning six identical tiles. */}
-        <div className="w-full px-6 sm:px-10 lg:px-16 pb-28">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
-            {FEATURES.map((f, i) => (
-              <FadeIn
-                key={f.title}
-                delay={i * 60}
-                className={i === 0 ? 'sm:col-span-2' : undefined}
-              >
-                <div className="h-full bg-surface p-9 lg:p-11 hover:bg-surface-raised transition-colors group relative">
-                  <f.icon size={i === 0 ? 34 : 26} weight="duotone" className="mb-6 text-accent" />
-                  <h3
-                    className={`font-display uppercase tracking-tight text-pretty text-foreground mb-3 group-hover:text-accent transition-colors ${
-                      i === 0 ? 'text-3xl lg:text-4xl' : 'text-2xl'
-                    }`}
-                  >
-                    {f.title}
-                  </h3>
-                  <p className={`text-sm text-secondary leading-relaxed ${i === 0 ? 'max-w-md' : ''}`}>{f.desc}</p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
         </div>
       </section>
 

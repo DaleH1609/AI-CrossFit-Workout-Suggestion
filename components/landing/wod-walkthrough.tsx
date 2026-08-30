@@ -101,6 +101,11 @@ function PanelReview() {
 }
 
 function PanelPublish() {
+  /* The section below is 300vh, down from 550vh. Its sentinels sit at 30%
+     and 60%, so that is three steps across three screens rather than five
+     and a half. At the old height it took nearly two screens of scrolling
+     to advance a single step, which reads as the page not responding. The
+     sentinels are percentages, so they rescaled on their own. */
   return (
     <div className="h-full flex flex-col p-6 bg-surface rounded-card border border-border">
       <div className="grid grid-cols-5 gap-2 flex-1">
@@ -156,7 +161,7 @@ export function WodWalkthrough() {
     <section
       id="how-it-works"
       className="relative scroll-mt-16"
-      style={{ height: '550vh' }}
+      style={{ height: '300vh' }}
     >
       {/* Sentinel divs - absolute siblings of the sticky div, not inside it */}
       <div ref={sent1} style={{ position: 'absolute', top: '30%', height: '1px', width: '100%', pointerEvents: 'none' }} />
