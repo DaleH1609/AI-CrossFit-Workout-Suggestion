@@ -42,3 +42,4 @@ next-env.d.ts
 
 # Supabase CLI local state (link info, versions) — machine-specific
 supabase/.temp/
+.playwright-cli/
