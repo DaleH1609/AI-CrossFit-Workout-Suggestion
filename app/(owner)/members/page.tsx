@@ -437,12 +437,20 @@ export default function MembersPage() {
         onConfirm={handleRevoke}
         onCancel={() => setRevokeTarget(null)}
       />
+      {/* Delete is the only genuinely irreversible action on this screen: the
+          route hard-deletes the users row and the auth user, with no restore
+          path. Revoke above is undone by /api/members/restore, so it stays a
+          single click and only delete asks the owner to type the name. */}
       <Modal
         open={!!deleteTarget}
         title="Delete Member?"
         description="This will permanently delete the member and cancel all their future bookings. This cannot be undone."
         confirmLabel="Delete Member"
         confirmVariant="danger"
+        confirmPhrase={
+          members.find(m => m.id === deleteTarget)?.name?.trim() ||
+          members.find(m => m.id === deleteTarget)?.email
+        }
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />

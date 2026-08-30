@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { Combobox } from '@/components/ui/combobox'
 import type { ClassType, ScheduleDefaults, ScheduleTemplate } from '@/lib/types'
 import { CapacityDefaults } from '@/components/schedule/capacity-defaults'
 import { ClassTypesManager } from '@/components/schedule/class-types-manager'
@@ -306,16 +307,15 @@ export default function SchedulePage() {
                         {coaches.length > 0 && (
                           <div className="flex items-center gap-2 pb-2 border-b border-border/50">
                             <span className="text-xs text-secondary shrink-0">Coach:</span>
-                            <select
-                              value={instance.coach_id ?? ''}
-                              onChange={e => handleCoachAssign(instance.id, e.target.value || null)}
-                              className="flex-1 text-xs bg-surface border border-border rounded px-2 py-1 text-foreground focus:outline-none focus:border-accent"
-                            >
-                              <option value="">- unassigned -</option>
-                              {coaches.map(c => (
-                                <option key={c.id} value={c.id}>{c.name || c.email}</option>
-                              ))}
-                            </select>
+                            <Combobox
+                              className="flex-1"
+                              ariaLabel="Assign coach"
+                              value={instance.coach_id ?? null}
+                              onChange={v => handleCoachAssign(instance.id, v)}
+                              clearable
+                              placeholder="- unassigned -"
+                              options={coaches.map(c => ({ value: c.id, label: c.name || c.email }))}
+                            />
                           </div>
                         )}
                         {instance.bookings.length === 0 ? (

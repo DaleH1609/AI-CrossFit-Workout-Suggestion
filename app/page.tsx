@@ -10,6 +10,7 @@ import { BarbellRule } from '@/components/landing/barbell-rule'
 import { RevealText } from '@/components/ui/reveal-text'
 import { SplitHeading } from '@/components/ui/split-heading'
 import { Magnetic } from '@/components/ui/magnetic'
+import { MetalFx } from '@/components/ui/metal-fx'
 import { CountUp } from '@/components/ui/count-up'
 import { MovementMarquee } from '@/components/landing/movement-marquee'
 // SSR entry — this page is a server component, so the CSR build would force a
@@ -428,13 +429,31 @@ export default function HomePage() {
             className="font-display uppercase text-white leading-[0.82] tracking-[-0.02em] text-[clamp(2.5rem,6vw,4.5rem)] mb-8"
           />
           <p className="text-white/40 text-base mb-10">Start programming smarter today.</p>
+          {/* MetalFx sits *inside* Magnetic, not outside it. Magnetic moves the
+              button with a transform on hover, and MetalFx positions its canvas
+              over the child it measures — ResizeObserver reports size, not
+              position, so a canvas layered outside would stay put while the
+              button slid away from it. Nested here, ring and button translate
+              as one subtree.
+
+              theme is pinned rather than following the app: this band hardcodes
+              a #0B0B0C ground, so it is dark even when the app is in light mode.
+
+              normalizeHostStyles must stay off. It applies `outline: 0
+              !important` and overwrites boxShadow, which is precisely how
+              Tailwind renders focus-visible:ring-2 — leaving it on would strip
+              the keyboard focus indicator from the page's primary CTA. The
+              button sets no static border or shadow, so there is nothing for
+              the ring to clash with anyway. */}
           <Magnetic strength={0.35}>
-            <Link
-              href="/signup"
-              className="inline-flex h-14 items-center touch-manipulation bg-accent text-black px-11 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]"
-            >
-              Get Started Free
-            </Link>
+            <MetalFx preset="silver" theme="dark" strength={0.9} normalizeHostStyles={false}>
+              <Link
+                href="/signup"
+                className="inline-flex h-14 items-center touch-manipulation bg-accent text-black px-11 text-sm font-bold tracking-widest uppercase rounded-full hover:bg-accent-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0C]"
+              >
+                Get Started Free
+              </Link>
+            </MetalFx>
           </Magnetic>
           <p className="mt-5 font-mono text-[11px] tracking-[0.2em] uppercase text-white/25">No credit card required</p>
         </div>

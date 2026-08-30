@@ -1,5 +1,6 @@
 'use client'
 import { useState, useCallback, useRef, Fragment } from 'react'
+import { Combobox } from '@/components/ui/combobox'
 import type { ClassType, ScheduleDefaults, ScheduleTemplate } from '@/lib/types'
 import { useToast } from '@/components/ui/toast'
 
@@ -603,15 +604,12 @@ export function ScheduleGrid({ initialTemplates, defaults, classTypes }: Props) 
                       {/* Class type */}
                       <div className="flex flex-col gap-1 min-w-[120px]">
                         <label className="text-[10px] text-secondary uppercase tracking-wide">Class type</label>
-                        <select
-                          value={editState.classTypeId ?? classTypes[0]?.id ?? ''}
-                          onChange={e => autoSave({ classTypeId: e.target.value || null, saved: false }, editState)}
-                          className="bg-background border border-border rounded-btn px-2 py-1 text-xs text-foreground focus:outline-none focus:border-accent"
-                        >
-                          {classTypes.map(ct => (
-                            <option key={ct.id} value={ct.id}>{ct.name}</option>
-                          ))}
-                        </select>
+                        <Combobox
+                          ariaLabel="Class type"
+                          value={editState.classTypeId ?? classTypes[0]?.id ?? null}
+                          onChange={v => autoSave({ classTypeId: v, saved: false }, editState)}
+                          options={classTypes.map(ct => ({ value: ct.id, label: ct.name }))}
+                        />
                       </div>
                       {/* Capacity */}
                       <div className="flex flex-col gap-1">
