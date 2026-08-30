@@ -289,6 +289,27 @@ body {
   .feature-in.visible { animation: none; }
 }
 
+/* Decorative loops that run without user input must stop under reduced motion.
+   The guidance is explicit that a muted decorative loop has to stop, and these
+   were each guarded individually or not at all — the float cards, the CTA glow,
+   the scroll hint and the blinking cursor all kept running. Skeleton shimmer is
+   deliberately left alone: it communicates loading state rather than decorating,
+   and freezing it would make a loading screen look hung. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-a,
+  .animate-float-b,
+  .animate-float-c,
+  .ai-cursor,
+  .scroll-bounce,
+  .cta-pulse { animation: none; }
+
+  /* The scroll hint and the cursor exist to be seen, so freezing them must not
+     hide them — animation: none alone leaves each at its keyframe start, which
+     is legible for both. */
+  .ai-cursor { opacity: 1; }
+  .scroll-bounce { transform: none; opacity: 1; }
+}
+
 /* ─── CTA glow pulse ──────────────────────────────────────────── */
 @keyframes ctaGlow {
   0%, 100% { box-shadow: 0 12px 40px rgba(198,242,78,0.35); }

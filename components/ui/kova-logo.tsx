@@ -8,9 +8,23 @@ const sizes: Record<KovaLogoSize, { slashW: number; slashH: number; fontSize: nu
   lg: { slashW: 18, slashH: 34, fontSize: 34, letterSpacing: 5, gap: 12 },
 }
 
-export function KovaLogo({ size = 'md', variant = 'light' }: { size?: KovaLogoSize; variant?: 'light' | 'dark' }) {
+/**
+ * variant defaults to 'auto', which renders the wordmark in currentColor so it
+ * inherits whatever text colour its surface already uses.
+ *
+ * It used to default to 'light', a hardcoded #FFFFFF. That was invisible on
+ * every light-themed surface — the landing header, the auth pages, the
+ * sidebars — because white text was being painted onto a white background.
+ * Nothing threw and nothing looked broken in dark mode, which is why it
+ * survived.
+ *
+ * The explicit variants remain for the two places that sit on a background
+ * pinned to one colour regardless of theme: 'light' for the near-black footer
+ * band, 'dark' for the accent brand panel.
+ */
+export function KovaLogo({ size = 'md', variant = 'auto' }: { size?: KovaLogoSize; variant?: 'auto' | 'light' | 'dark' }) {
   const { slashW, slashH, fontSize, letterSpacing, gap } = sizes[size]
-  const textColor = variant === 'dark' ? '#0B0B0C' : '#FFFFFF'
+  const textColor = variant === 'auto' ? 'currentColor' : variant === 'dark' ? '#0B0B0C' : '#FFFFFF'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap }}>
       <svg

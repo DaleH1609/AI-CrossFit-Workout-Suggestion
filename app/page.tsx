@@ -451,7 +451,8 @@ export default function HomePage() {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
             <div className="col-span-2">
-              <KovaLogo size="sm" />
+              {/* Pinned: this footer band is #0B0B0C in both themes. */}
+              <KovaLogo size="sm" variant="light" />
               <p className="text-sm text-white/40 mt-5 max-w-xs leading-relaxed text-pretty">
                 AI-powered gym programming for CrossFit and Hyrox coaches. Less planning, more coaching.
               </p>

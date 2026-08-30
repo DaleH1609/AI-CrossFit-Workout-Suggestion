@@ -176,7 +176,7 @@ export function WodWalkthrough() {
               {STEPS.map((step, i) => (
                 <div
                   key={step.num}
-                  className={`border-l-2 pl-5 transition-all duration-300 ${
+                  className={`border-l-2 pl-5 transition-[border-color,opacity] duration-300 ${
                     active === i ? 'border-accent' : 'border-transparent'
                   }`}
                 >
@@ -197,7 +197,7 @@ export function WodWalkthrough() {
                 {PANELS.map((panel, i) => (
                   <div
                     key={i}
-                    className={`absolute inset-0 transition-all duration-500 ease-fluid ${
+                    className={`absolute inset-0 transition-[opacity,transform] duration-500 ease-fluid ${
                       active === i
                         ? 'opacity-100 translate-y-0'
                         : 'opacity-0 translate-y-2 pointer-events-none'
